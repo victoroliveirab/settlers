@@ -1,0 +1,21 @@
+{
+  "name": "client",
+  "version": "0.0.1",
+  "description": "Settlers Client",
+  "main": "app.js",
+  "scripts": {
+    "dev": "rollup --config --watch",
+    "format": "prettier .",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^12.1.2",
+    "prettier": "^3.4.2",
+    "rollup": "^4.34.1",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.3"
+  }
+}

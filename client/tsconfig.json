@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ESNext",
+    "allowSyntheticDefaultImports": false,
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
+    "jsx": "preserve",
+    "jsxImportSource": null,
+    "noEmit": true,
+    "noEmitOnError": false,
+    "isolatedModules": true
+  },
+  "include": [
+    "./src/**/*.ts"
+  ]
+}

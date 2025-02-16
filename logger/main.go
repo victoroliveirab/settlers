@@ -1,0 +1,114 @@
+package logger
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+	"time"
+)
+
+type LogMessageStruct struct {
+	Timestamp string                 `json:"timestamp"`
+	Direction string                 `json:"direction"`
+	ClientID  string                 `json:"client_id"`
+	Type      string                 `json:"type"`
+	Message   map[string]interface{} `json:"message"`
+}
+
+var logFile *os.File
+var persist bool = false
+
+func Init(shouldPersist bool) {
+	if !shouldPersist {
+		return
+	}
+	persist = true
+	var err error
+	logFile, err = os.OpenFile("logs.json", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open log file: %v", err)
+	}
+	// log.SetOutput(logFile)
+}
+
+func LogWSMessage(direction, clientID string, msgType string, msg map[string]interface{}) {
+	logEntry := LogMessageStruct{
+		Timestamp: time.Now().Format(time.RFC3339),
+		Direction: direction,
+		ClientID:  clientID,
+		Type:      msgType,
+		Message:   msg,
+	}
+
+	logData, err := json.Marshal(logEntry)
+	if err != nil {
+		log.Printf("Error marshaling log entry: %v", err)
+		return
+	}
+
+	log.Println(string(logData))
+	if persist {
+		writeLog(logData)
+	}
+}
+
+func Log(msg string) {
+	logEntry := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+		"message":   msg,
+	}
+
+	logData, err := json.Marshal(logEntry)
+	if err != nil {
+		log.Printf("Error marshaling log entry: %v", err)
+		return
+	}
+
+	log.Println(string(logData))
+	if persist {
+		writeLog(logData)
+	}
+
+}
+
+func LogError(clientID, action string, errorType int, err error) {
+	logEntry := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+		"severity":  "error",
+		"client_id": clientID,
+		"action":    action,
+		"type":      errorType,
+		"error":     err.Error(),
+	}
+
+	logData, _ := json.Marshal(logEntry)
+	log.Println(string(logData)) // Print error log in JSON format
+	if persist {
+		writeLog(logData)
+	}
+}
+
+func LogMessage(clientID, action, message string) {
+	logEntry := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+		"severity":  "info",
+		"client_id": clientID,
+		"action":    action,
+		"message":   message,
+	}
+
+	logData, _ := json.Marshal(logEntry)
+	log.Println(string(logData)) // Print error log in JSON format
+	if persist {
+		writeLog(logData)
+	}
+
+}
+
+func writeLog(logData []byte) {
+	// Ensure each log entry is on a new line
+	_, err := logFile.Write(append(logData, '\n'))
+	if err != nil {
+		log.Printf("Error writing to log file: %v", err)
+	}
+}
