@@ -10,3 +10,16 @@ func SliceShuffle[T any](slice []T, randGenerator *rand.Rand) {
 		slice[i], slice[j] = slice[j], slice[i]
 	}
 }
+
+func SliceContains[T comparable](slice []T, val T) bool {
+	for _, v := range slice {
+		if v == val {
+			return true
+		}
+	}
+	return false
+}
+
+func SliceLast[T any](slice []T) T {
+	return slice[len(slice)-1]
+}
