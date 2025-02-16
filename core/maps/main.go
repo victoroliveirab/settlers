@@ -53,7 +53,7 @@ var MapCollection map[string]MapDefinition = make(map[string]MapDefinition)
 
 func LoadMap(name string) error {
 	filename := fmt.Sprintf("%s.json", name)
-	filePath := filepath.Join("engine", "maps-definitions", "data", filename)
+	filePath := filepath.Join("core", "maps", "data", filename)
 	action := fmt.Sprintf("LoadMap.%s", name)
 
 	// Open the file
