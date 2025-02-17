@@ -9,7 +9,7 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 	}
 
 	if state.roundType != SetupSettlement1 && state.roundType != SetupSettlement2 && state.roundType != Regular {
-		err := fmt.Errorf("Cannot build settlement during %s", roundTypeTranslation[state.roundType])
+		err := fmt.Errorf("Cannot build settlement during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
 

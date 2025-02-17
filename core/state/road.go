@@ -13,7 +13,7 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 	}
 
 	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != Regular {
-		err := fmt.Errorf("Cannot build road during %s", roundTypeTranslation[state.roundType])
+		err := fmt.Errorf("Cannot build road during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
 

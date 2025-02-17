@@ -22,7 +22,7 @@ const (
 	DiscardPhase
 )
 
-var roundTypeTranslation = [10]string{
+var RoundTypeTranslation = [10]string{
 	"SettlementSetup#1",
 	"RoadSetup#1",
 	"SettlementSetup#2",
