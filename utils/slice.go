@@ -23,3 +23,15 @@ func SliceContains[T comparable](slice []T, val T) bool {
 func SliceLast[T any](slice []T) T {
 	return slice[len(slice)-1]
 }
+
+func SliceEqual[T comparable](slice1 []T, slice2 []T) bool {
+	if len(slice1) != len(slice2) {
+		return false
+	}
+	for i, itemSlice1 := range slice1 {
+		if itemSlice1 != slice2[i] {
+			return false
+		}
+	}
+	return true
+}

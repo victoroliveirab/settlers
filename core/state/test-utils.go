@@ -2,6 +2,7 @@ package state
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 
 	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
@@ -19,6 +20,21 @@ type GameStateMock struct {
 }
 
 type GameStateOption func(*GameState)
+
+func GetAllRounds() []int {
+	return []int{
+		SetupSettlement1,
+		SetupRoad1,
+		SetupSettlement2,
+		SetupRoad2,
+		FirstRound,
+		Regular,
+		MoveRobberDue7,
+		PickRobbed,
+		BetweenTurns,
+		DiscardPhase,
+	}
+}
 
 func CreateTestGame(opts ...GameStateOption) *GameState {
 	mapsdefinitions.LoadMap("base4")
@@ -118,4 +134,41 @@ func MockWithRoadsByPlayer(roadsByPlayer map[string][]int) GameStateOption {
 			}
 		}
 	}
+}
+
+func MockWithBlockedTile(tileID int) GameStateOption {
+	return func(gs *GameState) {
+		for _, tile := range gs.tiles {
+			if tile.ID == tileID {
+				tile.Blocked = true
+			} else {
+				tile.Blocked = false
+			}
+		}
+	}
+}
+
+func MockWithRand(r *rand.Rand) GameStateOption {
+	return func(gs *GameState) {
+		gs.rand = r
+	}
+}
+
+func StubRand(desiredSum int) *rand.Rand {
+	seedByDesiredSum := map[int]int64{
+		2:  56,
+		3:  16,
+		4:  7,
+		5:  15,
+		6:  2,
+		7:  4,
+		8:  10,
+		9:  13,
+		10: 1,
+		11: 3,
+		12: 42,
+	}
+	stub := rand.NewSource(seedByDesiredSum[desiredSum])
+	r := rand.New(stub)
+	return r
 }

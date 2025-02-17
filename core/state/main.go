@@ -1,7 +1,9 @@
 package state
 
 import (
+	"fmt"
 	"maps"
+	"math"
 	"math/rand"
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
@@ -64,6 +66,9 @@ type GameState struct {
 	dice1              int
 	dice2              int
 
+	// discard related
+	discardMap map[string]int
+
 	// cards related
 	playerResourceHandMap    map[string]map[string]int
 	playerDevelopmentHandMap map[string]map[string]int
@@ -116,6 +121,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.currentPlayerIndex = 0
 	state.dice1 = 0
 	state.dice2 = 0
+	state.discardMap = make(map[string]int)
 
 	state.playerResourceHandMap = make(map[string]map[string]int)
 	state.playerDevelopmentHandMap = make(map[string]map[string]int)
@@ -129,6 +135,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.settlementMap = make(map[int]Building)
 
 	for _, player := range players {
+		state.discardMap[player.ID] = 0
 		state.playerSettlementMap[player.ID] = make([]int, 0)
 		state.playerCityMap[player.ID] = make([]int, 0)
 		state.playerRoadMap[player.ID] = make([]int, 0)
@@ -159,12 +166,25 @@ func (state *GameState) findPlayer(playerID string) *coreT.Player {
 }
 
 // Getters
+func (state *GameState) Dice() [2]int {
+	return [2]int{state.dice1, state.dice2}
+}
+
 func (state *GameState) RoundType() int {
 	return state.roundType
 }
 
 func (state *GameState) ResourceHandByPlayer(playerID string) map[string]int {
 	return state.playerResourceHandMap[playerID]
+}
+
+func (state *GameState) NumberOfCardsInHandByPlayer(playerID string) int {
+	hand := state.ResourceHandByPlayer(playerID)
+	sum := 0
+	for _, count := range hand {
+		sum += count
+	}
+	return sum
 }
 
 func (state *GameState) SettlementsByPlayer(playerID string) []int {
@@ -189,4 +209,55 @@ func (state *GameState) RoadsByPlayer(playerID string) []int {
 
 func (state *GameState) AllRoads() map[int]Building {
 	return maps.Clone(state.roadMap)
+}
+
+func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
+	keys := make([]string, 0)
+
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot check robbable players during other player's round")
+		return keys, err
+	}
+
+	if state.roundType != PickRobbed {
+		err := fmt.Errorf("Cannot check robbable players outside PickRobbed round type")
+		return keys, err
+	}
+
+	robbablePlayers := make(map[string]bool)
+	for _, tile := range state.tiles {
+		if tile.Blocked {
+			vertices := state.definition.VerticesByTile[tile.ID]
+			for _, vertexID := range vertices {
+				settlement, hasSettlement := state.settlementMap[vertexID]
+				city, hasCity := state.cityMap[vertexID]
+				if hasSettlement {
+					robbablePlayers[settlement.Owner] = true
+				}
+				if hasCity {
+					robbablePlayers[city.Owner] = true
+				}
+			}
+		}
+	}
+	for ownerID := range robbablePlayers {
+		if ownerID != playerID {
+			keys = append(keys, ownerID)
+		}
+	}
+	return keys, nil
+}
+
+func (state *GameState) DiscardAmountByPlayer(playerID string) int {
+	if state.roundType != DiscardPhase {
+		return 0
+	}
+	total := 0
+	for _, count := range state.playerResourceHandMap[playerID] {
+		total += count
+	}
+	if total <= state.maxCards {
+		return 0
+	}
+	return int(math.Floor(float64(total) / 2))
 }
