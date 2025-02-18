@@ -132,6 +132,7 @@ func MockWithRoadsByPlayer(roadsByPlayer map[string][]int) GameStateOption {
 					Owner: playerID,
 				}
 			}
+			gs.computeLongestRoad(playerID)
 		}
 	}
 }

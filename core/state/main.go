@@ -77,6 +77,7 @@ type GameState struct {
 	playerSettlementMap map[string][]int
 	playerCityMap       map[string][]int
 	playerRoadMap       map[string][]int
+	playerLongestRoad   map[string][]int
 
 	// book keeping
 	cityMap       map[int]Building
@@ -129,6 +130,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.playerSettlementMap = make(map[string][]int)
 	state.playerCityMap = make(map[string][]int)
 	state.playerRoadMap = make(map[string][]int)
+	state.playerLongestRoad = make(map[string][]int)
 
 	state.cityMap = make(map[int]Building)
 	state.roadMap = make(map[int]Building)
@@ -139,6 +141,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 		state.playerSettlementMap[player.ID] = make([]int, 0)
 		state.playerCityMap[player.ID] = make([]int, 0)
 		state.playerRoadMap[player.ID] = make([]int, 0)
+		state.playerLongestRoad[player.ID] = make([]int, 0)
 		state.playerResourceHandMap[player.ID] = make(map[string]int)
 		state.playerDevelopmentHandMap[player.ID] = make(map[string]int)
 
@@ -209,6 +212,10 @@ func (state *GameState) RoadsByPlayer(playerID string) []int {
 
 func (state *GameState) AllRoads() map[int]Building {
 	return maps.Clone(state.roadMap)
+}
+
+func (state *GameState) LongestRoadLengthByPlayer(playerID string) int {
+	return len(state.playerLongestRoad[playerID])
 }
 
 func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {

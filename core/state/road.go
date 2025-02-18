@@ -71,4 +71,65 @@ func (state *GameState) handleNewRoad(playerID string, edgeID int) {
 	}
 	state.roadMap[edgeID] = entry
 	state.playerRoadMap[playerID] = append(state.playerRoadMap[playerID], edgeID)
+	state.computeLongestRoad(playerID)
+}
+
+func (state *GameState) computeLongestRoad(playerID string) {
+	graph := make(map[int][]int)
+	for _, edgeID := range state.playerRoadMap[playerID] {
+		edge := state.definition.VerticesByEdge[edgeID]
+		vertex1 := edge[0]
+		vertex2 := edge[1]
+
+		_, exists := graph[vertex1]
+		if !exists {
+			graph[vertex1] = make([]int, 0)
+		}
+		graph[vertex1] = append(graph[vertex1], edgeID)
+
+		_, exists = graph[vertex2]
+		if !exists {
+			graph[vertex2] = make([]int, 0)
+		}
+		graph[vertex2] = append(graph[vertex2], edgeID)
+	}
+
+	var maxPath []int
+	var dfs func(node int, visited map[int]bool, path []int)
+
+	dfs = func(node int, visited map[int]bool, path []int) {
+		if len(path) > len(maxPath) {
+			maxPath = append([]int{}, path...)
+		}
+
+		for _, edgeID := range graph[node] {
+			if !visited[edgeID] {
+				var vertex int
+				if state.definition.VerticesByEdge[edgeID][0] == node {
+					vertex = state.definition.VerticesByEdge[edgeID][1]
+				} else if state.definition.VerticesByEdge[edgeID][1] == node {
+					vertex = state.definition.VerticesByEdge[edgeID][0]
+				} else {
+					panic(fmt.Sprintf("unknown edgeID %d", edgeID))
+				}
+				settlement, settlementExists := state.settlementMap[vertex]
+				city, cityExists := state.cityMap[vertex]
+				if (settlementExists && settlement.Owner != playerID) || (cityExists && city.Owner != playerID) {
+					continue
+				}
+				visited[edgeID] = true
+				dfs(vertex, visited, append(path, edgeID))
+				delete(visited, edgeID)
+			}
+		}
+	}
+
+	for startNode := range graph {
+		visited := make(map[int]bool)
+		dfs(startNode, visited, []int{})
+	}
+
+	if len(maxPath) > len(state.playerLongestRoad[playerID]) {
+		state.playerLongestRoad[playerID] = maxPath
+	}
 }

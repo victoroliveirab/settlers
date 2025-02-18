@@ -1,8 +1,10 @@
 package tests
 
 import (
-	testUtils "github.com/victoroliveirab/settlers/core/state"
+	"fmt"
 	"testing"
+
+	testUtils "github.com/victoroliveirab/settlers/core/state"
 )
 
 func TestBuildRoadSetup1PhaseSuccess(t *testing.T) {
@@ -160,7 +162,6 @@ func TestBuildRoadErrorSetupPhaseNotAttachedToLastSettlement(t *testing.T) {
 			t.Errorf("expected to not be able to build road in edge#54 during setup phase 2, but it built just fine")
 		}
 	})
-
 }
 
 func TestBuildRoadErrorAlreadyExists(t *testing.T) {
@@ -282,4 +283,84 @@ func TestBuildRoadErrorNotRoadOrSettlementAttached(t *testing.T) {
 			t.Errorf("expected to not be able to build road without being connected to settlement/city or road, but it built just fine")
 		}
 	})
+}
+
+func TestLongestRoad(t *testing.T) {
+	var tests = []struct {
+		description    string
+		edges          []int
+		settlementMap  map[string][]int
+		expectedResult int
+	}{
+		{
+			description:    "simple line",
+			edges:          []int{1, 2, 7, 8, 12},
+			expectedResult: 5,
+		},
+		{
+			description:    "simple line with branch",
+			edges:          []int{1, 2, 7, 8, 9, 12},
+			expectedResult: 5,
+		},
+		{
+			description:    "simple most outer ring",
+			edges:          []int{4, 5, 6, 10, 11, 14, 15, 16, 20, 21, 30, 31, 32, 35, 36, 47, 48, 49, 50, 53, 61, 62, 63, 64, 66, 67, 68, 70, 71, 72},
+			expectedResult: 30,
+		},
+		{
+			description:    "most outer ring with internal roads",
+			edges:          []int{1, 4, 5, 6, 10, 11, 14, 15, 16, 20, 21, 30, 31, 32, 35, 36, 47, 48, 49, 50, 53, 61, 62, 63, 64, 66, 67, 68, 70, 71, 72},
+			expectedResult: 31,
+		},
+		{
+			description:    "hangman",
+			edges:          []int{23, 25, 26, 38, 39, 40, 41, 42, 43, 44},
+			expectedResult: 8,
+		},
+		{
+			description:    "tile loop",
+			edges:          []int{1, 2, 3, 4, 5, 6},
+			expectedResult: 6,
+		},
+		{
+			description:    "double tile loop",
+			edges:          []int{1, 2, 3, 4, 5, 6, 7, 19, 22, 23, 24},
+			expectedResult: 11,
+		},
+		{
+			description:    "triple tile loop",
+			edges:          []int{1, 2, 3, 4, 5, 6, 7, 19, 22, 23, 24, 25, 39, 40, 41, 42},
+			expectedResult: 15,
+		},
+		{
+			description:    "double tile loop with connecting edge",
+			edges:          []int{1, 2, 3, 4, 5, 6, 7, 8, 12, 24, 25, 26, 27},
+			expectedResult: 13,
+		},
+		{
+			description:    "interrupted line",
+			edges:          []int{1, 2, 7, 8},
+			expectedResult: 2,
+			settlementMap: map[string][]int{
+				"1": {1, 8},
+				"2": {3},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		testname := fmt.Sprintf("longest road - %s", tt.description)
+		t.Run(testname, func(t *testing.T) {
+			game := testUtils.CreateTestGame(
+				testUtils.MockWithSettlementsByPlayer(tt.settlementMap),
+				testUtils.MockWithRoadsByPlayer(map[string][]int{
+					"1": tt.edges,
+				}),
+			)
+			length := game.LongestRoadLengthByPlayer("1")
+			if length != tt.expectedResult {
+				t.Errorf("expected longest road to have length %d, but got %d", tt.expectedResult, length)
+			}
+		})
+	}
 }
