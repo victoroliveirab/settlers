@@ -55,7 +55,7 @@ func (state *GameState) RollDice(playerID string) error {
 		return err
 	}
 
-	if state.roundType != FirstRound && state.roundType != Regular {
+	if state.roundType != FirstRound && state.roundType != BetweenTurns {
 		err := fmt.Errorf("Cannot roll dice during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
@@ -120,5 +120,6 @@ func (state *GameState) EndRound(playerID string) error {
 		newIndex = 0
 	}
 	state.currentPlayerIndex = newIndex
+	state.roundType = BetweenTurns
 	return nil
 }

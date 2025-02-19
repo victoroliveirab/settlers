@@ -9,7 +9,7 @@ import (
 func TestHandleDice7TilePlayerHasCards(t *testing.T) {
 	rand := testUtils.StubRand(7)
 	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithRoundType(testUtils.BetweenTurns),
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -68,7 +68,7 @@ func TestHandleDice7TilePlayerHasCards(t *testing.T) {
 func TestHandleDice7TilePlayerHasNoCards(t *testing.T) {
 	rand := testUtils.StubRand(7)
 	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithRoundType(testUtils.BetweenTurns),
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -127,7 +127,7 @@ func TestHandleDice7TilePlayerHasNoCards(t *testing.T) {
 func TestHandleDice7TilePlayerRobsItself(t *testing.T) {
 	rand := testUtils.StubRand(7)
 	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithRoundType(testUtils.BetweenTurns),
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},

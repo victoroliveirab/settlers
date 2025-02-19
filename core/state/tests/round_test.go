@@ -10,7 +10,7 @@ import (
 
 func TestRollDiceNotPlayerRound(t *testing.T) {
 	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithRoundType(testUtils.BetweenTurns),
 		testUtils.MockWithCurrentRoundPlayer("2"),
 	)
 	t.Run("dice roll attempt out of player's round", func(t *testing.T) {
@@ -35,10 +35,10 @@ func TestRollDiceAcrossAllRoundTypes(t *testing.T) {
 		testUtils.SetupSettlement2: true,
 		testUtils.SetupRoad2:       true,
 		testUtils.FirstRound:       false,
-		testUtils.Regular:          false,
+		testUtils.Regular:          true,
 		testUtils.MoveRobberDue7:   true,
 		testUtils.PickRobbed:       true,
-		testUtils.BetweenTurns:     true,
+		testUtils.BetweenTurns:     false,
 		testUtils.DiscardPhase:     true,
 	}
 
@@ -59,7 +59,7 @@ func TestHandleDiceNot7NotBlocked(t *testing.T) {
 	createGame := func(sum int) *testUtils.GameState {
 		rand := testUtils.StubRand(sum)
 		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(testUtils.Regular),
+			testUtils.MockWithRoundType(testUtils.BetweenTurns),
 			testUtils.MockWithSettlementsByPlayer(map[string][]int{
 				"1": {40, 11, 6},
 			}),
@@ -202,7 +202,7 @@ func TestHandleDiceNot7NotBlocked(t *testing.T) {
 func TestHandleDiceNot7Blocked(t *testing.T) {
 	rand := testUtils.StubRand(4)
 	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithRoundType(testUtils.BetweenTurns),
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {40, 11, 6},
 		}),
