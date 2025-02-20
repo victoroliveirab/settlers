@@ -28,6 +28,7 @@ type MapDefinition struct {
 	TilesByVertex        map[int][]int   `json:"tilesByVertex"`
 	VerticesByEdge       map[int][2]int  `json:"verticesByEdge"`
 	EdgesByVertex        map[int][]int   `json:"edgesByVertex"`
+	DevelopmentCards     map[string]int  `json:"developmentCards"`
 }
 
 type meta struct {
@@ -45,8 +46,9 @@ type jsonStructure struct {
 }
 
 type generateMapReturnType struct {
-	Definition MapDefinition
-	Tiles      []*coreT.MapBlock
+	Definition       MapDefinition
+	Tiles            []*coreT.MapBlock
+	DevelopmentCards []*coreT.DevelopmentCard
 }
 
 var MapCollection map[string]MapDefinition = make(map[string]MapDefinition)
@@ -142,6 +144,18 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 			S: definitions.HexCoordinatesByTile[tile.ID][2],
 		}
 	}
+
+	developmentCards := make([]*coreT.DevelopmentCard, 0)
+
+	for kind, quantity := range definitions.DevelopmentCards {
+		for i := 0; i < quantity; i++ {
+			developmentCards = append(developmentCards, &coreT.DevelopmentCard{
+				Name: kind,
+			})
+		}
+	}
+
+	utils.SliceShuffle(developmentCards, rand)
 
 	return &generateMapReturnType{
 		Definition: definitions,

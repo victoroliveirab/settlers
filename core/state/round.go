@@ -121,5 +121,6 @@ func (state *GameState) EndRound(playerID string) error {
 	}
 	state.currentPlayerIndex = newIndex
 	state.roundType = BetweenTurns
+	state.currentPlayerNumberOfPlayedDevCards = 0
 	return nil
 }

@@ -49,10 +49,11 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 	}
 
 	game.New(players, "base4", 42, Params{
-		MaxCards:       7,
-		MaxSettlements: 5,
-		MaxCities:      4,
-		MaxRoads:       20,
+		MaxCards:            7,
+		MaxSettlements:      5,
+		MaxCities:           4,
+		MaxRoads:            20,
+		MaxDevCardsPerRound: 1,
 	})
 
 	for _, opt := range opts {
@@ -88,6 +89,12 @@ func MockWithCurrentRoundPlayer(playerID string) GameStateOption {
 func MockWithResourcesByPlayer(resourcesByPlayer map[string]map[string]int) GameStateOption {
 	return func(gs *GameState) {
 		gs.playerResourceHandMap = resourcesByPlayer
+	}
+}
+
+func MockWithDevelopmentsByPlayer(developmentCardsByPlayer map[string]map[string]int) GameStateOption {
+	return func(gs *GameState) {
+		gs.playerDevelopmentHandMap = developmentCardsByPlayer
 	}
 }
 

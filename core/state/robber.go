@@ -10,6 +10,11 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 		return err
 	}
 
+	if state.roundType != MoveRobberDue7 && state.roundType != MoveRobberDueKnight {
+		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
+		return err
+	}
+
 	for _, tile := range state.tiles {
 		if tile.Blocked {
 			if tile.ID == tileID {
@@ -32,12 +37,17 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 	return err
 }
 
+// FIXME: this function is insecure since there's no guarantee that it is moving to the tile it just moved the robber
 func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 	if robberID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot rob during other player's turn")
 		return err
 	}
 
+	if state.roundType != PickRobbed {
+		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
+		return err
+	}
 	state.roundType = Regular
 
 	if robberID == robbedID {

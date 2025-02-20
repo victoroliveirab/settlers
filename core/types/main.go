@@ -27,3 +27,7 @@ type Player struct {
 	ID    string `json:"id"`
 	Color string `json:"color"`
 }
+
+type DevelopmentCard struct {
+	Name string `json:"name"`
+}

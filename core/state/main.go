@@ -19,12 +19,17 @@ const (
 	FirstRound
 	Regular
 	MoveRobberDue7
+	MoveRobberDueKnight
 	PickRobbed
 	BetweenTurns
+	BuildRoad1Development
+	BuildRoad2Development
+	MonopolyPickResource
+	YearOfPlentyPickResources
 	DiscardPhase
 )
 
-var RoundTypeTranslation = [10]string{
+var RoundTypeTranslation = [15]string{
 	"SettlementSetup#1",
 	"RoadSetup#1",
 	"SettlementSetup#2",
@@ -32,8 +37,13 @@ var RoundTypeTranslation = [10]string{
 	"FirstRound",
 	"Regular",
 	"MoveRobber(7)",
+	"MoveRobber(Knight)",
 	"ChooseRobbedPlayer",
 	"BetweenRounds",
+	"BuildRoadDevelopment(1)",
+	"BuildRoadDevelopment(2)",
+	"MonopolyPickResource",
+	"YearOfPlentyPickResources",
 	"DiscardPhase",
 }
 
@@ -47,24 +57,41 @@ type StateLog struct {
 	Message   string
 }
 
+type LongestRoad struct {
+	PlayerID string
+	Length   int
+}
+
+type MostKnights struct {
+	PlayerID string
+	Quantity int
+}
+
 type GameState struct {
-	definition     coreMaps.MapDefinition
-	tiles          []*coreT.MapBlock
-	rand           *rand.Rand
-	players        []coreT.Player
-	logs           []StateLog
-	maxCards       int
-	targetPoint    int
-	maxSettlements int
-	maxCities      int
-	maxRoads       int
+	definition          coreMaps.MapDefinition
+	tiles               []*coreT.MapBlock
+	rand                *rand.Rand
+	players             []coreT.Player
+	logs                []StateLog
+	maxCards            int
+	maxSettlements      int
+	maxCities           int
+	maxRoads            int
+	maxDevCardsPerRound int
+
+	// points related
+	targetPoint int
+	points      map[string]int
+	longestRoad LongestRoad
+	mostKnights MostKnights
 
 	// round related
-	roundType          int
-	roundNumber        int
-	currentPlayerIndex int
-	dice1              int
-	dice2              int
+	roundType                           int
+	roundNumber                         int
+	currentPlayerIndex                  int
+	dice1                               int
+	dice2                               int
+	currentPlayerNumberOfPlayedDevCards int
 
 	// discard related
 	discardMap map[string]int
@@ -72,6 +99,8 @@ type GameState struct {
 	// cards related
 	playerResourceHandMap    map[string]map[string]int
 	playerDevelopmentHandMap map[string]map[string]int
+	developmentCards         []*coreT.DevelopmentCard
+	developmentCardHeadIndex int
 
 	// building related
 	playerSettlementMap map[string][]int
@@ -86,11 +115,12 @@ type GameState struct {
 }
 
 type Params struct {
-	MaxCards       int
-	MaxSettlements int
-	MaxCities      int
-	MaxRoads       int
-	TargetPoint    int
+	MaxCards            int
+	MaxDevCardsPerRound int
+	MaxSettlements      int
+	MaxCities           int
+	MaxRoads            int
+	TargetPoint         int
 }
 
 func (state *GameState) New(players []*coreT.Player, mapName string, seed int, params Params) error {
@@ -102,6 +132,8 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 
 	state.definition = data.Definition
 	state.tiles = data.Tiles
+	state.developmentCards = data.DevelopmentCards
+	state.developmentCardHeadIndex = 0
 	state.players = make([]coreT.Player, len(players))
 	for i, player := range players {
 		state.players[i] = coreT.Player{
@@ -112,14 +144,18 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	}
 	state.logs = make([]StateLog, 0)
 	state.maxCards = params.MaxCards
-	state.targetPoint = params.TargetPoint
 	state.maxSettlements = params.MaxSettlements
 	state.maxCities = params.MaxCities
 	state.maxRoads = params.MaxRoads
+	state.maxDevCardsPerRound = params.MaxDevCardsPerRound
+
+	state.targetPoint = params.TargetPoint
+	state.points = make(map[string]int)
 
 	state.roundType = SetupSettlement1
 	state.roundNumber = 0
 	state.currentPlayerIndex = 0
+	state.currentPlayerNumberOfPlayedDevCards = 0
 	state.dice1 = 0
 	state.dice2 = 0
 	state.discardMap = make(map[string]int)
@@ -150,6 +186,14 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 		state.playerResourceHandMap[player.ID]["Grain"] = 0
 		state.playerResourceHandMap[player.ID]["Sheep"] = 0
 		state.playerResourceHandMap[player.ID]["Ore"] = 0
+
+		state.playerDevelopmentHandMap[player.ID]["Knight"] = 0
+		state.playerDevelopmentHandMap[player.ID]["Victory Point"] = 0
+		state.playerDevelopmentHandMap[player.ID]["Road Building"] = 0
+		state.playerDevelopmentHandMap[player.ID]["Year of Plenty"] = 0
+		state.playerDevelopmentHandMap[player.ID]["Monopoly"] = 0
+
+		state.points[player.ID] = 0
 	}
 
 	return nil
@@ -175,6 +219,10 @@ func (state *GameState) Dice() [2]int {
 
 func (state *GameState) RoundType() int {
 	return state.roundType
+}
+
+func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int {
+	return state.playerDevelopmentHandMap[playerID]
 }
 
 func (state *GameState) ResourceHandByPlayer(playerID string) map[string]int {
