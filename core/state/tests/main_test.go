@@ -65,8 +65,9 @@ func TestRobbablePlayers(t *testing.T) {
 			if err != nil {
 				t.Errorf("expected to run game.RobbablePlayers(\"1\") just fine, but actually got error %s", err.Error())
 			}
-			// FIXME: this sometimes fails because of ordering
-			if !utils.SliceEqual(robbablePlayers, tt.expectedResult) {
+			robbablePlayersSet := utils.SetFromSlice(robbablePlayers)
+			expectedResultSet := utils.SetFromSlice(tt.expectedResult)
+			if !robbablePlayersSet.Equal(expectedResultSet) {
 				t.Errorf("expected robbable players to be %v, but it's actually %v", tt.expectedResult, robbablePlayers)
 			}
 		})
