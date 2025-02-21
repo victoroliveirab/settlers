@@ -1,10 +1,410 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	testUtils "github.com/victoroliveirab/settlers/core/state"
 )
+
+func TestTradeWithBankWithAvailableResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 4,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("trade with bank - player has available resources", func(t *testing.T) {
+		err := game.MakeBankTrade("1", "Lumber", "Ore")
+		if err != nil {
+			t.Errorf("expected to trade with bank just fine, but actually got error %s", err.Error())
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 0 {
+			t.Errorf("expected player#1 to have 0 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 2 {
+			t.Errorf("expected player#1 to have 2 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithBankWithNoAvailableResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 3,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("trade with bank - player doesn't have available resources", func(t *testing.T) {
+		err := game.MakeBankTrade("1", "Lumber", "Ore")
+		if err == nil {
+			t.Errorf("expected to not be able to trade with bank, but actually traded just fine")
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 3 {
+			t.Errorf("expected player#1 to have 3 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 1 {
+			t.Errorf("expected player#1 to have 1 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithBankByRound(t *testing.T) {
+	createGame := func(roundType int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(roundType),
+			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+				"1": {
+					"Lumber": 4,
+					"Brick":  1,
+					"Sheep":  1,
+					"Grain":  1,
+					"Ore":    1,
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[int]bool{
+		testUtils.SetupSettlement1:          true,
+		testUtils.SetupRoad1:                true,
+		testUtils.SetupSettlement2:          true,
+		testUtils.SetupRoad2:                true,
+		testUtils.FirstRound:                true,
+		testUtils.Regular:                   false,
+		testUtils.MoveRobberDue7:            true,
+		testUtils.MoveRobberDueKnight:       true,
+		testUtils.PickRobbed:                true,
+		testUtils.BetweenTurns:              true,
+		testUtils.BuildRoad1Development:     true,
+		testUtils.BuildRoad2Development:     true,
+		testUtils.MonopolyPickResource:      true,
+		testUtils.YearOfPlentyPickResources: true,
+		testUtils.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			err := game.MakeBankTrade("1", "Lumber", "Ore")
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}
+
+func TestTradeWithBankNotPlayerRound(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("trade with bank - not player's round", func(t *testing.T) {
+		err := game.MakeBankTrade("2", "Lumber", "Ore")
+		if err == nil {
+			t.Errorf("expected to not be able to trade with bank during other player's round, but traded just fine")
+		}
+	})
+}
+
+func TestTradeWithPortGeneralWithAvailableResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 3,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+		testUtils.MockWithPortsByPlayer(map[string][]string{
+			"1": {"General"},
+		}),
+	)
+
+	t.Run("trade with general port - player has available resources", func(t *testing.T) {
+		var vertexID int
+		for vertexID = range game.AllSettlements() {
+			break
+		}
+		err := game.MakePortTrade("1", vertexID, "Lumber", "Ore")
+		if err != nil {
+			t.Errorf("expected to trade with port just fine, but actually got error %s", err.Error())
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 0 {
+			t.Errorf("expected player#1 to have 0 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 2 {
+			t.Errorf("expected player#1 to have 2 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithPortGeneralWithNoAvailableResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 2,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+		testUtils.MockWithPortsByPlayer(map[string][]string{
+			"1": {"General"},
+		}),
+	)
+
+	t.Run("trade with port - player doesn't have available resources", func(t *testing.T) {
+		var vertexID int
+		for vertexID = range game.AllSettlements() {
+			break
+		}
+		err := game.MakePortTrade("1", vertexID, "Lumber", "Ore")
+		if err == nil {
+			t.Errorf("expected to not be able to trade with port, but actually traded just fine")
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 2 {
+			t.Errorf("expected player#1 to have 2 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 1 {
+			t.Errorf("expected player#1 to have 1 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithPortSpecificWithAvailableResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 2,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+		testUtils.MockWithPortsByPlayer(map[string][]string{
+			"1": {"Lumber"},
+		}),
+	)
+
+	t.Run("trade with specific port - player has available resources", func(t *testing.T) {
+		var vertexID int
+		for vertexID = range game.AllSettlements() {
+			break
+		}
+		err := game.MakePortTrade("1", vertexID, "Lumber", "Ore")
+		if err != nil {
+			t.Errorf("expected to trade with port just fine, but actually got error %s", err.Error())
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 0 {
+			t.Errorf("expected player#1 to have 0 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 2 {
+			t.Errorf("expected player#1 to have 2 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithPortSpecificWithNoAvailableResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+		testUtils.MockWithPortsByPlayer(map[string][]string{
+			"1": {"Lumber"},
+		}),
+	)
+
+	t.Run("trade with specific port - player doesn't have available resources", func(t *testing.T) {
+		var vertexID int
+		for vertexID = range game.AllSettlements() {
+			break
+		}
+		err := game.MakePortTrade("1", vertexID, "Lumber", "Ore")
+		if err == nil {
+			t.Errorf("expected to not be able to trade with port, but actually traded just fine")
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 1 {
+			t.Errorf("expected player#1 to have 1 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 1 {
+			t.Errorf("expected player#1 to have 1 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithPortSpecificPortIsOtherResource(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 2,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+		testUtils.MockWithPortsByPlayer(map[string][]string{
+			"1": {"Brick"},
+		}),
+	)
+
+	t.Run("trade with specific port - player has different available resources", func(t *testing.T) {
+		var vertexID int
+		for vertexID = range game.AllSettlements() {
+			break
+		}
+		err := game.MakePortTrade("1", vertexID, "Lumber", "Ore")
+		if err == nil {
+			t.Errorf("expected to not be able to trade with port, but actually traded just fine")
+		}
+
+		player1Resources := game.ResourceHandByPlayer("1")
+		if player1Resources["Lumber"] != 2 {
+			t.Errorf("expected player#1 to have 2 Lumber, actually got %d", player1Resources["Lumber"])
+		}
+		if player1Resources["Ore"] != 1 {
+			t.Errorf("expected player#1 to have 1 Ore, actually got %d", player1Resources["Ore"])
+		}
+	})
+}
+
+func TestTradeWithPortByRound(t *testing.T) {
+	createGame := func(roundType int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(roundType),
+			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+				"1": {
+					"Lumber": 2,
+					"Brick":  1,
+					"Sheep":  1,
+					"Grain":  1,
+					"Ore":    1,
+				},
+			}),
+			testUtils.MockWithPortsByPlayer(map[string][]string{
+				"1": {"Lumber"},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[int]bool{
+		testUtils.SetupSettlement1:          true,
+		testUtils.SetupRoad1:                true,
+		testUtils.SetupSettlement2:          true,
+		testUtils.SetupRoad2:                true,
+		testUtils.FirstRound:                true,
+		testUtils.Regular:                   false,
+		testUtils.MoveRobberDue7:            true,
+		testUtils.MoveRobberDueKnight:       true,
+		testUtils.PickRobbed:                true,
+		testUtils.BetweenTurns:              true,
+		testUtils.BuildRoad1Development:     true,
+		testUtils.BuildRoad2Development:     true,
+		testUtils.MonopolyPickResource:      true,
+		testUtils.YearOfPlentyPickResources: true,
+		testUtils.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			var vertexID int
+			for vertexID = range game.AllSettlements() {
+				break
+			}
+			err := game.MakePortTrade("1", vertexID, "Lumber", "Ore")
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}
+
+func TestTradeWithPortNotPlayerRound(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"2": {
+				"Lumber": 2,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+		testUtils.MockWithPortsByPlayer(map[string][]string{
+			"2": {"Lumber"},
+		}),
+	)
+
+	t.Run("trade with port - not player's round", func(t *testing.T) {
+		var vertexID int
+		for vertexID = range game.AllSettlements() {
+			break
+		}
+		err := game.MakePortTrade("2", vertexID, "Lumber", "Ore")
+		if err == nil {
+			t.Errorf("expected to not be able to trade with port during other player's round, but traded just fine")
+		}
+	})
+}
 
 func TestCreateTradeOfferWithAvailableResources(t *testing.T) {
 	game := testUtils.CreateTestGame(
@@ -94,6 +494,87 @@ func TestCreateTradeOfferWithNoAvailableResources(t *testing.T) {
 		allTrades := game.ActiveTradeOffers()
 		if len(allTrades) != 0 {
 			t.Errorf("expected to not have active trades, actually got %d", len(allTrades))
+		}
+	})
+}
+
+func TestCreateTradeOfferByRound(t *testing.T) {
+	createGame := func(roundType int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(roundType),
+			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+				"1": {
+					"Lumber": 1,
+					"Brick":  1,
+					"Sheep":  1,
+					"Grain":  1,
+					"Ore":    1,
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[int]bool{
+		testUtils.SetupSettlement1:          true,
+		testUtils.SetupRoad1:                true,
+		testUtils.SetupSettlement2:          true,
+		testUtils.SetupRoad2:                true,
+		testUtils.FirstRound:                true,
+		testUtils.Regular:                   false,
+		testUtils.MoveRobberDue7:            true,
+		testUtils.MoveRobberDueKnight:       true,
+		testUtils.PickRobbed:                true,
+		testUtils.BetweenTurns:              true,
+		testUtils.BuildRoad1Development:     true,
+		testUtils.BuildRoad2Development:     true,
+		testUtils.MonopolyPickResource:      true,
+		testUtils.YearOfPlentyPickResources: true,
+		testUtils.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			_, err := game.MakeTradeOffer("1",
+				map[string]int{
+					"Lumber": 1,
+				},
+				map[string]int{
+					"Ore": 1,
+				},
+				[]string{})
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}
+
+func TestCreateTradeOfferNotPlayerRound(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("create trade offer - not player's round", func(t *testing.T) {
+		_, err := game.MakeTradeOffer("2", map[string]int{
+			"Lumber": 1,
+		}, map[string]int{
+			"Brick": 1,
+		}, []string{})
+		if err == nil {
+			t.Errorf("expected to not be able to create trade offer during other player's round, but traded just fine")
 		}
 	})
 }
@@ -229,6 +710,117 @@ func TestCreateCounterTradeOfferWithNoAvailableResources(t *testing.T) {
 	})
 }
 
+func TestCreateCounterTradeOfferByRound(t *testing.T) {
+	createGame := func(roundType int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(roundType),
+			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+				"1": {
+					"Lumber": 1,
+					"Brick":  1,
+					"Sheep":  1,
+					"Grain":  1,
+					"Ore":    1,
+				},
+				"2": {
+					"Ore": 1,
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[int]bool{
+		testUtils.SetupSettlement1:          true,
+		testUtils.SetupRoad1:                true,
+		testUtils.SetupSettlement2:          true,
+		testUtils.SetupRoad2:                true,
+		testUtils.FirstRound:                true,
+		testUtils.Regular:                   false,
+		testUtils.MoveRobberDue7:            true,
+		testUtils.MoveRobberDueKnight:       true,
+		testUtils.PickRobbed:                true,
+		testUtils.BetweenTurns:              true,
+		testUtils.BuildRoad1Development:     true,
+		testUtils.BuildRoad2Development:     true,
+		testUtils.MonopolyPickResource:      true,
+		testUtils.YearOfPlentyPickResources: true,
+		testUtils.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			tradeID, _ := game.MakeTradeOffer("1",
+				map[string]int{
+					"Lumber": 1,
+				},
+				map[string]int{
+					"Ore": 1,
+				},
+				[]string{})
+			_, err := game.MakeCounterTradeOffer("2", tradeID,
+				map[string]int{
+					"Ore": 1,
+				},
+				map[string]int{
+					"Lumber": 2,
+				},
+			)
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+				t.Error(err.Error())
+			}
+		})
+	}
+}
+
+func TestCreateCounterTradeOfferOwnRound(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("create a counter trade offer - counter offer to own offer", func(t *testing.T) {
+		tradeID, err := game.MakeTradeOffer("1", map[string]int{
+			"Lumber": 1,
+			"Brick":  1,
+		}, map[string]int{
+			"Ore": 1,
+		}, []string{})
+		if err != nil {
+			t.Errorf("expected to make trade offer just fine, but actually got error %s", err.Error())
+		}
+
+		_, err = game.MakeCounterTradeOffer("1", tradeID, map[string]int{
+			"Ore": 1,
+		}, map[string]int{
+			"Lumber": 2,
+			"Brick":  1,
+		})
+		if err == nil {
+			t.Errorf("expected to not be able to create counter trade offer to own trade offer, but it actually made just fine")
+		}
+	})
+}
+
 func TestAcceptTradeOfferWithAvailableResources(t *testing.T) {
 	game := testUtils.CreateTestGame(
 		testUtils.MockWithRoundType(testUtils.Regular),
@@ -319,6 +911,104 @@ func TestAcceptTradeOfferWithNoAvailableResources(t *testing.T) {
 		trade := game.ActiveTradeOffers()[0]
 		if trade.Opponents["2"].Status != "Declined" {
 			t.Errorf("expected player#2 status to have changed to \"Declined\" after trying to accept without enough resources, but actually got %s", trade.Opponents["2"].Status)
+		}
+	})
+}
+
+func TestAcceptTradeOfferByRound(t *testing.T) {
+	createGame := func(roundType int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(roundType),
+			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+				"1": {
+					"Lumber": 1,
+					"Brick":  1,
+					"Sheep":  1,
+					"Grain":  1,
+					"Ore":    1,
+				},
+				"2": {
+					"Ore": 1,
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[int]bool{
+		testUtils.SetupSettlement1:          true,
+		testUtils.SetupRoad1:                true,
+		testUtils.SetupSettlement2:          true,
+		testUtils.SetupRoad2:                true,
+		testUtils.FirstRound:                true,
+		testUtils.Regular:                   false,
+		testUtils.MoveRobberDue7:            true,
+		testUtils.MoveRobberDueKnight:       true,
+		testUtils.PickRobbed:                true,
+		testUtils.BetweenTurns:              true,
+		testUtils.BuildRoad1Development:     true,
+		testUtils.BuildRoad2Development:     true,
+		testUtils.MonopolyPickResource:      true,
+		testUtils.YearOfPlentyPickResources: true,
+		testUtils.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			tradeID, _ := game.MakeTradeOffer("1",
+				map[string]int{
+					"Lumber": 1,
+				},
+				map[string]int{
+					"Ore": 1,
+				},
+				[]string{})
+			err := game.AcceptTradeOffer("2", tradeID)
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}
+
+func TestAcceptTradeOfferOwnOffer(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("accept a trade offer - accept own offer", func(t *testing.T) {
+		tradeID, err := game.MakeTradeOffer("1", map[string]int{
+			"Lumber": 1,
+			"Brick":  1,
+		}, map[string]int{
+			"Ore": 1,
+		}, []string{})
+		if err != nil {
+			t.Errorf("expected to make trade offer just fine, but actually got error %s", err.Error())
+		}
+
+		err = game.AcceptTradeOffer("1", tradeID)
+		if err == nil {
+			t.Errorf("expected to not be able to accept own trade offer, but it actually accepted just fine")
 		}
 	})
 }
@@ -479,6 +1169,66 @@ func TestFinalizeAcceptedTradeOfferWithNoAvailableResources(t *testing.T) {
 			t.Errorf("expected to have 1 active trade offer left, but actually got length %d", len(activeTrades))
 		}
 	})
+}
+
+func TestFinalizeAcceptedTradeOfferByRound(t *testing.T) {
+	createGame := func(roundType int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(roundType),
+			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+				"1": {
+					"Lumber": 1,
+					"Brick":  1,
+					"Sheep":  1,
+					"Grain":  1,
+					"Ore":    1,
+				},
+				"2": {
+					"Ore": 1,
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[int]bool{
+		testUtils.SetupSettlement1:          true,
+		testUtils.SetupRoad1:                true,
+		testUtils.SetupSettlement2:          true,
+		testUtils.SetupRoad2:                true,
+		testUtils.FirstRound:                true,
+		testUtils.Regular:                   false,
+		testUtils.MoveRobberDue7:            true,
+		testUtils.MoveRobberDueKnight:       true,
+		testUtils.PickRobbed:                true,
+		testUtils.BetweenTurns:              true,
+		testUtils.BuildRoad1Development:     true,
+		testUtils.BuildRoad2Development:     true,
+		testUtils.MonopolyPickResource:      true,
+		testUtils.YearOfPlentyPickResources: true,
+		testUtils.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			tradeID, _ := game.MakeTradeOffer("1",
+				map[string]int{
+					"Lumber": 1,
+				},
+				map[string]int{
+					"Ore": 1,
+				},
+				[]string{})
+			game.AcceptTradeOffer("2", tradeID)
+			err := game.FinalizeTrade("1", "2", tradeID)
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
 }
 
 func TestAcceptCounterOfferWithAvailableResources(t *testing.T) {

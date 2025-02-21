@@ -20,6 +20,8 @@ type ResourceEntry struct {
 
 type MapDefinition struct {
 	Tiles                []int           `json:"tiles"`
+	PortsLocations       [][2]int        `json:"portsLocations"`
+	PortsByDefinition    map[string]int  `json:"portsByDefinition"`
 	Tokens               []int           `json:"tokens"`
 	Resources            []ResourceEntry `json:"resources"`
 	VerticesByTile       map[int][6]int  `json:"verticesByTile"`
@@ -48,6 +50,7 @@ type jsonStructure struct {
 type generateMapReturnType struct {
 	Definition       MapDefinition
 	Tiles            []*coreT.MapBlock
+	Ports            map[int]string
 	DevelopmentCards []*coreT.DevelopmentCard
 }
 
@@ -145,8 +148,26 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		}
 	}
 
-	developmentCards := make([]*coreT.DevelopmentCard, 0)
+	portsVertices := definitions.PortsLocations
+	portsDefinitions := make([]string, len(portsVertices))
+	index := 0
+	for definition, quantity := range definitions.PortsByDefinition {
+		for i := 0; i < quantity; i++ {
+			portsDefinitions[index] = definition
+			index++
+		}
+	}
+	utils.SliceShuffle(portsDefinitions, rand)
 
+	ports := make(map[int]string)
+	for index, port := range portsVertices {
+		vertex1 := port[0]
+		vertex2 := port[1]
+		ports[vertex1] = portsDefinitions[index]
+		ports[vertex2] = portsDefinitions[index]
+	}
+
+	developmentCards := make([]*coreT.DevelopmentCard, 0)
 	for kind, quantity := range definitions.DevelopmentCards {
 		for i := 0; i < quantity; i++ {
 			developmentCards = append(developmentCards, &coreT.DevelopmentCard{
@@ -159,6 +180,7 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 
 	return &generateMapReturnType{
 		Definition: definitions,
+		Ports:      ports,
 		Tiles:      instance,
 	}, nil
 }

@@ -72,6 +72,11 @@ func (state *GameState) handleNewSettlement(playerID string, vertexID int) {
 	state.settlementMap[vertexID] = entry
 	state.playerSettlementMap[playerID] = append(state.playerSettlementMap[playerID], vertexID)
 
+	_, isPort := state.ports[vertexID]
+	if isPort {
+		state.playerPortMap[playerID] = append(state.playerPortMap[playerID], vertexID)
+	}
+
 	// Building a settlement may halt a path
 	// OPTIMIZE: check adjacent roads to vertexID and only recalculate for affected players
 	for _, player := range state.players {

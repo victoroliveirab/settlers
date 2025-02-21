@@ -88,6 +88,7 @@ type Trade struct {
 type GameState struct {
 	definition          coreMaps.MapDefinition
 	tiles               []*coreT.MapBlock
+	ports               map[int]string
 	rand                *rand.Rand
 	players             []coreT.Player
 	logs                []StateLog
@@ -96,6 +97,7 @@ type GameState struct {
 	maxCities           int
 	maxRoads            int
 	maxDevCardsPerRound int
+	bankTradeAmount     int
 
 	// points related
 	targetPoint int
@@ -124,6 +126,7 @@ type GameState struct {
 	playerSettlementMap map[string][]int
 	playerCityMap       map[string][]int
 	playerRoadMap       map[string][]int
+	playerPortMap       map[string][]int
 	playerLongestRoad   map[string][]int
 
 	// book keeping
@@ -135,6 +138,7 @@ type GameState struct {
 }
 
 type Params struct {
+	BankTradeAmount     int
 	MaxCards            int
 	MaxDevCardsPerRound int
 	MaxSettlements      int
@@ -152,6 +156,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 
 	state.definition = data.Definition
 	state.tiles = data.Tiles
+	state.ports = data.Ports
 	state.developmentCards = data.DevelopmentCards
 	state.developmentCardHeadIndex = 0
 	state.players = make([]coreT.Player, len(players))
@@ -168,6 +173,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.maxCities = params.MaxCities
 	state.maxRoads = params.MaxRoads
 	state.maxDevCardsPerRound = params.MaxDevCardsPerRound
+	state.bankTradeAmount = params.BankTradeAmount
 
 	state.targetPoint = params.TargetPoint
 	state.points = make(map[string]int)
@@ -186,6 +192,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.playerSettlementMap = make(map[string][]int)
 	state.playerCityMap = make(map[string][]int)
 	state.playerRoadMap = make(map[string][]int)
+	state.playerPortMap = make(map[string][]int)
 	state.playerLongestRoad = make(map[string][]int)
 
 	state.cityMap = make(map[int]Building)
@@ -200,6 +207,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 		state.playerSettlementMap[player.ID] = make([]int, 0)
 		state.playerCityMap[player.ID] = make([]int, 0)
 		state.playerRoadMap[player.ID] = make([]int, 0)
+		state.playerPortMap[player.ID] = make([]int, 0)
 		state.playerLongestRoad[player.ID] = make([]int, 0)
 		state.playerResourceHandMap[player.ID] = make(map[string]int)
 		state.playerDevelopmentHandMap[player.ID] = make(map[string]int)

@@ -7,14 +7,35 @@ import (
 	"github.com/victoroliveirab/settlers/utils"
 )
 
-func (state *GameState) MakeTradeOffer(playerID string, givenResources, requestedResources map[string]int, blockedPlayers []string) (int, error) {
+func (state *GameState) MakeBankTrade(playerID string, givenResource, desiredResource string) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot trade with bank during other player's turn")
-		return -1, err
+		return err
 	}
 
 	if state.roundType != Regular {
 		err := fmt.Errorf("Cannot trade with bank during %s", RoundTypeTranslation[state.roundType])
+		return err
+	}
+
+	if state.playerResourceHandMap[playerID][givenResource] < state.bankTradeAmount {
+		err := fmt.Errorf("Cannot trade with bank: need %d %s, only have %d", state.bankTradeAmount, givenResource, state.playerResourceHandMap[playerID][givenResource])
+		return err
+	}
+
+	state.playerResourceHandMap[playerID][givenResource] -= state.bankTradeAmount
+	state.playerResourceHandMap[playerID][desiredResource]++
+	return nil
+}
+
+func (state *GameState) MakeTradeOffer(playerID string, givenResources, requestedResources map[string]int, blockedPlayers []string) (int, error) {
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot create trade offer during other player's turn")
+		return -1, err
+	}
+
+	if state.roundType != Regular {
+		err := fmt.Errorf("Cannot create trade offer during %s", RoundTypeTranslation[state.roundType])
 		return -1, err
 	}
 
@@ -57,11 +78,65 @@ func (state *GameState) MakeTradeOffer(playerID string, givenResources, requeste
 	return tradeID, nil
 }
 
+func (state *GameState) MakePortTrade(playerID string, vertexID int, givenResource, wantedResource string) error {
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot trade with port during other player's turn")
+		return err
+	}
+
+	if state.roundType != Regular {
+		err := fmt.Errorf("Cannot trade with port during %s", RoundTypeTranslation[state.roundType])
+		return err
+	}
+
+	var portType string
+	for _, portID := range state.playerPortMap[playerID] {
+		if portID == vertexID {
+			portType = state.ports[portID]
+		}
+	}
+
+	if portType == "" {
+		err := fmt.Errorf("Vertex#%d doesn't have a port owned by player %s", vertexID, playerID)
+		return err
+	}
+
+	if portType != "General" && portType != givenResource {
+		err := fmt.Errorf("Vertex#%d port is of resource %s, not %s", vertexID, portType, givenResource)
+		return err
+	}
+
+	var neededResources int
+	if portType == "General" {
+		neededResources = 3
+	} else {
+		if portType != givenResource {
+			err := fmt.Errorf("Port type is %s, but given resource was %s", portType, givenResource)
+			return err
+		}
+		neededResources = 2
+	}
+
+	if state.playerResourceHandMap[playerID][givenResource] < neededResources {
+		err := fmt.Errorf("Player doesn't have %d %s to trade in port", state.playerResourceHandMap[playerID][givenResource], givenResource)
+		return err
+	}
+
+	state.playerResourceHandMap[playerID][givenResource] -= neededResources
+	state.playerResourceHandMap[playerID][wantedResource]++
+	return nil
+}
+
 // FIXME: check blocked players to not allow them to make counter offers
 func (state *GameState) MakeCounterTradeOffer(playerID string, tradeID int, counterOfferedResources, counterRequestedResources map[string]int) (int, error) {
 	trade, exists := state.playersTrades[tradeID]
 	if !exists {
 		err := fmt.Errorf("Invalid tradeID %d", tradeID)
+		return -1, err
+	}
+
+	if trade.PlayerID == playerID {
+		err := fmt.Errorf("Cannot create counter offer to own offer")
 		return -1, err
 	}
 
@@ -154,6 +229,11 @@ func (state *GameState) FinalizeTrade(playerID, accepterID string, tradeID int) 
 		return err
 	}
 
+	if playerID == accepterID {
+		err := fmt.Errorf("Cannot finalize a trade between the same players")
+		return err
+	}
+
 	if trade.Opponents[accepterID].Status != "Accepted" {
 		err := fmt.Errorf("Cannot finalize a trade with a player that didn't accept")
 		return err
@@ -235,6 +315,11 @@ func (state *GameState) FinalizeCounterTrade(playerID, proposerID string, counte
 
 	if trade.PlayerID != playerID {
 		err := fmt.Errorf("Cannot finalize a trade created by other player")
+		return err
+	}
+
+	if playerID == proposerID {
+		err := fmt.Errorf("Cannot finalize a counter trade between the same players")
 		return err
 	}
 

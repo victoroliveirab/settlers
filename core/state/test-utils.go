@@ -49,6 +49,7 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 	}
 
 	game.New(players, "base4", 42, Params{
+		BankTradeAmount:     4,
 		MaxCards:            7,
 		MaxSettlements:      5,
 		MaxCities:           4,
@@ -123,6 +124,32 @@ func MockWithCitiesByPlayer(citiesByPlayer map[string][]int) GameStateOption {
 					ID:    vertexID,
 					Owner: playerID,
 				}
+			}
+		}
+	}
+}
+
+// NOTE: not prepared to be used in conjuction with MockWithSettlementsByPlayer and MockWithCitiesByPlayer
+// If ports are needed during test, only use this mock function
+func MockWithPortsByPlayer(portsByPlayer map[string][]string) GameStateOption {
+	return func(gs *GameState) {
+		for playerID, ports := range portsByPlayer {
+			for _, port := range ports {
+				vertexID := -1
+				for candidateVertexID, portType := range gs.ports {
+					if portType == port {
+						vertexID = candidateVertexID
+					}
+				}
+				if vertexID == -1 {
+					panic(portsByPlayer)
+				}
+				gs.settlementMap[vertexID] = Building{
+					ID:    vertexID,
+					Owner: playerID,
+				}
+				gs.playerSettlementMap[playerID] = append(gs.playerSettlementMap[playerID], vertexID)
+				gs.playerPortMap[playerID] = append(gs.playerPortMap[playerID], vertexID)
 			}
 		}
 	}
