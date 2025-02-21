@@ -67,6 +67,24 @@ type MostKnights struct {
 	Quantity int
 }
 
+type TradePlayerEntry struct {
+	Status  string // "Open" | "Accepted" | "Declined"
+	Blocked bool
+}
+
+type Trade struct {
+	ID        int
+	PlayerID  string
+	Opponents map[string]*TradePlayerEntry
+	Offer     map[string]int
+	Request   map[string]int
+	Status    string // "Open" | "Closed"
+	Counters  []int
+	ParentID  int
+	Finalized bool
+	Timestamp int64
+}
+
 type GameState struct {
 	definition          coreMaps.MapDefinition
 	tiles               []*coreT.MapBlock
@@ -112,6 +130,8 @@ type GameState struct {
 	cityMap       map[int]Building
 	roadMap       map[int]Building
 	settlementMap map[int]Building
+	playersTrades map[int]*Trade
+	playerTradeId int
 }
 
 type Params struct {
@@ -171,6 +191,9 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.cityMap = make(map[int]Building)
 	state.roadMap = make(map[int]Building)
 	state.settlementMap = make(map[int]Building)
+
+	state.playersTrades = make(map[int]*Trade)
+	state.playerTradeId = 0
 
 	for _, player := range players {
 		state.discardMap[player.ID] = 0
@@ -315,4 +338,14 @@ func (state *GameState) DiscardAmountByPlayer(playerID string) int {
 		return 0
 	}
 	return int(math.Floor(float64(total) / 2))
+}
+
+func (state *GameState) ActiveTradeOffers() []Trade {
+	activeTrades := make([]Trade, 0)
+	for _, trade := range state.playersTrades {
+		if !trade.Finalized {
+			activeTrades = append(activeTrades, *trade)
+		}
+	}
+	return activeTrades
 }
