@@ -49,6 +49,11 @@ func (state *GameState) UseKnight(playerID string) error {
 
 	state.playerDevelopmentHandMap[playerID]["Knight"]--
 	state.currentPlayerNumberOfPlayedDevCards++
+	state.playerDevelopmentCardUsedMap[playerID]["Knight"]++
+	changed := state.recountKnights()
+	if changed {
+		state.updatePoints()
+	}
 	state.roundType = MoveRobberDueKnight
 	return nil
 }
@@ -76,6 +81,7 @@ func (state *GameState) UseMonopoly(playerID string) error {
 
 	state.playerDevelopmentHandMap[playerID]["Monopoly"]--
 	state.currentPlayerNumberOfPlayedDevCards++
+	state.playerDevelopmentCardUsedMap[playerID]["Monopoly"]++
 	state.roundType = MonopolyPickResource
 	return nil
 }
@@ -133,6 +139,7 @@ func (state *GameState) UseRoadBuilding(playerID string) error {
 
 	state.playerDevelopmentHandMap[playerID]["Road Building"]--
 	state.currentPlayerNumberOfPlayedDevCards++
+	state.playerDevelopmentCardUsedMap[playerID]["Road Building"]++
 	state.roundType = BuildRoad1Development
 	return nil
 }
@@ -206,6 +213,7 @@ func (state *GameState) UseYearOfPlenty(playerID string) error {
 
 	state.playerDevelopmentHandMap[playerID]["Year of Plenty"]--
 	state.currentPlayerNumberOfPlayedDevCards++
+	state.playerDevelopmentCardUsedMap[playerID]["Year of Plenty"]++
 	state.roundType = YearOfPlentyPickResources
 	return nil
 }

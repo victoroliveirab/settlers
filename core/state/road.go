@@ -72,6 +72,10 @@ func (state *GameState) handleNewRoad(playerID string, edgeID int) {
 	state.roadMap[edgeID] = entry
 	state.playerRoadMap[playerID] = append(state.playerRoadMap[playerID], edgeID)
 	state.computeLongestRoad(playerID)
+	changed := state.recountLongestRoad()
+	if changed {
+		state.updatePoints()
+	}
 }
 
 func (state *GameState) computeLongestRoad(playerID string) {
@@ -129,7 +133,5 @@ func (state *GameState) computeLongestRoad(playerID string) {
 		dfs(startNode, visited, []int{})
 	}
 
-	if len(maxPath) > len(state.playerLongestRoad[playerID]) {
-		state.playerLongestRoad[playerID] = maxPath
-	}
+	state.playerLongestRoad[playerID] = maxPath
 }

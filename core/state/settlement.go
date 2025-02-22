@@ -82,4 +82,6 @@ func (state *GameState) handleNewSettlement(playerID string, vertexID int) {
 	for _, player := range state.players {
 		state.computeLongestRoad(player.ID)
 	}
+	state.recountLongestRoad()
+	state.updatePoints()
 }

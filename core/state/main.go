@@ -27,9 +27,10 @@ const (
 	MonopolyPickResource
 	YearOfPlentyPickResources
 	DiscardPhase
+	GameOver
 )
 
-var RoundTypeTranslation = [15]string{
+var RoundTypeTranslation = [16]string{
 	"SettlementSetup#1",
 	"RoadSetup#1",
 	"SettlementSetup#2",
@@ -45,6 +46,7 @@ var RoundTypeTranslation = [15]string{
 	"MonopolyPickResource",
 	"YearOfPlentyPickResources",
 	"DiscardPhase",
+	"GameOver",
 }
 
 type Building struct {
@@ -100,10 +102,16 @@ type GameState struct {
 	bankTradeAmount     int
 
 	// points related
-	targetPoint int
-	points      map[string]int
-	longestRoad LongestRoad
-	mostKnights MostKnights
+	targetPoint          int
+	points               map[string]int
+	longestRoad          LongestRoad
+	mostKnights          MostKnights
+	pointsPerCity        int
+	pointsPerSettlement  int
+	pointsPerMostKnights int
+	pointsPerLongestRoad int
+	mostKnightsMinimum   int
+	longestRoadMinimum   int
 
 	// round related
 	roundType                           int
@@ -117,10 +125,11 @@ type GameState struct {
 	discardMap map[string]int
 
 	// cards related
-	playerResourceHandMap    map[string]map[string]int
-	playerDevelopmentHandMap map[string]map[string]int
-	developmentCards         []*coreT.DevelopmentCard
-	developmentCardHeadIndex int
+	playerResourceHandMap        map[string]map[string]int
+	playerDevelopmentHandMap     map[string]map[string]int
+	developmentCards             []*coreT.DevelopmentCard
+	developmentCardHeadIndex     int
+	playerDevelopmentCardUsedMap map[string]map[string]int
 
 	// building related
 	playerSettlementMap map[string][]int
@@ -138,13 +147,19 @@ type GameState struct {
 }
 
 type Params struct {
-	BankTradeAmount     int
-	MaxCards            int
-	MaxDevCardsPerRound int
-	MaxSettlements      int
-	MaxCities           int
-	MaxRoads            int
-	TargetPoint         int
+	BankTradeAmount      int
+	MaxCards             int
+	MaxDevCardsPerRound  int
+	MaxSettlements       int
+	MaxCities            int
+	MaxRoads             int
+	TargetPoint          int
+	PointsPerSettlement  int
+	PointsPerCity        int
+	PointsForMostKnights int
+	PointsForLongestRoad int
+	MostKnightsMinimum   int
+	LongestRoadMinimum   int
 }
 
 func (state *GameState) New(players []*coreT.Player, mapName string, seed int, params Params) error {
@@ -159,6 +174,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.ports = data.Ports
 	state.developmentCards = data.DevelopmentCards
 	state.developmentCardHeadIndex = 0
+	state.playerDevelopmentCardUsedMap = make(map[string]map[string]int)
 	state.players = make([]coreT.Player, len(players))
 	for i, player := range players {
 		state.players[i] = coreT.Player{
@@ -174,6 +190,12 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.maxRoads = params.MaxRoads
 	state.maxDevCardsPerRound = params.MaxDevCardsPerRound
 	state.bankTradeAmount = params.BankTradeAmount
+	state.pointsPerSettlement = params.PointsPerSettlement
+	state.pointsPerCity = params.PointsPerCity
+	state.pointsPerMostKnights = params.PointsForMostKnights
+	state.pointsPerLongestRoad = params.PointsForLongestRoad
+	state.mostKnightsMinimum = params.MostKnightsMinimum
+	state.longestRoadMinimum = params.LongestRoadMinimum
 
 	state.targetPoint = params.TargetPoint
 	state.points = make(map[string]int)
@@ -211,6 +233,12 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 		state.playerLongestRoad[player.ID] = make([]int, 0)
 		state.playerResourceHandMap[player.ID] = make(map[string]int)
 		state.playerDevelopmentHandMap[player.ID] = make(map[string]int)
+		state.playerDevelopmentCardUsedMap[player.ID] = map[string]int{
+			"Knight":         0,
+			"Monopoly":       0,
+			"Road Building":  0,
+			"Year of Plenty": 0,
+		}
 
 		state.playerResourceHandMap[player.ID]["Lumber"] = 0
 		state.playerResourceHandMap[player.ID]["Brick"] = 0

@@ -49,12 +49,19 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 	}
 
 	game.New(players, "base4", 42, Params{
-		BankTradeAmount:     4,
-		MaxCards:            7,
-		MaxSettlements:      5,
-		MaxCities:           4,
-		MaxRoads:            20,
-		MaxDevCardsPerRound: 1,
+		BankTradeAmount:      4,
+		MaxCards:             7,
+		MaxSettlements:       5,
+		MaxCities:            4,
+		MaxRoads:             20,
+		MaxDevCardsPerRound:  1,
+		TargetPoint:          10,
+		PointsPerSettlement:  1,
+		PointsPerCity:        2,
+		PointsForMostKnights: 2,
+		PointsForLongestRoad: 2,
+		LongestRoadMinimum:   5,
+		MostKnightsMinimum:   3,
 	})
 
 	for _, opt := range opts {
@@ -180,6 +187,25 @@ func MockWithBlockedTile(tileID int) GameStateOption {
 				tile.Blocked = false
 			}
 		}
+	}
+}
+
+func MockWithUsedDevelopmentCardsByPlayer(developmentCardsUsedByPlayer map[string]map[string]int) GameStateOption {
+	return func(gs *GameState) {
+		for playerID, devCards := range developmentCardsUsedByPlayer {
+			gs.playerDevelopmentCardUsedMap[playerID] = devCards
+		}
+	}
+}
+
+func MockWithPoints() GameStateOption {
+	return func(gs *GameState) {
+		for _, player := range gs.players {
+			gs.computeLongestRoad(player.ID)
+		}
+		gs.recountLongestRoad()
+		gs.recountKnights()
+		gs.updatePoints()
 	}
 }
 
