@@ -35,3 +35,10 @@ func SliceEqual[T comparable](slice1 []T, slice2 []T) bool {
 	}
 	return true
 }
+
+func SliceRemove[T any](slice *[]T, index int) {
+	if index < 0 || index >= len(*slice) {
+		return
+	}
+	*slice = append((*slice)[:index], (*slice)[index+1:]...)
+}

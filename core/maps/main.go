@@ -179,8 +179,9 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 	utils.SliceShuffle(developmentCards, rand)
 
 	return &generateMapReturnType{
-		Definition: definitions,
-		Ports:      ports,
-		Tiles:      instance,
+		Definition:       definitions,
+		DevelopmentCards: developmentCards,
+		Ports:            ports,
+		Tiles:            instance,
 	}, nil
 }

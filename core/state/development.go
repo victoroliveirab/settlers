@@ -23,6 +23,10 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 
 	state.playerDevelopmentHandMap[playerID][card.Name]++
 
+	if card.Name == "Victory Point" {
+		state.updatePoints()
+	}
+
 	return nil
 }
 
@@ -54,7 +58,11 @@ func (state *GameState) UseKnight(playerID string) error {
 	if changed {
 		state.updatePoints()
 	}
-	state.roundType = MoveRobberDueKnight
+	// If game is over, no need to make the player move robber
+	if state.roundType != GameOver {
+		state.roundType = MoveRobberDueKnight
+		return nil
+	}
 	return nil
 }
 

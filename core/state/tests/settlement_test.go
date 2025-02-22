@@ -70,7 +70,35 @@ func TestBuildSettlementRegularPhaseSuccess(t *testing.T) {
 	})
 }
 
-func TestBuildSettlementErrorAlreadyExists(t *testing.T) {
+func TestBuildSettlementErrorAlreadyExistsByPlayer(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {32},
+		}),
+		testUtils.MockWithRoadsByPlayer(map[string][]int{
+			"1": {65},
+		},
+		),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 4,
+				"Brick":  3,
+				"Sheep":  2,
+				"Grain":  1,
+				"Ore":    0,
+			},
+		}),
+	)
+	t.Run("settlement build error - player has settlement in vertex", func(t *testing.T) {
+		err := game.BuildSettlement("1", 32)
+		if err == nil {
+			t.Errorf("expected to not be able to build settlement in vertex#32, but it built just fine")
+		}
+	})
+}
+
+func TestBuildSettlementErrorAlreadyExistsOtherPlayer(t *testing.T) {
 	game := testUtils.CreateTestGame(
 		testUtils.MockWithRoundType(testUtils.Regular),
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{

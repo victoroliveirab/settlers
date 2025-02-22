@@ -236,7 +236,62 @@ func TestPointsIncreaseOnSettlementBuild(t *testing.T) {
 	})
 }
 
-// func TestPointsIncreaseOnCityBuild(t *testing.T) {}
+func TestPointsIncreaseOnCityBuild(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 10,
+				"Brick":  10,
+				"Sheep":  10,
+				"Grain":  10,
+				"Ore":    10,
+			},
+		}),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {1, 3},
+			"2": {22, 24},
+			"3": {44},
+			"4": {26, 28},
+		}),
+		testUtils.MockWithCitiesByPlayer(map[string][]int{
+			"3": {42},
+		}),
+		testUtils.MockWithRoadsByPlayer(map[string][]int{
+			"1": {1, 2, 3, 4, 5},
+			"2": {27, 30},
+			"3": {54, 69},
+			"4": {32, 33},
+		}),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			"1": {
+				"Victory Point": 2,
+			},
+		}),
+		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
+			"2": {
+				"Knight": 3,
+			},
+		}),
+		testUtils.MockWithPoints(),
+	)
+
+	t.Run("points - increase after building a city", func(t *testing.T) {
+		points := game.Points()
+		if points["1"] != 6 {
+			t.Errorf("expected player#1 to have 6 points before city build, but actually got %d", points["1"])
+		}
+		err := game.BuildCity("1", 1)
+		if err != nil {
+			t.Errorf("expected to build a city just fine, but actually got error %s", err.Error())
+		}
+
+		points = game.Points()
+		if points["1"] != 7 {
+			t.Errorf("expected player#1 to have 7 points after settlement build, but actually got %d", points["1"])
+		}
+	})
+}
 
 func TestPointsIncreaseOnLongestRoadAchieved(t *testing.T) {
 	game := testUtils.CreateTestGame(
@@ -625,5 +680,234 @@ func TestGameOverOnTargetPointAchievedByBuildingSettlement(t *testing.T) {
 			t.Errorf("expected game to be over after player#1 built settlement, but actually it isn't")
 		}
 	})
+}
 
+func TestGameOverOnTargetPointAchievedByBuildingCity(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 10,
+				"Brick":  10,
+				"Sheep":  10,
+				"Grain":  10,
+				"Ore":    10,
+			},
+		}),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {10},
+			"2": {22, 24},
+			"3": {44},
+			"4": {26, 28},
+		}),
+		testUtils.MockWithCitiesByPlayer(map[string][]int{
+			"1": {1, 3, 5},
+			"3": {42},
+		}),
+		testUtils.MockWithRoadsByPlayer(map[string][]int{
+			"1": {1, 2, 3, 4, 11},
+			"2": {27, 30},
+			"3": {54, 69},
+			"4": {32, 33},
+		}),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			"1": {
+				"Victory Point": 2,
+			},
+		}),
+		testUtils.MockWithPoints(),
+	)
+
+	t.Run("points - reaching target point after building city", func(t *testing.T) {
+		points := game.Points()
+		if points["1"] != 9 {
+			t.Errorf("expected player#1 to have 9 points before building city, but actually got %d", points["1"])
+		}
+
+		err := game.BuildCity("1", 10)
+		if err != nil {
+			t.Errorf("expected player#1 to build city just fine, but actually got error %s", err.Error())
+		}
+
+		points = game.Points()
+		if points["1"] != 10 {
+			t.Errorf("expected player#1 to have 10 points after building city, but actually got %d", points["1"])
+		}
+
+		roundType := game.RoundType()
+		if roundType != testUtils.GameOver {
+			t.Errorf("expected game to be over after player#1 built city, but actually it isn't")
+		}
+	})
+}
+
+func TestGameOverOnTargetPointAchievedByBuildingLongestRoad(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 10,
+				"Brick":  10,
+				"Sheep":  10,
+				"Grain":  10,
+				"Ore":    10,
+			},
+		}),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"2": {22, 24},
+			"3": {44},
+			"4": {26, 28},
+		}),
+		testUtils.MockWithCitiesByPlayer(map[string][]int{
+			"1": {1, 3, 5, 10},
+			"3": {42},
+		}),
+		testUtils.MockWithRoadsByPlayer(map[string][]int{
+			"1": {1, 2, 3, 4},
+			"2": {27, 30},
+			"3": {54, 69},
+			"4": {32, 33},
+		}),
+		testUtils.MockWithPoints(),
+	)
+
+	t.Run("points - reaching target point after achieving longest road", func(t *testing.T) {
+		points := game.Points()
+		if points["1"] != 8 {
+			t.Errorf("expected player#1 to have 8 points before achieving longest road, but actually got %d", points["1"])
+		}
+
+		err := game.BuildRoad("1", 5)
+		if err != nil {
+			t.Errorf("expected player#1 to build road just fine, but actually got error %s", err.Error())
+		}
+
+		points = game.Points()
+		if points["1"] != 10 {
+			t.Errorf("expected player#1 to have 10 points after achieving longest road, but actually got %d", points["1"])
+		}
+
+		roundType := game.RoundType()
+		if roundType != testUtils.GameOver {
+			t.Errorf("expected game to be over after player#1 achieved longest road, but actually it isn't")
+		}
+	})
+}
+
+func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 10,
+				"Brick":  10,
+				"Sheep":  10,
+				"Grain":  10,
+				"Ore":    10,
+			},
+		}),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"2": {22, 24},
+			"3": {44},
+			"4": {26, 28},
+		}),
+		testUtils.MockWithCitiesByPlayer(map[string][]int{
+			"1": {1, 3, 5, 10},
+			"3": {42},
+		}),
+		testUtils.MockWithRoadsByPlayer(map[string][]int{
+			"1": {1, 2, 3, 4},
+			"2": {27, 30},
+			"3": {54, 69},
+			"4": {32, 33},
+		}),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			"1": {
+				"Knight": 1,
+			},
+		}),
+		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
+			"1": {
+				"Knight": 2,
+			},
+		}),
+		testUtils.MockWithPoints(),
+	)
+
+	t.Run("points - reaching target point after achieving most knights", func(t *testing.T) {
+		points := game.Points()
+		if points["1"] != 8 {
+			t.Errorf("expected player#1 to have 8 points before achieving most knights, but actually got %d", points["1"])
+		}
+
+		err := game.UseKnight("1")
+		if err != nil {
+			t.Errorf("expected player#1 to build use knight just fine, but actually got error %s", err.Error())
+		}
+
+		points = game.Points()
+		if points["1"] != 10 {
+			t.Errorf("expected player#1 to have 10 points after achieving most knights, but actually got %d", points["1"])
+		}
+
+		roundType := game.RoundType()
+		if roundType != testUtils.GameOver {
+			t.Errorf("expected game to be over after player#1 achieved most knights, but actually it isn't")
+		}
+	})
+}
+
+func TestGameOverOnTargetPointAchievedByBuyingVictoryPoint(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 10,
+				"Brick":  10,
+				"Sheep":  10,
+				"Grain":  10,
+				"Ore":    10,
+			},
+		}),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {17},
+			"2": {22, 24},
+			"3": {44},
+			"4": {26, 28},
+		}),
+		testUtils.MockWithCitiesByPlayer(map[string][]int{
+			"1": {1, 3, 5, 10},
+			"3": {42},
+		}),
+		testUtils.MockWithRoadsByPlayer(map[string][]int{
+			"1": {1, 2, 3, 4},
+			"2": {27, 30},
+			"3": {54, 69},
+			"4": {32, 33},
+		}),
+		testUtils.MockWithNextDevelopmentCard("Victory Point"),
+		testUtils.MockWithPoints(),
+	)
+
+	t.Run("points - reaching target point after buying victory point", func(t *testing.T) {
+		points := game.Points()
+		if points["1"] != 9 {
+			t.Errorf("expected player#1 to have 9 points before buying victory point, but actually got %d", points["1"])
+		}
+
+		err := game.BuyDevelopmentCard("1")
+		if err != nil {
+			t.Errorf("expected player#1 to buy development card just fine, but actually got error %s", err.Error())
+		}
+
+		points = game.Points()
+		if points["1"] != 10 {
+			t.Errorf("expected player#1 to have 10 points after buying victory point, but actually got %d", points["1"])
+		}
+
+		roundType := game.RoundType()
+		if roundType != testUtils.GameOver {
+			t.Errorf("expected game to be over after player#1 achieved most knights, but actually it isn't")
+		}
+	})
 }

@@ -198,6 +198,17 @@ func MockWithUsedDevelopmentCardsByPlayer(developmentCardsUsedByPlayer map[strin
 	}
 }
 
+func MockWithNextDevelopmentCard(name string) GameStateOption {
+	return func(gs *GameState) {
+		for i := 0; i < len(gs.developmentCards); i++ {
+			if gs.developmentCards[i].Name == name {
+				gs.developmentCardHeadIndex = i
+				break
+			}
+		}
+	}
+}
+
 func MockWithPoints() GameStateOption {
 	return func(gs *GameState) {
 		for _, player := range gs.players {
