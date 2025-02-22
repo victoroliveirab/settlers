@@ -1,18 +1,50 @@
 package router
 
 import (
+	"context"
+	"database/sql"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/victoroliveirab/settlers/auth"
+	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
+const (
+	SESSION_COOKIE_NAME = "settlersscookie"
+)
+
 var upgrader = websocket.Upgrader{}
 
-func SetupRoutes() {
+func sessionMiddleware(db *sql.DB, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionCookie, err := r.Cookie(SESSION_COOKIE_NAME)
+		if err != nil {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		sessionID := sessionCookie.Value
+		if sessionID == "" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+
+		session, err := models.SessionGet(db, sessionID)
+		if err != nil || (session.ExpiresAt.Valid && session.ExpiresAt.Time.Before(time.Now())) {
+			http.Error(w, "Session expired or invalid", http.StatusUnauthorized)
+			return
+		}
+		ctx := context.WithValue(r.Context(), "userID", session.UserID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func SetupRoutes(db *sql.DB) {
 	fs := http.FileServer(http.Dir("client"))
 
 	http.Handle("/static/", http.StripPrefix("/static", fs))
@@ -58,53 +90,39 @@ func SetupRoutes() {
 			return
 		}
 
-		name := r.FormValue("name")
-		session, err := auth.SessionCreate(name)
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+		user, err := models.UserCheckCredentials(db, username, password)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, "Wrong username and/or password", http.StatusBadRequest)
 		}
 
-		sessionCookie := http.Cookie{
-			Name:     auth.SESSION_COOKIE_NAME,
-			Value:    session.ID,
-			MaxAge:   200 * 60 * 60 * 24 * 30,
+		session, err := models.SessionCreate(db, int64(user.ID), time.Hour)
+		cookie := http.Cookie{
+			Name:     SESSION_COOKIE_NAME,
+			Value:    session,
+			MaxAge:   60 * 60,
 			Path:     "/",
 			HttpOnly: true,
 			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
 		}
-
-		userCookie := http.Cookie{
-			Name:   auth.USER_COOKIE_NAME,
-			Value:  session.Name,
-			MaxAge: 200 * 60 * 60 * 24 * 30,
-			Path:   "/",
-			Secure: true,
-		}
-
-		http.SetCookie(w, &sessionCookie)
-		http.SetCookie(w, &userCookie)
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, "/lobby", http.StatusSeeOther)
 	})
 
-	http.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
-		_, err := getUserFromCookie(r)
-		if err == nil {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-
-		}
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "client/login.html")
+	})
+
+	http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "client/signup.html")
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" || r.Method != "GET" {
 			w.WriteHeader(404)
 			w.Write([]byte("Resource not found"))
-			return
-		}
-		_, err := getUserFromCookie(r)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
 		http.ServeFile(w, r, "client/index.html")
