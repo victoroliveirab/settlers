@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/logger"
-	"github.com/victoroliveirab/settlers/router/ws/types"
+	types "github.com/victoroliveirab/settlers/router/ws/manager"
 )
 
 func ReadJson(conn *websocket.Conn, userID string) (*types.Message, error) {

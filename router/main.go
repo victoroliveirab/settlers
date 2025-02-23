@@ -1,15 +1,16 @@
 package router
 
 import (
-	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
-	"github.com/victoroliveirab/settlers/router/ws/types"
+	"github.com/victoroliveirab/settlers/router/ws/manager"
 	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
@@ -19,31 +20,6 @@ const (
 
 var upgrader = websocket.Upgrader{}
 
-func sessionMiddleware(db *sql.DB, next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionCookie, err := r.Cookie(SESSION_COOKIE_NAME)
-		if err != nil {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		sessionID := sessionCookie.Value
-		if sessionID == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		session, err := models.SessionGet(db, sessionID)
-		if err != nil || (session.ExpiresAt.Valid && session.ExpiresAt.Time.Before(time.Now())) {
-			http.Error(w, "Session expired or invalid", http.StatusUnauthorized)
-			return
-		}
-		ctx := context.WithValue(r.Context(), "userID", session.UserID)
-
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
 func SetupRoutes(db *sql.DB) {
 	fs := http.FileServer(http.Dir("client"))
 
@@ -51,6 +27,7 @@ func SetupRoutes(db *sql.DB) {
 	http.Handle("/favicon.ico", http.StripPrefix("/", fs))
 
 	// WS
+
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		user, err := getUserFromCookie(r)
 		if err != nil {
@@ -72,7 +49,7 @@ func SetupRoutes(db *sql.DB) {
 				break
 			}
 
-			wsUtils.WriteJson(c, user.ID, &types.Message{
+			wsUtils.WriteJson(c, user.ID, &manager.Message{
 				Type: "response",
 				Payload: map[string]interface{}{
 					"a": 42,
@@ -111,13 +88,50 @@ func SetupRoutes(db *sql.DB) {
 		http.Redirect(w, r, "/lobby", http.StatusSeeOther)
 	})
 
-	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("POST /create-room", chainMiddleware(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := r.ParseForm()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+				return
+			}
+			id := r.FormValue("id")
+
+			err = manager.CreateGameRoom(id, "base4", 4)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusBadRequest)
+			}
+			http.Redirect(w, r, fmt.Sprintf("/game/%s", id), http.StatusSeeOther)
+
+		}),
+		withSessionMiddleware(db),
+		withAdminMiddleware(db),
+		withLoggingMiddleware,
+	))
+
+	// Client
+
+	http.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "client/login.html")
 	})
 
-	http.HandleFunc("/signup", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("GET /signup", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "client/signup.html")
 	})
+
+	http.Handle("GET /lobby", chainMiddleware(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "client/lobby.html")
+		}),
+		withSessionMiddleware(db),
+	))
+
+	http.Handle("GET /game/{id}", chainMiddleware(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeFile(w, r, "client/game.html")
+		}),
+		withSessionMiddleware(db),
+	))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" || r.Method != "GET" {

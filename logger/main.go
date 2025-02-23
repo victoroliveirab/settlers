@@ -31,6 +31,27 @@ func Init(shouldPersist bool) {
 	// log.SetOutput(logFile)
 }
 
+func LogHttpRequest(method, path, remoteAddr, userAgent string, duration, statusCode int) {
+	logEntry := map[string]interface{}{
+		"method":      method,
+		"path":        path,
+		"remote_addr": remoteAddr,
+		"user_agent":  userAgent,
+		"status":      statusCode,
+		"duration":    duration,
+	}
+
+	logData, err := json.Marshal(logEntry)
+	if err != nil {
+		log.Printf("Error marshaling log entry: %v", err)
+		return
+	}
+	log.Println(string(logData))
+	if persist {
+		writeLog(logData)
+	}
+}
+
 func LogWSMessage(direction, clientID string, msgType string, msg map[string]interface{}) {
 	logEntry := LogMessageStruct{
 		Timestamp: time.Now().Format(time.RFC3339),
