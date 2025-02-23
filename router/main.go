@@ -3,7 +3,6 @@ package router
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"time"
 
@@ -97,7 +96,7 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
-			err = manager.CreateGameRoom(id, "base4", 4)
+			err = manager.CreateGameRoom(id, "base4", 2)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}

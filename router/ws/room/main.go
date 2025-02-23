@@ -1,16 +1,18 @@
-package manager
+package room
 
 import (
 	"fmt"
 
 	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/logger"
+	"github.com/victoroliveirab/settlers/router/ws/state"
+	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
 var color [4]string = [4]string{"green", "orange", "blue", "black"}
 
 func CreateGameRoom(name, mapName string, capacity int) error {
-	_, exists := maps.RoomByID[name]
+	_, exists := state.RoomByID[name]
 	if exists {
 		err := fmt.Errorf("Cannot create room #%s: already exists", name)
 		return err
@@ -21,21 +23,21 @@ func CreateGameRoom(name, mapName string, capacity int) error {
 		return err
 	}
 
-	players := make([]RoomEntry, capacity)
+	players := make([]types.RoomEntry, capacity)
 
-	lobby := Room{
+	lobby := types.Room{
 		ID:       name,
 		Capacity: capacity,
 		MapName:  mapName,
 		Players:  players,
 	}
-	maps.RoomByID[name] = lobby
+	state.RoomByID[name] = lobby
 	logger.LogMessage("system", "ws.manager.CreateGameRoom", "Created!")
 	return nil
 }
 
 func AddPlayerToGameRoom(name string, userID int, conn *websocket.Conn) error {
-	room, exists := maps.RoomByID[name]
+	room, exists := state.RoomByID[name]
 	if exists {
 		err := fmt.Errorf("Cannot join room #%s: room doesn't exist", name)
 		return err
@@ -43,7 +45,7 @@ func AddPlayerToGameRoom(name string, userID int, conn *websocket.Conn) error {
 
 	for i, player := range room.Players {
 		if player.UserID == 0 {
-			room.Players[i] = RoomEntry{
+			room.Players[i] = types.RoomEntry{
 				Connection: conn,
 				Color:      color[i],
 				UserID:     userID,
