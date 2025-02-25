@@ -13,6 +13,7 @@ type User struct {
 	Name         string
 	Email        string
 	PasswordHash string
+	Admin        bool
 	CreatedAt    int
 	UpdatedAt    int
 }
@@ -30,37 +31,40 @@ func checkPassword(hashedPassword, password string) bool {
 	return err == nil
 }
 
-func UserCheckCredentials(db *sql.DB, username, password string) (*User, error) {
+func UserCheckCredentials(db *sql.DB, username, password string) (int64, error) {
 	var user User
 	row := db.QueryRow("SELECT id, username, password_hash FROM Users WHERE username = ?", username)
 	if err := row.Scan(&user.ID, &user.Username, &user.PasswordHash); err != nil {
-		return nil, fmt.Errorf("User %s not found", username)
+		return -1, fmt.Errorf("User %s not found", username)
 	}
 
 	hashedPassword := user.PasswordHash
 	if !checkPassword(hashedPassword, password) {
-		return nil, fmt.Errorf("Wrong password")
+		return -1, fmt.Errorf("Wrong password")
 	}
-	return &user, nil
+	return user.ID, nil
 }
 
 func UserGetByUsername(db *sql.DB, username string) (*User, error) {
 	var user User
-	row := db.QueryRow("SELECT * FROM users WHERE username = ?", username)
-	if err := row.Scan(&user); err != nil {
+	var admin int
+	row := db.QueryRow("SELECT id, username, name, email, password_hash, admin, created_at, updated_at FROM Users WHERE username = ?", username)
+	if err := row.Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.PasswordHash, &admin, &user.CreatedAt, &user.UpdatedAt); err != nil {
 		return nil, fmt.Errorf("User %s not found", username)
 	}
-
+	user.Admin = admin == 1
 	return &user, nil
 }
 
-func UserGetByID(db *sql.DB, userID int) (*User, error) {
+func UserGetByID(db *sql.DB, userID int64) (*User, error) {
 	var user User
-	row := db.QueryRow("SELECT * FROM users WHERE id = ?", userID)
-	if err := row.Scan(&user); err != nil {
+	var admin int
+	row := db.QueryRow("SELECT id, username, name, email, password_hash, admin, created_at, updated_at FROM users WHERE id = ?", userID)
+	if err := row.Scan(&user.ID, &user.Username, &user.Name, &user.Email, &user.PasswordHash, &admin, &user.CreatedAt, &user.UpdatedAt); err != nil {
+		fmt.Println(err)
 		return nil, fmt.Errorf("User#%d not found", userID)
 	}
-
+	user.Admin = admin == 1
 	return &user, nil
 }
 

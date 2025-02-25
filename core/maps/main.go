@@ -64,7 +64,7 @@ func LoadMap(name string) error {
 	// Open the file
 	file, err := os.Open(filePath)
 	if err != nil {
-		logger.LogError("system", action, -1, err)
+		logger.LogSystemError(action, -1, err)
 		return fmt.Errorf("failed to open file: %w", err)
 	}
 	defer file.Close()
@@ -72,19 +72,19 @@ func LoadMap(name string) error {
 	// Read file contents
 	content, err := io.ReadAll(file)
 	if err != nil {
-		logger.LogError("system", action, -1, err)
+		logger.LogSystemError(action, -1, err)
 		return fmt.Errorf("failed to read file: %w", err)
 	}
 
 	// Unmarshal JSON into Definition
 	var data jsonStructure
 	if err := json.Unmarshal(content, &data); err != nil {
-		logger.LogError("system", action, -1, err)
+		logger.LogSystemError(action, -1, err)
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
 	MapCollection[name] = data.Data
-	logger.LogMessage("system", action, "loaded map successfully")
+	logger.LogSystemMessage(action, "loaded map successfully")
 	return nil
 }
 

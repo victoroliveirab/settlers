@@ -8,11 +8,11 @@ import (
 )
 
 type LogMessageStruct struct {
-	Timestamp string                 `json:"timestamp"`
-	Direction string                 `json:"direction"`
-	ClientID  string                 `json:"client_id"`
-	Type      string                 `json:"type"`
-	Message   map[string]interface{} `json:"message"`
+	Timestamp string `json:"timestamp"`
+	Direction string `json:"direction"`
+	ClientID  int64  `json:"client_id"`
+	Type      string `json:"type"`
+	Message   any    `json:"message"`
 }
 
 var logFile *os.File
@@ -52,7 +52,7 @@ func LogHttpRequest(method, path, remoteAddr, userAgent string, duration, status
 	}
 }
 
-func LogWSMessage(direction, clientID string, msgType string, msg map[string]interface{}) {
+func LogWSMessage(direction string, clientID int64, msgType string, msg any) {
 	logEntry := LogMessageStruct{
 		Timestamp: time.Now().Format(time.RFC3339),
 		Direction: direction,
@@ -92,7 +92,7 @@ func Log(msg string) {
 
 }
 
-func LogError(clientID, action string, errorType int, err error) {
+func LogError(clientID int64, action string, errorType int, err error) {
 	logEntry := map[string]interface{}{
 		"timestamp": time.Now().Format(time.RFC3339),
 		"severity":  "error",
@@ -109,7 +109,24 @@ func LogError(clientID, action string, errorType int, err error) {
 	}
 }
 
-func LogMessage(clientID, action, message string) {
+func LogSystemError(action string, errorType int, err error) {
+	logEntry := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+		"severity":  "error",
+		"client_id": "system",
+		"action":    action,
+		"type":      errorType,
+		"error":     err.Error(),
+	}
+
+	logData, _ := json.Marshal(logEntry)
+	log.Println(string(logData)) // Print error log in JSON format
+	if persist {
+		writeLog(logData)
+	}
+}
+
+func LogMessage(clientID int64, action, message string) {
 	logEntry := map[string]interface{}{
 		"timestamp": time.Now().Format(time.RFC3339),
 		"severity":  "info",
@@ -123,7 +140,22 @@ func LogMessage(clientID, action, message string) {
 	if persist {
 		writeLog(logData)
 	}
+}
 
+func LogSystemMessage(action, message string) {
+	logEntry := map[string]interface{}{
+		"timestamp": time.Now().Format(time.RFC3339),
+		"severity":  "info",
+		"client_id": "system",
+		"action":    action,
+		"message":   message,
+	}
+
+	logData, _ := json.Marshal(logEntry)
+	log.Println(string(logData)) // Print error log in JSON format
+	if persist {
+		writeLog(logData)
+	}
 }
 
 func writeLog(logData []byte) {

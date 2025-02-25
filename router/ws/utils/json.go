@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/logger"
-	types "github.com/victoroliveirab/settlers/router/ws/manager"
+	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
-func ReadJson(conn *websocket.Conn, userID string) (*types.Message, error) {
-	var parsedMessage types.Message
-	m, message, err := conn.ReadMessage()
+func ReadJson(conn *types.WebSocketConnection, userID int64) (*types.WebSocketMessage, error) {
+	var parsedMessage types.WebSocketMessage
+	conn.Mutex.Lock()
+	defer conn.Mutex.Unlock()
+	m, message, err := conn.Instance.ReadMessage()
 	if err != nil {
 		logger.LogError(userID, "conn.ReadMessage", m, err)
 		return nil, err
@@ -25,8 +26,10 @@ func ReadJson(conn *websocket.Conn, userID string) (*types.Message, error) {
 	return &parsedMessage, nil
 }
 
-func WriteJson(conn *websocket.Conn, userID string, message *types.Message) error {
-	err := conn.WriteJSON(message)
+func WriteJson(conn *types.WebSocketConnection, userID int64, message *types.WebSocketMessage) error {
+	conn.Mutex.Lock()
+	defer conn.Mutex.Unlock()
+	err := conn.Instance.WriteJSON(message)
 	if err != nil {
 		logger.LogError(userID, strings.Join([]string{"conn.WriteJSON", message.Type}, "."), -1, err)
 		return err

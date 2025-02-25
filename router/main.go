@@ -9,7 +9,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
-	"github.com/victoroliveirab/settlers/router/ws/manager"
+	"github.com/victoroliveirab/settlers/router/room"
+	"github.com/victoroliveirab/settlers/router/ws"
+	"github.com/victoroliveirab/settlers/router/ws/state"
+	"github.com/victoroliveirab/settlers/router/ws/types"
 	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
@@ -27,35 +30,57 @@ func SetupRoutes(db *sql.DB) {
 
 	// WS
 
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		user, err := getUserFromCookie(r)
-		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusSeeOther)
-			return
-		}
-
-		c, err := upgrader.Upgrade(w, r, nil)
-		if err != nil {
-			logger.LogError(user.ID, "upgrader.Upgrade", -1, err)
-			return
-		}
-		defer c.Close()
-
-		// User may have refreshed page while in a game
-		for {
-			_, err := wsUtils.ReadJson(c, user.ID)
-			if err != nil {
-				break
+	http.Handle("/game-ws", chainMiddleware(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			userID := r.Context().Value("userID").(int64)
+			if userID == 0 {
+				// UserID must always exist here because it's called after withSessionMiddleware
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				return
 			}
 
-			wsUtils.WriteJson(c, user.ID, &manager.Message{
-				Type: "response",
-				Payload: map[string]interface{}{
-					"a": 42,
-				},
-			})
-		}
-	})
+			conn, err := upgrader.Upgrade(w, r, nil)
+			if err != nil {
+				logger.LogError(userID, "upgrader.Upgrade", -1, err)
+				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				return
+			}
+			defer conn.Close()
+
+			user, err := models.UserGetByID(db, userID)
+
+			if err != nil {
+				logger.LogError(userID, "models.UserGetByID", -1, err)
+				http.Redirect(w, r, "/login", http.StatusUnauthorized)
+				return
+			}
+
+			wsConn := &types.WebSocketConnection{
+				Instance: conn,
+			}
+
+			fmt.Println("after wsconn")
+
+			state.PlayerByConnection[wsConn] = &types.GamePlayer{
+				ID:         userID,
+				Username:   user.Username,
+				Connection: wsConn,
+			}
+
+			for {
+				message, err := wsUtils.ReadJson(wsConn, userID)
+				if err != nil {
+					break
+				}
+
+				err = ws.Handler(wsConn, message)
+				if err != nil {
+					break
+				}
+			}
+		}),
+		withSessionMiddleware(db),
+	))
 
 	// API
 
@@ -68,12 +93,12 @@ func SetupRoutes(db *sql.DB) {
 
 		username := r.FormValue("username")
 		password := r.FormValue("password")
-		user, err := models.UserCheckCredentials(db, username, password)
+		userID, err := models.UserCheckCredentials(db, username, password)
 		if err != nil {
 			http.Error(w, "Wrong username and/or password", http.StatusBadRequest)
 		}
 
-		session, err := models.SessionCreate(db, int64(user.ID), time.Hour)
+		session, err := models.SessionCreate(db, userID, time.Hour)
 		cookie := http.Cookie{
 			Name:     SESSION_COOKIE_NAME,
 			Value:    session,
@@ -96,7 +121,7 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
-			err = manager.CreateGameRoom(id, "base4", 2)
+			err = room.CreateGameRoom(id, "base4", 4)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}

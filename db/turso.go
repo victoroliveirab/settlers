@@ -18,7 +18,7 @@ type Turso struct {
 func TursoInit(localDb, primaryUrl, authToken string, syncInterval time.Duration) (Turso, error) {
 	dir, err := os.MkdirTemp("", "libsql-*")
 	if err != nil {
-		logger.LogError("system", "os.MkdirTemp", -1, err)
+		logger.LogSystemError("os.MkdirTemp", -1, err)
 		return Turso{}, err
 	}
 
@@ -28,7 +28,7 @@ func TursoInit(localDb, primaryUrl, authToken string, syncInterval time.Duration
 		libsql.WithSyncInterval(syncInterval),
 	)
 	if err != nil {
-		logger.LogError("system", "libsql.NewEmbeddedReplicaConnector", -1, err)
+		logger.LogSystemError("libsql.NewEmbeddedReplicaConnector", -1, err)
 		return Turso{}, err
 	}
 

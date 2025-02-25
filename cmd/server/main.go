@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/victoroliveirab/settlers/auth"
 	"github.com/victoroliveirab/settlers/db"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router"
@@ -23,7 +22,6 @@ func main() {
 	db := turso.Db
 	defer turso.CleanUp()
 	router.SetupRoutes(db)
-	auth.SessionsLoad()
 	logger.Log("starting ws server")
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
