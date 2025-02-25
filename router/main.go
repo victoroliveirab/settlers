@@ -84,6 +84,37 @@ func SetupRoutes(db *sql.DB) {
 
 	// API
 
+	http.HandleFunc("POST /signup", func(w http.ResponseWriter, r *http.Request) {
+		err := r.ParseForm()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		name := r.FormValue("username")
+		username := r.FormValue("username")
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		id, err := models.UserCreate(db, username, name, email, password)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+
+		session, err := models.SessionCreate(db, id, time.Hour)
+		cookie := http.Cookie{
+			Name:     SESSION_COOKIE_NAME,
+			Value:    session,
+			MaxAge:   60 * 60,
+			Path:     "/",
+			HttpOnly: true,
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, "/lobby", http.StatusSeeOther)
+	})
+
 	http.HandleFunc("POST /login", func(w http.ResponseWriter, r *http.Request) {
 		err := r.ParseForm()
 		if err != nil {
