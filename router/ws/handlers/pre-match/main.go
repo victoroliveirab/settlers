@@ -7,7 +7,7 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
-func TryHandle(room *entities.Room, player *entities.GamePlayer, message types.WebSocketMessage) (bool, error) {
+func TryHandle(room *entities.Room, player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
 	switch message.Type {
 	case "room.join":
 		payload, err := parseRoomJoinPayload(message.Payload)

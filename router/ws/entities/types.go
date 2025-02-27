@@ -21,15 +21,15 @@ type RoomEntry struct {
 type IncomingMessage struct {
 	Room    *Room
 	Player  *GamePlayer
-	Message types.WebSocketMessage
+	Message *types.WebSocketMessage
 }
 
 type BroadcastMessage struct {
 	ExcludedIDs []int64
-	Message     types.WebSocketMessage
+	Message     *types.WebSocketMessage
 }
 
-type RoomIncomingMessageHandler func(room *Room, player *GamePlayer, message types.WebSocketMessage) (bool, error)
+type RoomIncomingMessageHandler func(room *Room, player *GamePlayer, message *types.WebSocketMessage) (bool, error)
 
 type Room struct {
 	ID                string                       `json:"roomID"`

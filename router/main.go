@@ -66,7 +66,7 @@ func SetupRoutes(db *sql.DB) {
 			}
 
 			connectingPlayer := entities.NewPlayer(wsConn, user)
-			go connectingPlayer.ListenIncomingMessages(func(msg types.WebSocketMessage) {
+			go connectingPlayer.ListenIncomingMessages(func(msg *types.WebSocketMessage) {
 				room.EnqueueIncomingMessage(connectingPlayer, msg)
 			})
 		}),

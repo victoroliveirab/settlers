@@ -83,7 +83,7 @@ func (room *Room) RegisterIncomingMessageHandler(f RoomIncomingMessageHandler) {
 	room.handlers = append(room.handlers, f)
 }
 
-func (room *Room) EnqueueIncomingMessage(player *GamePlayer, msg types.WebSocketMessage) {
+func (room *Room) EnqueueIncomingMessage(player *GamePlayer, msg *types.WebSocketMessage) {
 	room.incomingMsgQueue <- IncomingMessage{
 		Room:    room,
 		Player:  player,
@@ -113,7 +113,7 @@ func (room *Room) ProcessIncomingMessages() {
 	}
 }
 
-func (room *Room) EnqueueBroadcastMessage(msg types.WebSocketMessage, excludedUserIDs []int64) {
+func (room *Room) EnqueueBroadcastMessage(msg *types.WebSocketMessage, excludedUserIDs []int64) {
 	room.broadcastMsgQueue <- BroadcastMessage{
 		ExcludedIDs: excludedUserIDs,
 		Message:     msg,
@@ -133,7 +133,7 @@ func (room *Room) ProcessBroadcastRequests() {
 				continue
 			}
 
-			err := utils.WriteJson(player.Connection, player.ID, &msg)
+			err := utils.WriteJson(player.Connection, player.ID, msg)
 
 			if err != nil {
 				fmt.Println("error for player ", player.ID, err)
