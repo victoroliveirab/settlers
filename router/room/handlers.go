@@ -28,7 +28,9 @@ func CreateGameRoom(name, mapName string, capacity int) error {
 		MapName:      mapName,
 		Participants: players,
 	}
+	state.Mutex.Lock()
 	state.RoomByID[name] = lobby
+	state.Mutex.Unlock()
 	logger.LogSystemMessage("ws.manager.CreateGameRoom", "Created!")
 	return nil
 }
