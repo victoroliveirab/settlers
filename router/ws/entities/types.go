@@ -8,7 +8,8 @@ import (
 )
 
 type Lobby struct {
-	rooms map[string]*Room
+	rooms        map[string]*Room
+	roomByPlayer map[int64]*Room
 	sync.Mutex
 }
 
@@ -45,9 +46,10 @@ type Room struct {
 }
 
 type GamePlayer struct {
-	ID         int64                      `json:"id"`
-	Username   string                     `json:"username"`
-	Connection *types.WebSocketConnection `json:"-"`
-	Color      string                     `json:"color"`
-	Room       string                     `json:"roomID"`
+	ID          int64                      `json:"id"`
+	Username    string                     `json:"username"`
+	Connection  *types.WebSocketConnection `json:"-"`
+	Color       string                     `json:"color"`
+	Room        string                     `json:"roomID"`
+	OnDisconect func(player *GamePlayer)   `json:"-"`
 }

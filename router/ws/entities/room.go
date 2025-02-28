@@ -26,9 +26,12 @@ func NewRoom(id, mapName string, capacity int) *Room {
 func (room *Room) AddPlayer(player *GamePlayer) error {
 	room.Lock()
 	defer room.Unlock()
-	for _, spot := range room.Participants {
+	for index, spot := range room.Participants {
 		if spot.Player != nil {
 			if spot.Player.ID == player.ID {
+				// Connection may have changed
+				room.Participants[index].Player.Connection.Instance = player.Connection.Instance
+				room.Participants[index].Player.OnDisconect = player.OnDisconect
 				return nil
 			}
 		}
@@ -53,9 +56,9 @@ func (room *Room) TogglePlayerReadyState(playerID int64, newState bool) error {
 	room.Lock()
 	defer room.Unlock()
 
-	for _, participant := range room.Participants {
+	for index, participant := range room.Participants {
 		if participant.Player != nil && participant.Player.ID == playerID {
-			participant.Ready = newState
+			room.Participants[index].Ready = newState
 			return nil
 		}
 	}
@@ -70,7 +73,24 @@ func (room *Room) RemovePlayer(playerID int64) error {
 
 	for index, participant := range room.Participants {
 		if participant.Player != nil && participant.Player.ID == playerID {
-			room.Participants[index] = RoomEntry{}
+			if room.Game == nil {
+				room.Participants[index] = RoomEntry{}
+				// REFACTOR: not ideal to have this message defined here and at handlers/pre-match/broadcast.go
+				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
+					Type:    "room.new-update",
+					Payload: room.ToMapInterface(),
+				}, []int64{})
+			} else {
+				room.Participants[index].Player.Connection.Instance = nil
+				room.Participants[index].Bot = true
+				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
+					Type: "game.player-left",
+					Payload: map[string]interface{}{
+						"player": playerID,
+						"bot":    true,
+					},
+				}, []int64{})
+			}
 			return nil
 		}
 	}
@@ -142,5 +162,14 @@ func (room *Room) ProcessBroadcastRequests() {
 		}
 		room.Unlock()
 
+	}
+}
+
+func (room *Room) ToMapInterface() map[string]interface{} {
+	return map[string]interface{}{
+		"id":           room.ID,
+		"capacity":     room.Capacity,
+		"map":          room.MapName,
+		"participants": room.Participants,
 	}
 }

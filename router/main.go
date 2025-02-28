@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -16,6 +17,7 @@ import (
 
 const (
 	SESSION_COOKIE_NAME = "settlersscookie"
+	USER_COOKIE_NAME    = "settlersucookie"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -65,7 +67,9 @@ func SetupRoutes(db *sql.DB) {
 				Instance: conn,
 			}
 
-			connectingPlayer := entities.NewPlayer(wsConn, user)
+			connectingPlayer := entities.NewPlayer(wsConn, user, func(player *entities.GamePlayer) {
+				room.RemovePlayer(player.ID)
+			})
 			go connectingPlayer.ListenIncomingMessages(func(msg *types.WebSocketMessage) {
 				room.EnqueueIncomingMessage(connectingPlayer, msg)
 			})
@@ -130,7 +134,16 @@ func SetupRoutes(db *sql.DB) {
 			Secure:   true,
 			SameSite: http.SameSiteStrictMode,
 		}
+
+		userCookie := http.Cookie{
+			Name:   USER_COOKIE_NAME,
+			Value:  strconv.FormatInt(userID, 10),
+			MaxAge: 200 * 60 * 60 * 24 * 30,
+			Path:   "/",
+			Secure: true,
+		}
 		http.SetCookie(w, &cookie)
+		http.SetCookie(w, &userCookie)
 		http.Redirect(w, r, "/lobby", http.StatusSeeOther)
 	})
 

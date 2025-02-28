@@ -54,10 +54,36 @@ export default class WebSocketConnection {
 
     switch (message.type) {
       case "room.join.success": {
-        this.preGameRenderer.renderPlayerList(message.payload.participants);
+        this.preGameRenderer.renderPlayerList(
+          message.payload.participants,
+          this.onReadyChange.bind(this),
+        );
+        this.preGameRenderer.renderStartButton(message.payload.participants);
+        break;
+      }
+      case "room.new-update": {
+        this.preGameRenderer.renderPlayerList(
+          message.payload.participants,
+          this.onReadyChange.bind(this),
+        );
         this.preGameRenderer.renderStartButton(message.payload.participants);
         break;
       }
     }
+  }
+
+  private onReadyChange(state: boolean) {
+    this.sendMessage({
+      type: "room.toggle-ready",
+      payload: {
+        ready: state,
+      },
+    });
+  }
+
+  private sendMessage<T extends keyof SettlersWSServer.OutgoingMessages>(
+    message: SettlersWSServer.OutgoingMessage<T>,
+  ) {
+    this.ws.send(JSON.stringify(message));
   }
 }

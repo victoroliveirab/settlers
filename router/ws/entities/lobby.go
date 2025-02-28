@@ -4,7 +4,8 @@ import "fmt"
 
 func NewLobby() *Lobby {
 	return &Lobby{
-		rooms: make(map[string]*Room),
+		roomByPlayer: make(map[int64]*Room),
+		rooms:        make(map[string]*Room),
 	}
 }
 

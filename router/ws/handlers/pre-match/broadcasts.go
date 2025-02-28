@@ -8,6 +8,6 @@ import (
 func buildRoomStateUpdateBroadcast(room *entities.Room) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
 		Type:    "room.new-update",
-		Payload: roomToMapInterface(room),
+		Payload: room.ToMapInterface(),
 	}
 }

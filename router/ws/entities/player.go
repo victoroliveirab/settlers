@@ -6,18 +6,19 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func NewPlayer(connection *types.WebSocketConnection, user *models.User) *GamePlayer {
+func NewPlayer(connection *types.WebSocketConnection, user *models.User, onDisconnect func(player *GamePlayer)) *GamePlayer {
 	return &GamePlayer{
-		ID:         user.ID,
-		Username:   user.Username,
-		Connection: connection,
-		Color:      "",
-		Room:       "",
+		ID:          user.ID,
+		Username:    user.Username,
+		Connection:  connection,
+		Color:       "",
+		Room:        "",
+		OnDisconect: onDisconnect,
 	}
 }
 
 func (player *GamePlayer) ListenIncomingMessages(enqueueMessage func(msg *types.WebSocketMessage)) {
-	defer player.Connection.Instance.Close()
+	defer player.OnDisconect(player)
 	for {
 		parsedMessage, err := utils.ReadJson(player.Connection, player.ID)
 		if err != nil {

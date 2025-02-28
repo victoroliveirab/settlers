@@ -9,7 +9,7 @@ import (
 func sendRoomJoinRequestSuccess(conn *types.WebSocketConnection, userID int64, room *entities.Room) error {
 	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
 		Type:    "room.join.success",
-		Payload: roomToMapInterface(room),
+		Payload: room.ToMapInterface(),
 	})
 }
 
