@@ -20,10 +20,13 @@ function safeParse(text: string):
 
 export default class WebSocketConnection {
   private ws!: WebSocket;
+  private roomID: string;
+
   constructor(
     url: string,
     private readonly preGameRenderer: PreGameRenderer,
   ) {
+    this.roomID = window.location.pathname.split("/").at(-1)!;
     const ws = new WebSocket(url);
     ws.onopen = (e) => {
       this.ws = ws;
@@ -32,7 +35,7 @@ export default class WebSocketConnection {
         JSON.stringify({
           type: "room.join",
           payload: {
-            roomID: window.location.pathname.split("/").at(-1),
+            roomID: this.roomID,
           },
         }),
       );
@@ -85,6 +88,7 @@ export default class WebSocketConnection {
       type: "room.toggle-ready",
       payload: {
         ready: state,
+        roomID: this.roomID,
       },
     });
   }

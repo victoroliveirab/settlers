@@ -19,14 +19,14 @@ export namespace SettlersWSServer {
       capacity: number;
       map: string;
       participants: SettlersCore.Participant[];
-      owner: SettlersCore.Player["id"];
+      owner: SettlersCore.Player["username"];
     };
     "room.new-update": {
       id: string;
       capacity: number;
       map: string;
       participants: SettlersCore.Participant[];
-      owner: SettlersCore.Player["id"];
+      owner: SettlersCore.Player["username"];
     };
   };
 
@@ -35,6 +35,7 @@ export namespace SettlersWSServer {
       roomID: string;
     };
     "room.toggle-ready": {
+      roomID: string;
       ready: boolean;
     };
     "room.start-game": {};

@@ -19,7 +19,8 @@ func parseRoomJoinPayload(payload map[string]interface{}) (*roomPayload, error) 
 }
 
 type playerReadyPayload struct {
-	Ready bool
+	Ready  bool
+	RoomID string
 }
 
 func parsePlayerReadyState(payload map[string]interface{}) (*playerReadyPayload, error) {
@@ -28,8 +29,14 @@ func parsePlayerReadyState(payload map[string]interface{}) (*playerReadyPayload,
 		err := fmt.Errorf("malformed data: ready")
 		return nil, err
 	}
+	roomID, ok := payload["roomID"].(string)
+	if !ok {
+		err := fmt.Errorf("malformed data: roomID")
+		return nil, err
+	}
 
 	return &playerReadyPayload{
-		Ready: ready,
+		Ready:  ready,
+		RoomID: roomID,
 	}, nil
 }

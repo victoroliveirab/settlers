@@ -32,10 +32,14 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{player.ID}, nil)
 		return true, err
 	case "room.toggle-ready":
-		// TODO: require room id in request
 		payload, err := parsePlayerReadyState(message.Payload)
 		if err != nil {
 			wsErr := sendToggleReadyRequestError(player, err)
+			return true, wsErr
+		}
+
+		if payload.RoomID != player.Room.ID {
+			wsErr := sendRoomJoinRequestError(player, fmt.Errorf("Cannot toggle ready in room#%s: not part of room", payload.RoomID))
 			return true, wsErr
 		}
 
