@@ -1,8 +1,6 @@
 package prematch
 
 import (
-	"strconv"
-
 	"github.com/victoroliveirab/settlers/core"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
@@ -14,9 +12,8 @@ func StartMatch(room *entities.Room) error {
 	players := make([]*coreT.Player, room.Capacity)
 	for i, entry := range room.Participants {
 		players[i] = &coreT.Player{
-			Name:  entry.Player.Username,
+			ID:    entry.Player.Username,
 			Color: entry.Player.Color,
-			ID:    strconv.FormatInt(entry.Player.ID, 10),
 		}
 	}
 
@@ -45,12 +42,12 @@ func StartMatch(room *entities.Room) error {
 	room.EnqueueBroadcastMessage(buildStartGameBroadcast(room, []string{"Setup phase starting."}), []int64{}, func() {
 		var firstPlayer *entities.GamePlayer
 		for _, participant := range room.Participants {
-			if participant.Player.ID == room.OwnerID {
+			if participant.Player.Username == room.Owner {
 				firstPlayer = participant.Player
 				break
 			}
 		}
-		match.SendBuildSettlementRequest(firstPlayer.Connection, firstPlayer.ID, room)
+		match.SendBuildSettlementRequest(firstPlayer, room)
 	})
 	return nil
 }

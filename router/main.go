@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -96,7 +95,7 @@ func SetupRoutes(db *sql.DB) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		session, err := models.SessionCreate(db, id, time.Hour)
+		session, err := models.SessionCreate(db, id, username, time.Hour)
 		cookie := http.Cookie{
 			Name:     SESSION_COOKIE_NAME,
 			Value:    session,
@@ -124,7 +123,7 @@ func SetupRoutes(db *sql.DB) {
 			http.Error(w, "Wrong username and/or password", http.StatusBadRequest)
 		}
 
-		session, err := models.SessionCreate(db, userID, time.Hour)
+		session, err := models.SessionCreate(db, userID, username, time.Hour)
 		cookie := http.Cookie{
 			Name:     SESSION_COOKIE_NAME,
 			Value:    session,
@@ -137,7 +136,7 @@ func SetupRoutes(db *sql.DB) {
 
 		userCookie := http.Cookie{
 			Name:   USER_COOKIE_NAME,
-			Value:  strconv.FormatInt(userID, 10),
+			Value:  username,
 			MaxAge: 200 * 60 * 60 * 24 * 30,
 			Path:   "/",
 			Secure: true,

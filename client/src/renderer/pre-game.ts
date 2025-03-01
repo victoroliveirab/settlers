@@ -3,7 +3,7 @@ import type { SettlersCore } from "../websocket/types";
 export default class PreGameRenderer {
   constructor(
     private readonly root: HTMLElement,
-    private readonly userID: number,
+    private readonly user: string,
   ) {}
 
   renderPlayerList(
@@ -36,8 +36,7 @@ export default class PreGameRenderer {
 
       const readyCheckbox = document.createElement("input");
       readyCheckbox.type = "checkbox";
-      const isCheckboxActive = participant.player.id === this.userID;
-      console.log({ participant, userID: this.userID });
+      const isCheckboxActive = participant.player.username === this.user;
       readyCheckbox.disabled = !isCheckboxActive;
       readyCheckbox.checked = participant.ready;
 
@@ -58,7 +57,7 @@ export default class PreGameRenderer {
 
   renderStartButton(
     participants: SettlersCore.Participant[],
-    ownerID: SettlersCore.Player["id"],
+    owner: SettlersCore.Player["username"],
     onClick: () => void,
   ) {
     const startButton = document.createElement("button");
@@ -67,7 +66,7 @@ export default class PreGameRenderer {
     const isReady = participants.every((participant) => participant.ready);
     this.root.querySelector(".pre-game-container")?.appendChild(startButton);
     if (isReady) {
-      const isRoomOwner = ownerID === this.userID;
+      const isRoomOwner = owner === this.user;
       startButton.disabled = !isRoomOwner;
       if (isRoomOwner) {
         startButton.addEventListener("click", onClick, { once: true });

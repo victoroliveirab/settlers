@@ -8,7 +8,7 @@ window.onload = () => {
 
   if (!root || !userID) return;
 
-  const preGameRenderer = new PreGameRenderer(root, +userID);
+  const preGameRenderer = new PreGameRenderer(root, userID);
   const roomID = window.location.pathname.split("/").at(-1);
 
   new WebSocketConnection(`http://localhost:8080/ws?room=${roomID}`, preGameRenderer);

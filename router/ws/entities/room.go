@@ -17,7 +17,7 @@ func NewRoom(id, mapName string, capacity int, onDestroy func(room *Room)) *Room
 		Capacity:          capacity,
 		MapName:           mapName,
 		Participants:      make([]RoomEntry, capacity),
-		OwnerID:           0,
+		Owner:             "",
 		incomingMsgQueue:  make(chan IncomingMessage, 32), // buffer incoming messages
 		broadcastMsgQueue: make(chan BroadcastMessage),    // process msg immediatly, one by one
 		handlers:          make([]RoomIncomingMessageHandler, 0),
@@ -48,8 +48,8 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 				Ready:  false,
 				Bot:    false,
 			}
-			if room.OwnerID == 0 {
-				room.OwnerID = player.ID
+			if room.Owner == "" {
+				room.Owner = player.Username
 			}
 			return nil
 		}
@@ -82,7 +82,7 @@ func (room *Room) RemovePlayer(playerID int64) error {
 		if participant.Player != nil && participant.Player.ID == playerID {
 			if room.Game == nil {
 				room.Participants[index] = RoomEntry{}
-				if room.OwnerID == playerID {
+				if room.Owner == participant.Player.Username {
 					err := room.assignNewOwner()
 					if err != nil {
 						// TODO: instead of destroying right away, schedule the destroy (10 seconds in the future)
@@ -118,7 +118,7 @@ func (room *Room) RemovePlayer(playerID int64) error {
 func (room *Room) assignNewOwner() error {
 	for _, participant := range room.Participants {
 		if participant.Player != nil {
-			room.OwnerID = participant.Player.ID
+			room.Owner = participant.Player.Username
 			return nil
 		}
 	}
@@ -207,6 +207,6 @@ func (room *Room) ToMapInterface() map[string]interface{} {
 		"capacity":     room.Capacity,
 		"map":          room.MapName,
 		"participants": room.Participants,
-		"owner":        room.OwnerID,
+		"owner":        room.Owner,
 	}
 }

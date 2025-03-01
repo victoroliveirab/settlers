@@ -40,7 +40,7 @@ type Room struct {
 	MapName           string                       `json:"map"`
 	Participants      []RoomEntry                  `json:"participants"`
 	Private           bool                         `json:"private"`
-	OwnerID           int64                        `json:"ownerID"`
+	Owner             string                       `json:"owner"`
 	incomingMsgQueue  chan IncomingMessage         `json:"-"`
 	broadcastMsgQueue chan BroadcastMessage        `json:"-"`
 	handlers          []RoomIncomingMessageHandler `json:"-"`
@@ -49,7 +49,7 @@ type Room struct {
 }
 
 type GamePlayer struct {
-	ID          int64                      `json:"id"`
+	ID          int64                      `json:"-"`
 	Username    string                     `json:"username"`
 	Connection  *types.WebSocketConnection `json:"-"`
 	Color       string                     `json:"color"`

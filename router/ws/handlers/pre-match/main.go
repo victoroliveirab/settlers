@@ -46,7 +46,7 @@ func TryHandle(room *entities.Room, player *entities.GamePlayer, message *types.
 		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{}, nil)
 		return true, nil
 	case "room.start-game":
-		if player.ID != room.OwnerID {
+		if player.Username != room.Owner {
 			err := fmt.Errorf("Cannot start game: not room owner")
 			wsErr := sendStartGameRequestError(player.Connection, player.ID, err)
 			return true, wsErr
