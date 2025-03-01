@@ -3,21 +3,24 @@ package entities
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
 var color [4]string = [4]string{"green", "orange", "blue", "black"}
 
-func NewRoom(id, mapName string, capacity int) *Room {
+func NewRoom(id, mapName string, capacity int, onDestroy func(room *Room)) *Room {
 	return &Room{
 		ID:                id,
 		Capacity:          capacity,
 		MapName:           mapName,
 		Participants:      make([]RoomEntry, capacity),
+		OwnerID:           0,
 		incomingMsgQueue:  make(chan IncomingMessage, 32), // buffer incoming messages
 		broadcastMsgQueue: make(chan BroadcastMessage),    // process msg immediatly, one by one
 		handlers:          make([]RoomIncomingMessageHandler, 0),
+		onDestroy:         onDestroy,
 		Game:              nil,
 		Private:           true,
 	}
@@ -43,6 +46,9 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 				Player: player,
 				Ready:  false,
 				Bot:    false,
+			}
+			if room.OwnerID == 0 {
+				room.OwnerID = player.ID
 			}
 			return nil
 		}
@@ -75,6 +81,15 @@ func (room *Room) RemovePlayer(playerID int64) error {
 		if participant.Player != nil && participant.Player.ID == playerID {
 			if room.Game == nil {
 				room.Participants[index] = RoomEntry{}
+				if room.OwnerID == playerID {
+					err := room.assignNewOwner()
+					if err != nil {
+						// TODO: instead of destroying right away, schedule the destroy (10 seconds in the future)
+						// So if the leaving of the last player was a refresh in the page, they don't lose the room
+						room.Destroy(err.Error())
+						return nil
+					}
+				}
 				// REFACTOR: not ideal to have this message defined here and at handlers/pre-match/broadcast.go
 				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
 					Type:    "room.new-update",
@@ -96,6 +111,17 @@ func (room *Room) RemovePlayer(playerID int64) error {
 	}
 
 	err := fmt.Errorf("Cannot remove player#%d: not part of room %s", playerID, room.ID)
+	return err
+}
+
+func (room *Room) assignNewOwner() error {
+	for _, participant := range room.Participants {
+		if participant.Player != nil {
+			room.OwnerID = participant.Player.ID
+			return nil
+		}
+	}
+	err := fmt.Errorf("Cannot assign a new owner to room %s: no players left", room.ID)
 	return err
 }
 
@@ -165,11 +191,17 @@ func (room *Room) ProcessBroadcastRequests() {
 	}
 }
 
+func (room *Room) Destroy(reason string) {
+	logger.LogSystemMessage("room.Destroy", reason)
+	room.onDestroy(room)
+}
+
 func (room *Room) ToMapInterface() map[string]interface{} {
 	return map[string]interface{}{
 		"id":           room.ID,
 		"capacity":     room.Capacity,
 		"map":          room.MapName,
 		"participants": room.Participants,
+		"owner":        room.OwnerID,
 	}
 }

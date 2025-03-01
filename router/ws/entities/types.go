@@ -33,15 +33,17 @@ type BroadcastMessage struct {
 type RoomIncomingMessageHandler func(room *Room, player *GamePlayer, message *types.WebSocketMessage) (bool, error)
 
 type Room struct {
-	ID                string                       `json:"roomID"`
+	ID                string                       `json:"id"`
 	Capacity          int                          `json:"capacity"`
 	Game              *core.GameState              `json:"-"`
 	MapName           string                       `json:"map"`
 	Participants      []RoomEntry                  `json:"participants"`
 	Private           bool                         `json:"private"`
+	OwnerID           int64                        `json:"ownerID"`
 	incomingMsgQueue  chan IncomingMessage         `json:"-"`
 	broadcastMsgQueue chan BroadcastMessage        `json:"-"`
 	handlers          []RoomIncomingMessageHandler `json:"-"`
+	onDestroy         func(room *Room)             `json:"-"`
 	sync.Mutex
 }
 

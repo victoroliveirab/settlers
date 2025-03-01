@@ -1,6 +1,10 @@
 package entities
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/victoroliveirab/settlers/logger"
+)
 
 func NewLobby() *Lobby {
 	return &Lobby{
@@ -24,7 +28,9 @@ func (lobby *Lobby) CreateRoom(id, mapName string, capacity int) (*Room, error) 
 		return nil, err
 	}
 
-	newRoom := NewRoom(id, mapName, capacity)
+	newRoom := NewRoom(id, mapName, capacity, func(room *Room) {
+		lobby.DestroyRoom(room.ID)
+	})
 	lobby.rooms[id] = newRoom
 	return newRoom, nil
 }
@@ -35,4 +41,21 @@ func (lobby *Lobby) GetRoom(id string) (*Room, bool) {
 	defer lobby.Unlock()
 	room, exists := lobby.rooms[id]
 	return room, exists
+}
+
+func (lobby *Lobby) DestroyRoom(roomID string) error {
+	room, exists := lobby.rooms[roomID]
+	if !exists {
+		err := fmt.Errorf("Cannot destroy room %s: no such room", roomID)
+		return err
+	}
+
+	if room.Game != nil {
+		err := fmt.Errorf("Cannot destroy room %s: game ongoing", roomID)
+		return err
+	}
+
+	delete(lobby.rooms, roomID)
+	logger.LogSystemMessage("lobby.DestroyRoom", fmt.Sprintf("Destroyed room %s", roomID))
+	return nil
 }

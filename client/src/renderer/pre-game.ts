@@ -56,15 +56,14 @@ export default class PreGameRenderer {
     container.appendChild(element);
   }
 
-  renderStartButton(participants: SettlersCore.Participant[]) {
+  renderStartButton(participants: SettlersCore.Participant[], ownerID: SettlersCore.Player["id"]) {
     const startButton = document.createElement("button");
     startButton.textContent = "Start";
     startButton.disabled = true;
     const isReady = participants.every((participant) => participant.ready);
     this.root.querySelector(".pre-game-container")?.appendChild(startButton);
     if (isReady) {
-      // TODO: have on BE room owner
-      const isRoomOwner = participants[0].player?.id === this.userID;
+      const isRoomOwner = ownerID === this.userID;
       startButton.disabled = !isRoomOwner;
     }
   }

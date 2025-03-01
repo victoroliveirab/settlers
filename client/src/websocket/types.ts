@@ -19,12 +19,14 @@ export namespace SettlersWSServer {
       capacity: number;
       map: string;
       participants: SettlersCore.Participant[];
+      owner: SettlersCore.Player["id"];
     };
     "room.new-update": {
       id: string;
       capacity: number;
       map: string;
       participants: SettlersCore.Participant[];
+      owner: SettlersCore.Player["id"];
     };
   };
 
