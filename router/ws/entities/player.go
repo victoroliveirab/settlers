@@ -6,13 +6,13 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func NewPlayer(connection *types.WebSocketConnection, user *models.User, onDisconnect func(player *GamePlayer)) *GamePlayer {
+func NewPlayer(connection *types.WebSocketConnection, user *models.User, room *Room, onDisconnect func(player *GamePlayer)) *GamePlayer {
 	return &GamePlayer{
 		ID:          user.ID,
 		Username:    user.Username,
 		Connection:  connection,
 		Color:       "",
-		Room:        "",
+		Room:        room,
 		OnDisconect: onDisconnect,
 	}
 }

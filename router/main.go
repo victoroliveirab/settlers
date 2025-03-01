@@ -66,7 +66,7 @@ func SetupRoutes(db *sql.DB) {
 				Instance: conn,
 			}
 
-			connectingPlayer := entities.NewPlayer(wsConn, user, func(player *entities.GamePlayer) {
+			connectingPlayer := entities.NewPlayer(wsConn, user, room, func(player *entities.GamePlayer) {
 				room.RemovePlayer(player.ID)
 			})
 			go connectingPlayer.ListenIncomingMessages(func(msg *types.WebSocketMessage) {

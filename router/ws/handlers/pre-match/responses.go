@@ -6,15 +6,15 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func sendRoomJoinRequestSuccess(conn *types.WebSocketConnection, userID int64, room *entities.Room) error {
-	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+func sendRoomJoinRequestSuccess(player *entities.GamePlayer) error {
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type:    "room.join.success",
-		Payload: room.ToMapInterface(),
+		Payload: player.Room.ToMapInterface(),
 	})
 }
 
-func sendRoomJoinRequestError(conn *types.WebSocketConnection, userID int64, err error) error {
-	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+func sendRoomJoinRequestError(player *entities.GamePlayer, err error) error {
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "room.join.error",
 		Payload: map[string]interface{}{
 			"error": err.Error(),
@@ -22,8 +22,8 @@ func sendRoomJoinRequestError(conn *types.WebSocketConnection, userID int64, err
 	})
 }
 
-func sendToggleReadyRequestError(conn *types.WebSocketConnection, userID int64, err error) error {
-	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+func sendToggleReadyRequestError(player *entities.GamePlayer, err error) error {
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "room.toggle-ready.error",
 		Payload: map[string]interface{}{
 			"error": err.Error(),
@@ -31,8 +31,8 @@ func sendToggleReadyRequestError(conn *types.WebSocketConnection, userID int64, 
 	})
 }
 
-func sendStartGameRequestError(conn *types.WebSocketConnection, userID int64, err error) error {
-	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+func sendStartGameRequestError(player *entities.GamePlayer, err error) error {
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "room.start-game.error",
 		Payload: map[string]interface{}{
 			"error": err.Error(),

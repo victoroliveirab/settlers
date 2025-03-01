@@ -31,7 +31,7 @@ type BroadcastMessage struct {
 	OnSend      func()
 }
 
-type RoomIncomingMessageHandler func(room *Room, player *GamePlayer, message *types.WebSocketMessage) (bool, error)
+type RoomIncomingMessageHandler func(player *GamePlayer, message *types.WebSocketMessage) (bool, error)
 
 type Room struct {
 	ID                string                       `json:"id"`
@@ -53,6 +53,6 @@ type GamePlayer struct {
 	Username    string                     `json:"username"`
 	Connection  *types.WebSocketConnection `json:"-"`
 	Color       string                     `json:"color"`
-	Room        string                     `json:"roomID"`
+	Room        *Room                      `json:"-"`
 	OnDisconect func(player *GamePlayer)   `json:"-"`
 }

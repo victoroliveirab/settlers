@@ -148,7 +148,7 @@ func (room *Room) ProcessIncomingMessages() {
 		var err error
 
 		for _, handler := range room.handlers {
-			handled, err = handler(room, sender, message)
+			handled, err = handler(sender, message)
 			if handled || err != nil {
 				break
 			}
