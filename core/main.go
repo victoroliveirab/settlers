@@ -179,7 +179,6 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	for i, player := range players {
 		state.players[i] = coreT.Player{
 			ID:    player.ID,
-			Name:  player.Name,
 			Color: player.Color,
 		}
 	}
@@ -272,6 +271,21 @@ func (state *GameState) findPlayer(playerID string) *coreT.Player {
 }
 
 // Getters
+
+func (state *GameState) Map() []*coreT.MapBlock {
+	// REFACTOR: return a copy
+	return state.tiles
+}
+
+func (state *GameState) Players() []coreT.Player {
+	// REFACTOR: return a copy
+	return state.players
+}
+
+func (state *GameState) CurrentRoundPlayer() coreT.Player {
+	return state.players[state.currentPlayerIndex]
+}
+
 func (state *GameState) Dice() [2]int {
 	return [2]int{state.dice1, state.dice2}
 }

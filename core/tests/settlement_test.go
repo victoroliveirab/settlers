@@ -1,8 +1,10 @@
 package tests
 
 import (
-	testUtils "github.com/victoroliveirab/settlers/core/state"
 	"testing"
+
+	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 func TestBuildSettlementSetupPhaseSuccess(t *testing.T) {
@@ -278,4 +280,95 @@ func TestBuildSettlementErrorAlreadyBuildingSameEdge(t *testing.T) {
 			t.Errorf("expected to not be able to build settlement in the same edge, but it build just fine")
 		}
 	})
+}
+
+func TestAvailableVerticesPlayerRoundRegularPhase(t *testing.T) {
+	createGame := func(settlementMap, cityMap, roadMap map[string][]int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(testUtils.Regular),
+			testUtils.MockWithSettlementsByPlayer(settlementMap),
+			testUtils.MockWithCitiesByPlayer(cityMap),
+			testUtils.MockWithRoadsByPlayer(roadMap),
+		)
+		return game
+	}
+
+	var tests = []struct {
+		description    string
+		cityMap        map[string][]int
+		roadMap        map[string][]int
+		settlementMap  map[string][]int
+		expectedResult []int
+	}{
+		{
+			description: "no available vertice to build - first regular round",
+			cityMap:     map[string][]int{},
+			roadMap: map[string][]int{
+				"1": {1, 55},
+				"2": {7, 41},
+			},
+			settlementMap: map[string][]int{
+				"1": {1, 42},
+				"2": {7, 32},
+			},
+			expectedResult: []int{},
+		},
+		{
+			description: "no available vertice to build - only occupied edges",
+			cityMap:     map[string][]int{},
+			roadMap: map[string][]int{
+				"1": {1, 2, 6, 55},
+				"2": {7, 41},
+			},
+			settlementMap: map[string][]int{
+				"1": {1, 42},
+				"2": {7, 32},
+			},
+			expectedResult: []int{},
+		},
+		{
+			description: "available vertice to build - single edge",
+			cityMap: map[string][]int{
+				"1": {1},
+			},
+			roadMap: map[string][]int{
+				"1": {1, 2, 6, 55},
+				"2": {41, 43},
+			},
+			settlementMap: map[string][]int{
+				"1": {42},
+				"2": {32, 34},
+			},
+			expectedResult: []int{3},
+		},
+		{
+			description: "available vertices to build - general",
+			cityMap:     map[string][]int{},
+			roadMap: map[string][]int{
+				"1": {1, 2, 3, 4, 5, 6, 55, 56, 57},
+				"2": {41, 43},
+			},
+			settlementMap: map[string][]int{
+				"1": {1, 42},
+				"2": {32, 34},
+			},
+			expectedResult: []int{3, 4, 5, 44},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			game := createGame(tt.settlementMap, tt.cityMap, tt.roadMap)
+			vertices, err := game.AvailableVertices("1")
+			if err != nil {
+				t.Errorf("expected to be able to check available vertices, actually got error %s", err.Error())
+			}
+			expectedResultSet := utils.SetFromSlice(tt.expectedResult)
+			actualResultSet := utils.SetFromSlice(vertices)
+			if !expectedResultSet.Equal(actualResultSet) {
+				t.Errorf("expected available vertices to be %v, actually got %v", tt.expectedResult, vertices)
+			}
+		})
+	}
+
 }

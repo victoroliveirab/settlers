@@ -10,8 +10,6 @@ import (
 
 func ReadJson(conn *types.WebSocketConnection, userID int64) (*types.WebSocketMessage, error) {
 	var parsedMessage types.WebSocketMessage
-	conn.Mutex.Lock()
-	defer conn.Mutex.Unlock()
 	m, message, err := conn.Instance.ReadMessage()
 	if err != nil {
 		logger.LogError(userID, "conn.ReadMessage", m, err)

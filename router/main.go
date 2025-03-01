@@ -9,20 +9,20 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
-	"github.com/victoroliveirab/settlers/router/room"
-	"github.com/victoroliveirab/settlers/router/ws"
-	"github.com/victoroliveirab/settlers/router/ws/state"
+	"github.com/victoroliveirab/settlers/router/ws/entities"
+	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
 const (
 	SESSION_COOKIE_NAME = "settlersscookie"
+	USER_COOKIE_NAME    = "settlersucookie"
 )
 
 var upgrader = websocket.Upgrader{}
 
 func SetupRoutes(db *sql.DB) {
+	l := entities.NewLobby()
 	fs := http.FileServer(http.Dir("client"))
 
 	http.Handle("/static/", http.StripPrefix("/static", fs))
@@ -30,12 +30,20 @@ func SetupRoutes(db *sql.DB) {
 
 	// WS
 
-	http.Handle("/game-ws", chainMiddleware(
+	http.Handle("/ws", chainMiddleware(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID := r.Context().Value("userID").(int64)
 			if userID == 0 {
 				// UserID must always exist here because it's called after withSessionMiddleware
 				http.Error(w, "Something went wrong", http.StatusInternalServerError)
+				return
+			}
+
+			roomID := r.URL.Query().Get("room")
+			room, exists := l.GetRoom(roomID)
+			if !exists {
+				logger.LogMessage(userID, fmt.Sprintf("l.GetRoom(%s)", roomID), "Room doesn't exist")
+				http.Error(w, "Resource not found", http.StatusNotFound)
 				return
 			}
 
@@ -45,7 +53,6 @@ func SetupRoutes(db *sql.DB) {
 				http.Error(w, "Something went wrong", http.StatusInternalServerError)
 				return
 			}
-			defer conn.Close()
 
 			user, err := models.UserGetByID(db, userID)
 
@@ -59,25 +66,12 @@ func SetupRoutes(db *sql.DB) {
 				Instance: conn,
 			}
 
-			fmt.Println("after wsconn")
-
-			state.PlayerByConnection[wsConn] = &types.GamePlayer{
-				ID:         userID,
-				Username:   user.Username,
-				Connection: wsConn,
-			}
-
-			for {
-				message, err := wsUtils.ReadJson(wsConn, userID)
-				if err != nil {
-					break
-				}
-
-				err = ws.Handler(wsConn, message)
-				if err != nil {
-					break
-				}
-			}
+			connectingPlayer := entities.NewPlayer(wsConn, user, room, func(player *entities.GamePlayer) {
+				room.RemovePlayer(player.ID)
+			})
+			go connectingPlayer.ListenIncomingMessages(func(msg *types.WebSocketMessage) {
+				room.EnqueueIncomingMessage(connectingPlayer, msg)
+			})
 		}),
 		withSessionMiddleware(db),
 	))
@@ -101,7 +95,7 @@ func SetupRoutes(db *sql.DB) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		session, err := models.SessionCreate(db, id, time.Hour)
+		session, err := models.SessionCreate(db, id, username, time.Hour)
 		cookie := http.Cookie{
 			Name:     SESSION_COOKIE_NAME,
 			Value:    session,
@@ -129,7 +123,7 @@ func SetupRoutes(db *sql.DB) {
 			http.Error(w, "Wrong username and/or password", http.StatusBadRequest)
 		}
 
-		session, err := models.SessionCreate(db, userID, time.Hour)
+		session, err := models.SessionCreate(db, userID, username, time.Hour)
 		cookie := http.Cookie{
 			Name:     SESSION_COOKIE_NAME,
 			Value:    session,
@@ -139,7 +133,16 @@ func SetupRoutes(db *sql.DB) {
 			Secure:   true,
 			SameSite: http.SameSiteStrictMode,
 		}
+
+		userCookie := http.Cookie{
+			Name:   USER_COOKIE_NAME,
+			Value:  username,
+			MaxAge: 200 * 60 * 60 * 24 * 30,
+			Path:   "/",
+			Secure: true,
+		}
 		http.SetCookie(w, &cookie)
+		http.SetCookie(w, &userCookie)
 		http.Redirect(w, r, "/lobby", http.StatusSeeOther)
 	})
 
@@ -152,12 +155,16 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
-			err = room.CreateGameRoom(id, "base4", 4)
+			room, err := l.CreateRoom(id, "base4", 4)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}
-			http.Redirect(w, r, fmt.Sprintf("/game/%s", id), http.StatusSeeOther)
 
+			room.RegisterIncomingMessageHandler(prematch.TryHandle)
+
+			go room.ProcessIncomingMessages()
+			go room.ProcessBroadcastRequests()
+			http.Redirect(w, r, fmt.Sprintf("/game/%s", id), http.StatusSeeOther)
 		}),
 		withSessionMiddleware(db),
 		withAdminMiddleware(db),

@@ -1,7 +1,6 @@
 package core
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 
@@ -43,7 +42,6 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 	for i := 0; i < 4; i++ {
 		players[i] = &coreT.Player{
 			ID:    strconv.FormatInt(int64(i+1), 10),
-			Name:  fmt.Sprintf("Player %d", i+1),
 			Color: "color",
 		}
 	}

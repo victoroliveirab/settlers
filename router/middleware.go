@@ -3,7 +3,6 @@ package router
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -19,10 +18,6 @@ type responseRecorder struct {
 func (rw *responseRecorder) WriteHeader(code int) {
 	rw.statusCode = code
 	rw.ResponseWriter.WriteHeader(code)
-}
-
-func a() {
-	fmt.Println("b")
 }
 
 type Middleware func(http.Handler) http.Handler
@@ -67,6 +62,7 @@ func withSessionMiddleware(db *sql.DB) func(http.Handler) http.Handler {
 			}
 
 			ctx := context.WithValue(r.Context(), "userID", session.UserID)
+			ctx = context.WithValue(ctx, "username", session.Username)
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})

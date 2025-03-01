@@ -12,6 +12,7 @@ import (
 type Session struct {
 	SessionID string
 	UserID    int64
+	Username  string // server-only (not on db)
 	CreatedAt time.Time
 	ExpiresAt sql.NullTime
 }
@@ -52,7 +53,7 @@ func createSessionId() (string, error) {
 	return hex.EncodeToString(hash[:]), nil
 }
 
-func SessionCreate(db *sql.DB, userID int64, duration time.Duration) (string, error) {
+func SessionCreate(db *sql.DB, userID int64, username string, duration time.Duration) (string, error) {
 	sessionID, err := createSessionId()
 	if err != nil {
 		return "", err
@@ -64,7 +65,7 @@ func SessionCreate(db *sql.DB, userID int64, duration time.Duration) (string, er
 		return "", err
 	}
 
-	session := Session{SessionID: sessionID, UserID: userID, CreatedAt: time.Now(), ExpiresAt: sql.NullTime{Time: expiresAt, Valid: true}}
+	session := Session{SessionID: sessionID, UserID: userID, Username: username, CreatedAt: time.Now(), ExpiresAt: sql.NullTime{Time: expiresAt, Valid: true}}
 	cacheSet(session)
 
 	return sessionID, nil
@@ -79,6 +80,12 @@ func SessionGet(db *sql.DB, sessionID string) (*Session, error) {
 	var expiresAt sql.NullTime
 	err := db.QueryRow(`SELECT session_id, user_id, created_at, expires_at FROM sessions WHERE session_id = ?`, sessionID).
 		Scan(&session.SessionID, &session.UserID, &session.CreatedAt, &expiresAt)
+	if err != nil {
+		return nil, err
+	}
+
+	// REFACTOR: refactor the whole user-session management, this is janky so I can have username in my session
+	err = db.QueryRow(`SELECT username FROM Users WHERE id = ?`, session.UserID).Scan(&session.Username)
 	if err != nil {
 		return nil, err
 	}
