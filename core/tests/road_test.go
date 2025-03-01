@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core/state"
+	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
 func TestBuildRoadSetup1PhaseSuccess(t *testing.T) {

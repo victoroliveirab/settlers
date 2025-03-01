@@ -3,7 +3,7 @@ package tests
 import (
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core/state"
+	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
 func TestBuildCitySuccess(t *testing.T) {

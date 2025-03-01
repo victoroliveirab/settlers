@@ -1,8 +1,9 @@
 package tests
 
 import (
-	testUtils "github.com/victoroliveirab/settlers/core/state"
 	"testing"
+
+	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
 func TestBuildSettlementSetupPhaseSuccess(t *testing.T) {

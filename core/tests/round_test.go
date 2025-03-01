@@ -5,7 +5,7 @@ import (
 	"maps"
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core/state"
+	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
 func TestRollDiceNotPlayerRound(t *testing.T) {
