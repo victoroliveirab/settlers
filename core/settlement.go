@@ -1,6 +1,10 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/victoroliveirab/settlers/utils"
+)
 
 func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 	if playerID != state.currentPlayer().ID {
@@ -84,4 +88,53 @@ func (state *GameState) handleNewSettlement(playerID string, vertexID int) {
 	}
 	state.recountLongestRoad()
 	state.updatePoints()
+}
+
+func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot check available vertices during other player's turn")
+		return []int{}, err
+	}
+
+	if state.roundType != SetupSettlement1 && state.roundType != SetupSettlement2 && state.roundType != Regular {
+		err := fmt.Errorf("Cannot check availableVertices during %s", RoundTypeTranslation[state.roundType])
+		return []int{}, err
+	}
+
+	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
+		availableVertices := make([]int, 0)
+		for vertexID := range state.definition.TilesByVertex {
+			_, existsSettlement := state.settlementMap[vertexID]
+			_, existsCity := state.cityMap[vertexID]
+			if existsSettlement || existsCity {
+				continue
+			}
+
+			blocked := state.isVertexBlocked(vertexID)
+			if blocked {
+				continue
+			}
+
+			availableVertices = append(availableVertices, vertexID)
+		}
+		return availableVertices, nil
+	}
+
+	vertexSet := utils.NewSet[int]()
+	for _, edgeID := range state.playerRoadMap[playerID] {
+		for _, vertexID := range state.definition.VerticesByEdge[edgeID] {
+			_, settlementExists := state.settlementMap[vertexID]
+			_, cityExists := state.cityMap[vertexID]
+			if settlementExists || cityExists {
+				continue
+			}
+
+			edgeWithABuilding := state.hasBuildingAtSameEdge(vertexID)
+			if edgeWithABuilding == 0 {
+				vertexSet.Add(vertexID)
+			}
+		}
+	}
+
+	return vertexSet.Values(), nil
 }

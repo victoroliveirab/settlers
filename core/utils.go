@@ -1,8 +1,6 @@
 package core
 
 import (
-	"log"
-
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -29,11 +27,14 @@ func (state *GameState) hasBuildingAtSameEdge(vertexID int) int {
 	return 0
 }
 
+func (state *GameState) isVertexBlocked(vertexID int) bool {
+	edgeID := state.hasBuildingAtSameEdge(vertexID)
+	return edgeID > 0
+}
+
 func (state *GameState) ownsBuildingApproaching(playerID string, edgeID int) bool {
 	vertex1 := state.definition.VerticesByEdge[edgeID][0]
 	vertex2 := state.definition.VerticesByEdge[edgeID][1]
-
-	log.Printf("edge %d, vertex1 %d, vertex2 %d\n", edgeID, vertex1, vertex2)
 
 	hasSettlementVertex1 := utils.SliceContains(state.playerSettlementMap[playerID], vertex1)
 	hasSettlementVertex2 := utils.SliceContains(state.playerSettlementMap[playerID], vertex2)
