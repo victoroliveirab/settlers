@@ -6,7 +6,7 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func SendHydratePlayer(player *entities.GamePlayer) error {
+func sendHydratePlayer(player *entities.GamePlayer) error {
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "hydrate",
 		Payload: map[string]interface{}{

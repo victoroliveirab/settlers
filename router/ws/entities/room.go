@@ -115,7 +115,7 @@ func (room *Room) RemovePlayer(playerID int64) error {
 				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
 					Type: "game.player-left",
 					Payload: map[string]interface{}{
-						"player": playerID,
+						"player": room.Participants[index].Player.Username,
 						"bot":    true,
 					},
 				}, []int64{}, nil)

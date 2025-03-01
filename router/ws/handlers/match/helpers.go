@@ -7,6 +7,7 @@ import (
 func generateGameStateDump(player *entities.GamePlayer) map[string]interface{} {
 	game := player.Room.Game
 	currentRoundPlayer := game.CurrentRoundPlayer()
+	// TODO: add ongoing trade offers
 	return map[string]interface{}{
 		"map":                game.Map(),
 		"settlements":        game.AllSettlements(),
@@ -14,7 +15,6 @@ func generateGameStateDump(player *entities.GamePlayer) map[string]interface{} {
 		"roads":              game.AllRoads(),
 		"players":            game.Players(),
 		"currentRoundPlayer": currentRoundPlayer.ID,
-		"roundType":          game.RoundType(),
 		"hand":               game.ResourceHandByPlayer(player.Username),
 		"resourceCount":      game.NumberOfResourcesByPlayer(),
 		"dice":               game.Dice(),

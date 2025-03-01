@@ -25,13 +25,12 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 
 		// ongoing match, player may be trying to reconnect
 		if room.Game != nil {
-			err := room.ReconnectPlayer(player)
+			err := match.TryReconnectPlayer(player)
 			if err != nil {
 				wsErr := match.SendReconnectPlayerError(player, err)
 				return true, wsErr
 			}
-			err = match.SendHydratePlayer(player)
-			return true, err
+			return true, nil
 		}
 
 		err = room.AddPlayer(player)

@@ -6,8 +6,8 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func SendBuildSettlementRequest(player *entities.GamePlayer, room *entities.Room) error {
-	vertices, _ := room.Game.AvailableVertices(player.Username)
+func SendBuildSettlementRequest(player *entities.GamePlayer) error {
+	vertices, _ := player.Room.Game.AvailableVertices(player.Username)
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "setup.settlement",
 		Payload: map[string]interface{}{

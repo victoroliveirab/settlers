@@ -47,7 +47,7 @@ func StartMatch(room *entities.Room) error {
 				break
 			}
 		}
-		match.SendBuildSettlementRequest(firstPlayer, room)
+		match.SendBuildSettlementRequest(firstPlayer)
 	})
 	return nil
 }
