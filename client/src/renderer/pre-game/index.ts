@@ -1,13 +1,11 @@
 import type { SettlersCore } from "../../websocket/types";
 
 export default class PreGameRenderer {
-  constructor(
-    readonly root: HTMLElement,
-    private readonly user: string,
-  ) {}
+  constructor(readonly root: HTMLElement) {}
 
-  renderPlayerList(
+  renderParticipantList(
     participants: SettlersCore.Participant[],
+    userName: SettlersCore.Player["name"],
     onReadyChange: (state: boolean) => void,
   ) {
     this.root.innerHTML = "";
@@ -18,12 +16,13 @@ export default class PreGameRenderer {
     playersContainer.classList.add("players");
     container.appendChild(playersContainer);
     for (const participant of participants) {
-      this.renderParticipant(participant, playersContainer, onReadyChange);
+      this.renderParticipant(participant, userName, playersContainer, onReadyChange);
     }
   }
 
   private renderParticipant(
     participant: SettlersCore.Participant,
+    userName: SettlersCore.Player["name"],
     container: HTMLElement,
     onReadyChange: (state: boolean) => void,
   ) {
@@ -32,11 +31,11 @@ export default class PreGameRenderer {
     if (participant.player) {
       element.classList.add("pre-game-player");
       element.style.background = participant.player.color;
-      element.textContent = participant.player.username;
+      element.textContent = participant.player.name;
 
       const readyCheckbox = document.createElement("input");
       readyCheckbox.type = "checkbox";
-      const isCheckboxActive = participant.player.username === this.user;
+      const isCheckboxActive = participant.player.name === userName;
       readyCheckbox.disabled = !isCheckboxActive;
       readyCheckbox.checked = participant.ready;
 
@@ -57,7 +56,8 @@ export default class PreGameRenderer {
 
   renderStartButton(
     participants: SettlersCore.Participant[],
-    owner: SettlersCore.Player["username"],
+    userName: SettlersCore.Player["name"],
+    owner: SettlersCore.Player["name"] | null,
     onClick: () => void,
   ) {
     const startButton = document.createElement("button");
@@ -66,7 +66,7 @@ export default class PreGameRenderer {
     const isReady = participants.every((participant) => participant.ready);
     this.root.querySelector(".pre-game-container")?.appendChild(startButton);
     if (isReady) {
-      const isRoomOwner = owner === this.user;
+      const isRoomOwner = owner === userName;
       startButton.disabled = !isRoomOwner;
       if (isRoomOwner) {
         startButton.addEventListener("click", onClick, { once: true });

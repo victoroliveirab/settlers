@@ -11,6 +11,7 @@ body {
 }
 
 #wrapper {
+  background: blue;
   height: 100%;
   display: flex;
   align-items: center;
@@ -44,4 +45,58 @@ body {
 .pre-game-spot.pre-game-player {
   border: 8px solid black;
   background: orange;
+}
+
+/* Game */
+
+#map.pulse-settlements .edge-spot,
+#map.pulse-edges .settlement-spot {
+  opacity: 0;
+}
+
+#map.pulse-settlements .settlement-spot[data-disabled="false"]:hover,
+#map.pulse-edges .edge-spot[data-disabled="false"]:hover {
+  fill: white;
+  opacity: 1;
+}
+
+#map.pulse-settlements .settlement-spot[data-disabled="false"],
+#map.pulse-edges .edge-spot[data-disabled="false"] {
+  animation-name: pulse;
+  animation-duration: 0.75s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+#map.pulse-tiles polygon[data-type="tile"][data-disabled="false"] {
+  animation-name: pulse-tile;
+  animation-duration: 0.45s;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulse-tile {
+  0% {
+    filter: brightness(100%);
+  }
+
+  80% {
+    filter: brightness(105%);
+  }
+
+  100% {
+    filter: brightness(115%);
+  }
 }

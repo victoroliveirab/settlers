@@ -1,5 +1,6 @@
 import GameRenderer from "../renderer/game";
 import PreGameRenderer from "../renderer/pre-game";
+import GameState from "../state";
 import { SettlersWSServer } from "./types";
 
 function safeParse(text: string):
@@ -22,11 +23,10 @@ function safeParse(text: string):
 export default class WebSocketConnection {
   private ws!: WebSocket;
   private roomID: string;
-  private gameRenderer: GameRenderer | null = null;
 
   constructor(
     url: string,
-    private readonly preGameRenderer: PreGameRenderer,
+    private readonly stateManager: GameState,
   ) {
     this.roomID = window.location.pathname.split("/").at(-1)!;
     const ws = new WebSocket(url);
@@ -41,6 +41,7 @@ export default class WebSocketConnection {
           },
         }),
       );
+      this.stateManager.setService(this);
     };
     ws.onclose = (e) => {
       console.log("websocket connection closed", e);
@@ -59,46 +60,39 @@ export default class WebSocketConnection {
 
     switch (message.type) {
       case "room.join.success": {
-        this.preGameRenderer.renderPlayerList(
-          message.payload.participants,
-          this.onReadyChange.bind(this),
-        );
-        this.preGameRenderer.renderStartButton(
-          message.payload.participants,
-          message.payload.owner,
-          this.onClickReady.bind(this),
-        );
+        const { owner, participants } = message.payload;
+        this.stateManager.setParticipants(participants);
+        this.stateManager.setOwner(owner);
         break;
       }
       case "room.new-update": {
-        this.preGameRenderer.renderPlayerList(
-          message.payload.participants,
-          this.onReadyChange.bind(this),
-        );
-        this.preGameRenderer.renderStartButton(
-          message.payload.participants,
-          message.payload.owner,
-          this.onClickReady.bind(this),
-        );
+        const { owner, participants } = message.payload;
+        this.stateManager.setParticipants(participants);
+        this.stateManager.setOwner(owner);
         break;
       }
       case "game.start": {
         // TODO: get map name from payload
-        const { map } = message.payload;
-        this.gameRenderer = new GameRenderer(this.preGameRenderer.root, "base4");
-        this.gameRenderer.drawMap(map);
+        const { map, players } = message.payload;
+        console.log("SETTING INITIAL STATE");
+        this.stateManager.setInitialState(map, players);
+        break;
+      }
+      case "setup.build-settlement": {
+        const { vertices } = message.payload;
+        this.stateManager.enableVerticesToBuildSettlement(vertices, "setup");
         break;
       }
       case "hydrate": {
-        const { map } = message.payload.state;
-        this.gameRenderer = new GameRenderer(this.preGameRenderer.root, "base4");
-        this.gameRenderer.drawMap(map);
+        const { map, players } = message.payload.state;
+        this.stateManager.setInitialState(map, players);
         break;
       }
     }
+    this.stateManager.repaintScreen();
   }
 
-  private onReadyChange(state: boolean) {
+  onReadyChange(state: boolean) {
     this.sendMessage({
       type: "room.toggle-ready",
       payload: {
@@ -108,10 +102,19 @@ export default class WebSocketConnection {
     });
   }
 
-  private onClickReady() {
+  onClickStart() {
     this.sendMessage({
       type: "room.start-game",
       payload: {},
+    });
+  }
+
+  onSettlementPositionChose(phase: "game" | "setup", vertexID: number) {
+    this.sendMessage({
+      type: phase === "game" ? "game.new-settlement" : "setup.new-settlement",
+      payload: {
+        vertex: vertexID,
+      },
     });
   }
 

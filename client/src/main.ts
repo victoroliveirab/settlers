@@ -1,5 +1,5 @@
 import WebSocketConnection from "./websocket";
-import PreGameRenderer from "./renderer/pre-game";
+import GameState from "./state";
 
 window.onload = () => {
   const root = document.getElementById("wrapper");
@@ -8,8 +8,7 @@ window.onload = () => {
 
   if (!root || !userID) return;
 
-  const preGameRenderer = new PreGameRenderer(root, userID);
   const roomID = window.location.pathname.split("/").at(-1);
 
-  new WebSocketConnection(`http://localhost:8080/ws?room=${roomID}`, preGameRenderer);
+  new WebSocketConnection(`http://localhost:8080/ws?room=${roomID}`, new GameState(root, userID));
 };

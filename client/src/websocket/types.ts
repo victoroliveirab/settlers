@@ -11,9 +11,7 @@ export namespace SettlersCore {
   export type Map = Tile[];
   export type Player = {
     color: string;
-    id: number;
-    roomID: string;
-    username: string;
+    name: string;
   };
   export type Participant = {
     bot: boolean;
@@ -37,19 +35,22 @@ export namespace SettlersWSServer {
       capacity: number;
       map: string;
       participants: SettlersCore.Participant[];
-      owner: SettlersCore.Player["username"];
+      owner: SettlersCore.Player["name"];
     };
     "room.new-update": {
       id: string;
       capacity: number;
       map: string;
       participants: SettlersCore.Participant[];
-      owner: SettlersCore.Player["username"];
+      owner: SettlersCore.Player["name"];
     };
     "game.start": {
       logs: string[];
       map: SettlersCore.Map;
       players: SettlersCore.Player[];
+    };
+    "setup.build-settlement": {
+      vertices: number[];
     };
     hydrate: {
       state: {
@@ -59,9 +60,9 @@ export namespace SettlersWSServer {
         roads: SettlersCore.Roads;
         round: number;
         players: SettlersCore.Player[];
-        currentRoundPlayer: SettlersCore.Player["id"];
+        currentRoundPlayer: SettlersCore.Player["name"];
         hand: SettlersCore.Hand;
-        resourceCount: Record<SettlersCore.Player["id"], number>;
+        resourceCount: Record<SettlersCore.Player["name"], number>;
         dice: [number, number];
       };
     };
@@ -76,6 +77,12 @@ export namespace SettlersWSServer {
       ready: boolean;
     };
     "room.start-game": {};
+    "game.new-settlement": {
+      vertex: number;
+    };
+    "setup.new-settlement": {
+      vertex: number;
+    };
   };
 
   export type IncomingMessage<T extends keyof IncomingMessages> = {
