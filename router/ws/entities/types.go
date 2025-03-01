@@ -50,7 +50,7 @@ type Room struct {
 
 type GamePlayer struct {
 	ID          int64                      `json:"-"`
-	Username    string                     `json:"username"`
+	Username    string                     `json:"name"`
 	Connection  *types.WebSocketConnection `json:"-"`
 	Color       string                     `json:"color"`
 	Room        *Room                      `json:"-"`
