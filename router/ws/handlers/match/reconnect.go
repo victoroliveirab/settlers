@@ -27,7 +27,7 @@ func TryReconnectPlayer(player *entities.GamePlayer) error {
 	}
 
 	if game.RoundType() == core.SetupSettlement1 || game.RoundType() == core.SetupSettlement2 {
-		err := SendBuildSettlementRequest(player)
+		err := SendBuildSetupSettlementRequest(player)
 		return err
 	}
 

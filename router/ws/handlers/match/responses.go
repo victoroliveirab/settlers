@@ -26,7 +26,7 @@ func SendReconnectPlayerError(player *entities.GamePlayer, err error) error {
 
 func sendSettlementSetupBuildError(conn *types.WebSocketConnection, userID int64, err error) error {
 	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
-		Type: "settlement.setup-build.error",
+		Type: "setup.new-settlement.error",
 		Payload: map[string]interface{}{
 			"error": err.Error(),
 		},
