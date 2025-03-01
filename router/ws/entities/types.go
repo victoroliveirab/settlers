@@ -28,6 +28,7 @@ type IncomingMessage struct {
 type BroadcastMessage struct {
 	ExcludedIDs []int64
 	Message     *types.WebSocketMessage
+	OnSend      func()
 }
 
 type RoomIncomingMessageHandler func(room *Room, player *GamePlayer, message *types.WebSocketMessage) (bool, error)

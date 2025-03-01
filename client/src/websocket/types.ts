@@ -37,6 +37,7 @@ export namespace SettlersWSServer {
     "room.toggle-ready": {
       ready: boolean;
     };
+    "room.start-game": {};
   };
 
   export type IncomingMessage<T extends keyof IncomingMessages> = {

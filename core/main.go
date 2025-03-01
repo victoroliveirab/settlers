@@ -272,6 +272,17 @@ func (state *GameState) findPlayer(playerID string) *coreT.Player {
 }
 
 // Getters
+
+func (state *GameState) Map() []*coreT.MapBlock {
+	// REFACTOR: return a copy
+	return state.tiles
+}
+
+func (state *GameState) Players() []coreT.Player {
+	// REFACTOR: return a copy
+	return state.players
+}
+
 func (state *GameState) Dice() [2]int {
 	return [2]int{state.dice1, state.dice2}
 }

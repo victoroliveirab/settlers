@@ -11,3 +11,14 @@ func buildRoomStateUpdateBroadcast(room *entities.Room) *types.WebSocketMessage 
 		Payload: room.ToMapInterface(),
 	}
 }
+
+func buildStartGameBroadcast(room *entities.Room, logs []string) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "game.start",
+		Payload: map[string]interface{}{
+			"map":     room.Game.Map(),
+			"players": room.Game.Players(),
+			"logs":    logs,
+		},
+	}
+}

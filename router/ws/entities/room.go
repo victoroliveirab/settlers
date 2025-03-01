@@ -5,7 +5,8 @@ import (
 
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
+	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 var color [4]string = [4]string{"green", "orange", "blue", "black"}
@@ -94,7 +95,7 @@ func (room *Room) RemovePlayer(playerID int64) error {
 				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
 					Type:    "room.new-update",
 					Payload: room.ToMapInterface(),
-				}, []int64{})
+				}, []int64{}, nil)
 			} else {
 				room.Participants[index].Player.Connection.Instance = nil
 				room.Participants[index].Bot = true
@@ -104,7 +105,7 @@ func (room *Room) RemovePlayer(playerID int64) error {
 						"player": playerID,
 						"bot":    true,
 					},
-				}, []int64{})
+				}, []int64{}, nil)
 			}
 			return nil
 		}
@@ -159,10 +160,11 @@ func (room *Room) ProcessIncomingMessages() {
 	}
 }
 
-func (room *Room) EnqueueBroadcastMessage(msg *types.WebSocketMessage, excludedUserIDs []int64) {
+func (room *Room) EnqueueBroadcastMessage(msg *types.WebSocketMessage, excludedUserIDs []int64, onSend func()) {
 	room.broadcastMsgQueue <- BroadcastMessage{
 		ExcludedIDs: excludedUserIDs,
 		Message:     msg,
+		OnSend:      onSend,
 	}
 }
 
@@ -170,16 +172,17 @@ func (room *Room) ProcessBroadcastRequests() {
 	for {
 		item := <-room.broadcastMsgQueue
 		msg := item.Message
-		// excludedUserIDs := item.ExcludedIDs
+		excludedUserIDs := item.ExcludedIDs
+		onSendCb := item.OnSend
 
 		room.Lock()
 		for _, participant := range room.Participants {
 			player := participant.Player
-			if player == nil || player.Connection.Instance == nil {
+			if player == nil || player.Connection.Instance == nil || utils.SliceContains(excludedUserIDs, player.ID) {
 				continue
 			}
 
-			err := utils.WriteJson(player.Connection, player.ID, msg)
+			err := wsUtils.WriteJson(player.Connection, player.ID, msg)
 
 			if err != nil {
 				fmt.Println("error for player ", player.ID, err)
@@ -187,7 +190,9 @@ func (room *Room) ProcessBroadcastRequests() {
 			}
 		}
 		room.Unlock()
-
+		if onSendCb != nil {
+			onSendCb()
+		}
 	}
 }
 

@@ -56,7 +56,11 @@ export default class PreGameRenderer {
     container.appendChild(element);
   }
 
-  renderStartButton(participants: SettlersCore.Participant[], ownerID: SettlersCore.Player["id"]) {
+  renderStartButton(
+    participants: SettlersCore.Participant[],
+    ownerID: SettlersCore.Player["id"],
+    onClick: () => void,
+  ) {
     const startButton = document.createElement("button");
     startButton.textContent = "Start";
     startButton.disabled = true;
@@ -65,6 +69,9 @@ export default class PreGameRenderer {
     if (isReady) {
       const isRoomOwner = ownerID === this.userID;
       startButton.disabled = !isRoomOwner;
+      if (isRoomOwner) {
+        startButton.addEventListener("click", onClick, { once: true });
+      }
     }
   }
 }

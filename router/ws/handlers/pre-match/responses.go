@@ -30,3 +30,12 @@ func sendToggleReadyRequestError(conn *types.WebSocketConnection, userID int64, 
 		},
 	})
 }
+
+func sendStartGameRequestError(conn *types.WebSocketConnection, userID int64, err error) error {
+	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+		Type: "room.start-game.error",
+		Payload: map[string]interface{}{
+			"error": err.Error(),
+		},
+	})
+}

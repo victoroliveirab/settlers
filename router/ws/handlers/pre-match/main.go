@@ -28,7 +28,7 @@ func TryHandle(room *entities.Room, player *entities.GamePlayer, message *types.
 		}
 
 		err = sendRoomJoinRequestSuccess(player.Connection, player.ID, room)
-		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{player.ID})
+		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{player.ID}, nil)
 		return true, err
 	case "room.toggle-ready":
 		payload, err := parsePlayerReadyState(message.Payload)
@@ -43,7 +43,20 @@ func TryHandle(room *entities.Room, player *entities.GamePlayer, message *types.
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{})
+		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		return true, nil
+	case "room.start-game":
+		if player.ID != room.OwnerID {
+			err := fmt.Errorf("Cannot start game: not room owner")
+			wsErr := sendStartGameRequestError(player.Connection, player.ID, err)
+			return true, wsErr
+		}
+
+		err := StartMatch(room)
+		if err != nil {
+			wsErr := sendStartGameRequestError(player.Connection, player.ID, err)
+			return true, wsErr
+		}
 		return true, nil
 	default:
 		return false, nil

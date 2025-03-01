@@ -58,7 +58,11 @@ export default class WebSocketConnection {
           message.payload.participants,
           this.onReadyChange.bind(this),
         );
-        this.preGameRenderer.renderStartButton(message.payload.participants, message.payload.owner);
+        this.preGameRenderer.renderStartButton(
+          message.payload.participants,
+          message.payload.owner,
+          this.onClickReady.bind(this),
+        );
         break;
       }
       case "room.new-update": {
@@ -66,7 +70,11 @@ export default class WebSocketConnection {
           message.payload.participants,
           this.onReadyChange.bind(this),
         );
-        this.preGameRenderer.renderStartButton(message.payload.participants, message.payload.owner);
+        this.preGameRenderer.renderStartButton(
+          message.payload.participants,
+          message.payload.owner,
+          this.onClickReady.bind(this),
+        );
         break;
       }
     }
@@ -78,6 +86,13 @@ export default class WebSocketConnection {
       payload: {
         ready: state,
       },
+    });
+  }
+
+  private onClickReady() {
+    this.sendMessage({
+      type: "room.start-game",
+      payload: {},
     });
   }
 

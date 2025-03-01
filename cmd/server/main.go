@@ -6,6 +6,7 @@ import (
 	"os"
 	"time"
 
+	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
 	"github.com/victoroliveirab/settlers/db"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router"
@@ -21,6 +22,7 @@ func main() {
 	}
 	db := turso.Db
 	defer turso.CleanUp()
+	mapsdefinitions.LoadMap("base4")
 	router.SetupRoutes(db)
 	logger.Log("starting ws server")
 	log.Fatal(http.ListenAndServe(":8080", nil))
