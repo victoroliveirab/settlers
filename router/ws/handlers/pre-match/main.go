@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
@@ -21,6 +22,17 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 			return true, wsErr
 		}
 		room := player.Room
+
+		// ongoing match, player may be trying to reconnect
+		if room.Game != nil {
+			err := room.ReconnectPlayer(player)
+			if err != nil {
+				wsErr := match.SendReconnectPlayerError(player, err)
+				return true, wsErr
+			}
+			err = match.SendHydratePlayer(player)
+			return true, err
+		}
 
 		err = room.AddPlayer(player)
 		if err != nil {

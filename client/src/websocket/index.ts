@@ -1,3 +1,4 @@
+import GameRenderer from "../renderer/game";
 import PreGameRenderer from "../renderer/pre-game";
 import { SettlersWSServer } from "./types";
 
@@ -21,6 +22,7 @@ function safeParse(text: string):
 export default class WebSocketConnection {
   private ws!: WebSocket;
   private roomID: string;
+  private gameRenderer: GameRenderer | null = null;
 
   constructor(
     url: string,
@@ -78,6 +80,19 @@ export default class WebSocketConnection {
           message.payload.owner,
           this.onClickReady.bind(this),
         );
+        break;
+      }
+      case "game.start": {
+        // TODO: get map name from payload
+        const { map } = message.payload;
+        this.gameRenderer = new GameRenderer(this.preGameRenderer.root, "base4");
+        this.gameRenderer.drawMap(map);
+        break;
+      }
+      case "hydrate": {
+        const { map } = message.payload.state;
+        this.gameRenderer = new GameRenderer(this.preGameRenderer.root, "base4");
+        this.gameRenderer.drawMap(map);
         break;
       }
     }

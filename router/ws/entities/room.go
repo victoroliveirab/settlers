@@ -30,13 +30,11 @@ func NewRoom(id, mapName string, capacity int, onDestroy func(room *Room)) *Room
 func (room *Room) AddPlayer(player *GamePlayer) error {
 	room.Lock()
 	defer room.Unlock()
-	for index, spot := range room.Participants {
+	for _, spot := range room.Participants {
 		if spot.Player != nil {
 			if spot.Player.ID == player.ID {
-				// Connection may have changed
-				room.Participants[index].Player.Connection.Instance = player.Connection.Instance
-				room.Participants[index].Player.OnDisconect = player.OnDisconect
-				return nil
+				err := fmt.Errorf("Cannot add player %s to room#%s: already in room", player.Username, room.ID)
+				return err
 			}
 		}
 	}
@@ -56,6 +54,21 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 	}
 
 	err := fmt.Errorf("Cannot join room #%s: room full", room.ID)
+	return err
+}
+
+func (room *Room) ReconnectPlayer(player *GamePlayer) error {
+	room.Lock()
+	defer room.Unlock()
+	for index, spot := range room.Participants {
+		if spot.Player != nil && spot.Player.ID == player.ID {
+			room.Participants[index].Player.Connection.Instance = player.Connection.Instance
+			room.Participants[index].Player.OnDisconect = player.OnDisconect
+			room.Participants[index].Bot = false
+			return nil
+		}
+	}
+	err := fmt.Errorf("Cannot reconnect to room #%s: not part of room", room.ID)
 	return err
 }
 

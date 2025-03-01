@@ -1,8 +1,8 @@
-import type { SettlersCore } from "../websocket/types";
+import type { SettlersCore } from "../../websocket/types";
 
 export default class PreGameRenderer {
   constructor(
-    private readonly root: HTMLElement,
+    readonly root: HTMLElement,
     private readonly user: string,
   ) {}
 

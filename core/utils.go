@@ -4,6 +4,17 @@ import (
 	"github.com/victoroliveirab/settlers/utils"
 )
 
+func (state *GameState) NumberOfResourcesByPlayer() map[string]int {
+	resourcesByPlayer := make(map[string]int)
+	for player, hand := range state.playerResourceHandMap {
+		resourcesByPlayer[player] = 0
+		for _, count := range hand {
+			resourcesByPlayer[player] += count
+		}
+	}
+	return resourcesByPlayer
+}
+
 func (state *GameState) hasBuildingAtSameEdge(vertexID int) int {
 	edges := state.definition.EdgesByVertex[vertexID]
 	for _, edgeID := range edges {

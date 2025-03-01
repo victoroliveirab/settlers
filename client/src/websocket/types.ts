@@ -1,4 +1,14 @@
 export namespace SettlersCore {
+  export type Resource = "Brick" | "Ore" | "Desert" | "Grain" | "Sheep" | "Lumber";
+  export type Tile = {
+    id: number;
+    resource: Resource;
+    token: number;
+    edges: number[];
+    vertices: number[];
+    coordinates: { q: number; r: number; s: number };
+  };
+  export type Map = Tile[];
   export type Player = {
     color: string;
     id: number;
@@ -10,6 +20,14 @@ export namespace SettlersCore {
     player: Player | null;
     ready: boolean;
   };
+  export type Building = {
+    id: number;
+    owner: string;
+  };
+  export type Settlements = Record<Building["id"], Building>;
+  export type Cities = Record<Building["id"], Building>;
+  export type Roads = Record<Building["id"], Building>;
+  export type Hand = Record<Resource, number>;
 }
 
 export namespace SettlersWSServer {
@@ -27,6 +45,25 @@ export namespace SettlersWSServer {
       map: string;
       participants: SettlersCore.Participant[];
       owner: SettlersCore.Player["username"];
+    };
+    "game.start": {
+      logs: string[];
+      map: SettlersCore.Map;
+      players: SettlersCore.Player[];
+    };
+    hydrate: {
+      state: {
+        map: SettlersCore.Map;
+        settlements: SettlersCore.Settlements;
+        cities: SettlersCore.Cities;
+        roads: SettlersCore.Roads;
+        round: number;
+        players: SettlersCore.Player[];
+        currentRoundPlayer: SettlersCore.Player["id"];
+        hand: SettlersCore.Hand;
+        resourceCount: Record<SettlersCore.Player["id"], number>;
+        dice: [number, number];
+      };
     };
   };
 
