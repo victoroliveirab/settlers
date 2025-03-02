@@ -1,6 +1,9 @@
 package match
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -37,6 +40,45 @@ func buildRoadSetupBuildSuccessBroadcast(builderID string, edgeID int, logs []st
 				"owner": builderID,
 			},
 			"logs": logs,
+		},
+	}
+}
+
+func buildSetupPhaseOverBroadcast(room *entities.Room) *types.WebSocketMessage {
+	logs := make([]string, 0)
+	hands := make(map[string]map[string]int)
+
+	game := room.Game
+	for _, player := range game.Players() {
+		playerHand := game.ResourceHandByPlayer(player.ID)
+		hands[player.ID] = playerHand
+
+		receivedResource := false
+		var builder strings.Builder
+		builder.WriteString(fmt.Sprintf("%s received: ", player.ID))
+
+		for resource, quantity := range playerHand {
+			if quantity > 0 {
+				receivedResource = true
+				builder.WriteString(fmt.Sprintf("%d %s ", quantity, resource))
+			}
+		}
+
+		if receivedResource {
+			logEntry := strings.TrimSuffix(builder.String(), " ")
+			logs = append(logs, logEntry)
+		} else {
+			logs = append(logs, fmt.Sprintf("%s received: nothing", player.ID))
+		}
+	}
+
+	logs = append(logs, "Game starting. May the best settler win!")
+
+	return &types.WebSocketMessage{
+		Type: "setup.end",
+		Payload: map[string]interface{}{
+			"hands": hands,
+			"logs":  logs,
 		},
 	}
 }

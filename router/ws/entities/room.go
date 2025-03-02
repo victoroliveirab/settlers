@@ -204,7 +204,7 @@ func (room *Room) ProcessBroadcastRequests() {
 		}
 		room.Unlock()
 		if onSendCb != nil {
-			onSendCb()
+			go onSendCb()
 		}
 	}
 }

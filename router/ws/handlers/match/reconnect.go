@@ -32,6 +32,9 @@ func TryReconnectPlayer(player *entities.GamePlayer) error {
 	} else if game.RoundType() == core.SetupRoad1 || game.RoundType() == core.SetupRoad2 {
 		err := SendBuildSetupRoadRequest(player)
 		return err
+	} else if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular {
+		err := sendPlayerRoundRequest(player)
+		return err
 	}
 
 	err = fmt.Errorf("Cannot reconnect player#%s: not known round type %s", player.Username, core.RoundTypeTranslation[game.RoundType()])
