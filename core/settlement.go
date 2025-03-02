@@ -96,7 +96,7 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 		return []int{}, err
 	}
 
-	if state.roundType != SetupSettlement1 && state.roundType != SetupSettlement2 && state.roundType != Regular {
+	if state.roundType != SetupSettlement1 && state.roundType != SetupSettlement2 && state.roundType != FirstRound && state.roundType != Regular {
 		err := fmt.Errorf("Cannot check availableVertices during %s", RoundTypeTranslation[state.roundType])
 		return []int{}, err
 	}

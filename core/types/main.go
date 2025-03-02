@@ -23,7 +23,7 @@ type MapBlock struct {
 }
 
 type Player struct {
-	ID    string `json:"id"`
+	ID    string `json:"name"`
 	Color string `json:"color"`
 }
 

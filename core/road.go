@@ -25,7 +25,7 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 	}
 
 	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
-		if !state.isVertexAllowedSetupPhase(playerID, edgeID) {
+		if !state.isEdgeAllowedSetupPhase(playerID, edgeID) {
 			err := fmt.Errorf("Cannot build road in this spot (edge#%d) during setup", edgeID)
 			return err
 		}
@@ -58,7 +58,7 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 	return nil
 }
 
-func (state *GameState) isVertexAllowedSetupPhase(playerID string, edgeID int) bool {
+func (state *GameState) isEdgeAllowedSetupPhase(playerID string, edgeID int) bool {
 	vertexID := utils.SliceLast(state.playerSettlementMap[playerID])
 	allowedEdgesIDs := state.definition.EdgesByVertex[vertexID]
 	return utils.SliceContains(allowedEdgesIDs, edgeID)
@@ -134,4 +134,63 @@ func (state *GameState) computeLongestRoad(playerID string) {
 	}
 
 	state.playerLongestRoad[playerID] = maxPath
+}
+
+func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot check available edges during other player's turn")
+		return []int{}, err
+	}
+
+	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != FirstRound && state.roundType != Regular {
+		err := fmt.Errorf("Cannot check available edges during %s", RoundTypeTranslation[state.roundType])
+		return []int{}, err
+	}
+
+	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
+		vertexID := utils.SliceLast(state.playerSettlementMap[playerID])
+		allowedEdgesIDs := state.definition.EdgesByVertex[vertexID]
+		return allowedEdgesIDs, nil
+	}
+
+	edges := utils.NewSet[int]()
+
+	for _, edgeID := range state.playerRoadMap[playerID] {
+		edge := state.definition.VerticesByEdge[edgeID]
+		vertex1 := edge[0]
+		vertex2 := edge[1]
+
+		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertex1] {
+			_, exists := state.roadMap[candidateEdgeID]
+			if !exists {
+				edges.Add(candidateEdgeID)
+			}
+		}
+		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertex2] {
+			_, exists := state.roadMap[candidateEdgeID]
+			if !exists {
+				edges.Add(candidateEdgeID)
+			}
+		}
+	}
+
+	for _, vertexID := range state.playerSettlementMap[playerID] {
+		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertexID] {
+			_, exists := state.roadMap[candidateEdgeID]
+			if !exists {
+				edges.Add(candidateEdgeID)
+			}
+		}
+	}
+
+	for _, vertexID := range state.playerCityMap[playerID] {
+		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertexID] {
+			_, exists := state.roadMap[candidateEdgeID]
+			if !exists {
+				edges.Add(candidateEdgeID)
+			}
+		}
+	}
+
+	return edges.Values(), nil
 }

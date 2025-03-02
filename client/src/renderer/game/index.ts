@@ -8,6 +8,7 @@ export default class GameRenderer {
     private readonly root: HTMLElement,
     private readonly mapName: string,
   ) {
+    this.root.style.display = "";
     this.root.innerHTML = "";
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.id = "map";
@@ -22,6 +23,32 @@ export default class GameRenderer {
 
   drawMap(map: SettlersCore.Map) {
     this.mapRenderer.draw(map);
+  }
+
+  drawSettlement(settlement: SettlersCore.Building, color: string) {
+    const { id } = settlement;
+    const spot = this.root.querySelector<SVGCircleElement>(`circle[data-id="${id}"]`);
+    if (!spot) {
+      console.warn("vertex not found:", id);
+      return;
+    }
+
+    spot.style.opacity = "1";
+    spot.style.fill = color;
+    spot.dataset.disabled = "true";
+  }
+
+  drawRoad(road: SettlersCore.Building, color: string) {
+    const { id } = road;
+    const spot = this.root.querySelector<SVGCircleElement>(`rect[data-id="${id}"]`);
+    if (!spot) {
+      console.warn("edge not found:", id);
+      return;
+    }
+
+    spot.style.opacity = "1";
+    spot.style.fill = color;
+    spot.dataset.disabled = "true";
   }
 
   makeVerticesClickable(verticesIDs: number[], cb: (vertexID: number) => void) {
@@ -40,10 +67,31 @@ export default class GameRenderer {
       });
       surface.classList.remove("pulse-settlements");
     };
-    console.log("ENABLING vertices:", vertices);
     vertices.forEach((vertex) => {
       vertex.addEventListener("click", ref);
       vertex.dataset.disabled = "false";
+    });
+  }
+
+  makeEdgesClickable(edgesIDs: number[], cb: (edgeID: number) => void) {
+    const surface = this.root.querySelector("#map") as SVGElement;
+    surface.classList.add("pulse-edges");
+    const edges = Array.from(
+      surface.querySelectorAll<Settlers.SVGEdge>("[data-type='edge']"),
+    ).filter((edge) => edgesIDs.includes(+edge.dataset.id));
+    let ref = function onVerticeClick(e: Event) {
+      const vertice = e.target as Settlers.SVGVertice;
+      const verticeID = Number(vertice.dataset.id);
+      cb(verticeID);
+      edges.forEach((edge) => {
+        edge.removeEventListener("click", ref);
+        edge.dataset.disabled = "true";
+      });
+      surface.classList.remove("pulse-edges");
+    };
+    edges.forEach((edge) => {
+      edge.addEventListener("click", ref);
+      edge.dataset.disabled = "false";
     });
   }
 }

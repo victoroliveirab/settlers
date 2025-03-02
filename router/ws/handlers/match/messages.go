@@ -16,6 +16,16 @@ func SendBuildSetupSettlementRequest(player *entities.GamePlayer) error {
 	})
 }
 
+func SendBuildSetupRoadRequest(player *entities.GamePlayer) error {
+	edges, _ := player.Room.Game.AvailableEdges(player.Username)
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
+		Type: "setup.build-road",
+		Payload: map[string]interface{}{
+			"edges": edges,
+		},
+	})
+}
+
 func sendBuildSetupRoadRequest(player *entities.GamePlayer) error {
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "setup.build-road",

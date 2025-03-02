@@ -3,12 +3,14 @@ import PreGameRenderer from "../renderer/pre-game";
 import WebSocketConnection from "../websocket";
 import { SettlersCore } from "../websocket/types";
 
-type UIPart = "map" | "participantList" | "startButton";
+type UIPart = "map" | "participantList" | "road" | "startButton" | "vertices";
 
 const defaultUpdateUIState: Record<UIPart, boolean> = {
   map: false,
   participantList: false,
+  road: false,
   startButton: false,
+  vertices: false,
 };
 
 export default class GameState {
@@ -16,6 +18,9 @@ export default class GameState {
   private players: SettlersCore.Player[] = [];
   private map!: SettlersCore.Map;
   private owner: SettlersCore.Player | null = null;
+  private cities: SettlersCore.Building[] = [];
+  private roads: SettlersCore.Building[] = [];
+  private settlements: SettlersCore.Building[] = [];
 
   private preGameRenderer: PreGameRenderer;
   private gameRenderer!: GameRenderer;
@@ -25,10 +30,11 @@ export default class GameState {
   private hasSetInitialState: boolean = false;
 
   constructor(
+    private readonly pregameRoot: HTMLElement,
     private readonly root: HTMLElement,
     private readonly userName: string,
   ) {
-    this.preGameRenderer = new PreGameRenderer(root);
+    this.preGameRenderer = new PreGameRenderer(pregameRoot);
   }
 
   setService(service: WebSocketConnection) {
@@ -39,6 +45,7 @@ export default class GameState {
     if (this.hasSetInitialState) {
       throw new Error("should not set initial state twice");
     }
+    this.pregameRoot.remove();
     this.gameRenderer = new GameRenderer(this.root, "base4");
     this.map = map;
     this.players = players;
@@ -51,21 +58,49 @@ export default class GameState {
     this.shouldUpdateUIPart.participantList = true;
   }
 
-  setOwner(playerName: SettlersCore.Player["name"]) {
+  setOwner(player: SettlersCore.Player["name"]) {
     this.shouldUpdateUIPart.startButton = true;
-    if (this.owner?.name === playerName) return;
+    if (this.owner?.name === player) return;
     for (const participant of this.participants) {
-      if (participant.player?.name === playerName) {
+      if (participant.player?.name === player) {
         this.owner = participant.player;
         return;
       }
     }
-    console.warn(`trying to set player#${playerName} as owner, but they are not a participant`);
+    console.warn(`trying to set player#${player} as owner, but they are not a participant`);
+  }
+
+  addSettlement(settlement: SettlersCore.Building) {
+    this.settlements.push(settlement);
+
+    const color = this.players.find(({ name }) => name === settlement.owner)?.color;
+    if (!color) {
+      console.warn("addSettlement: color not found for owner:");
+      return;
+    }
+    this.shouldUpdateUIPart.vertices = true;
+  }
+
+  addRoad(road: SettlersCore.Building) {
+    this.roads.push(road);
+
+    const color = this.players.find(({ name }) => name === road.owner)?.color;
+    if (!color) {
+      console.warn("addRoad: color not found for owner:");
+      return;
+    }
+    this.shouldUpdateUIPart.road = true;
   }
 
   enableVerticesToBuildSettlement(vertices: number[], phase: "game" | "setup") {
     this.gameRenderer.makeVerticesClickable(vertices, (vertexID) => {
       this.service.onSettlementPositionChose(phase, vertexID);
+    });
+  }
+
+  enableEdgesToBuildRoad(edges: number[], phase: "game" | "setup") {
+    this.gameRenderer.makeEdgesClickable(edges, (edgeID) => {
+      this.service.onRoadPositionChose(phase, edgeID);
     });
   }
 
@@ -96,6 +131,20 @@ export default class GameState {
                 this.service.onClickStart();
               },
             );
+            break;
+          }
+          case "vertices": {
+            this.settlements.forEach((settlement) => {
+              const color = this.players.find(({ name }) => name === settlement.owner)!.color;
+              this.gameRenderer.drawSettlement(settlement, color);
+            });
+            break;
+          }
+          case "road": {
+            this.roads.forEach((road) => {
+              const color = this.players.find(({ name }) => name === road.owner)!.color;
+              this.gameRenderer.drawRoad(road, color);
+            });
             break;
           }
           default: {

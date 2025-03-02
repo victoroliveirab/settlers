@@ -74,7 +74,6 @@ export default class WebSocketConnection {
       case "game.start": {
         // TODO: get map name from payload
         const { map, players } = message.payload;
-        console.log("SETTING INITIAL STATE");
         this.stateManager.setInitialState(map, players);
         break;
       }
@@ -83,9 +82,30 @@ export default class WebSocketConnection {
         this.stateManager.enableVerticesToBuildSettlement(vertices, "setup");
         break;
       }
+      case "setup.settlement-build.success": {
+        const { settlement } = message.payload;
+        this.stateManager.addSettlement(settlement);
+        break;
+      }
+      case "setup.build-road": {
+        const { edges } = message.payload;
+        this.stateManager.enableEdgesToBuildRoad(edges, "setup");
+        break;
+      }
+      case "setup.road-build.success": {
+        const { road } = message.payload;
+        this.stateManager.addRoad(road);
+        break;
+      }
       case "hydrate": {
-        const { map, players } = message.payload.state;
+        const { map, players, roads, settlements } = message.payload.state;
         this.stateManager.setInitialState(map, players);
+        Object.values(settlements).forEach((settlement) => {
+          this.stateManager.addSettlement(settlement);
+        });
+        Object.values(roads).forEach((road) => {
+          this.stateManager.addRoad(road);
+        });
         break;
       }
     }
@@ -114,6 +134,15 @@ export default class WebSocketConnection {
       type: phase === "game" ? "game.new-settlement" : "setup.new-settlement",
       payload: {
         vertex: vertexID,
+      },
+    });
+  }
+
+  onRoadPositionChose(phase: "game" | "setup", edgeID: number) {
+    this.sendMessage({
+      type: phase === "game" ? "game.new-road" : "setup.new-road",
+      payload: {
+        edge: edgeID,
       },
     });
   }

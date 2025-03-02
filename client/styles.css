@@ -10,12 +10,12 @@ body {
   height: 100vh;
 }
 
-#wrapper {
-  background: blue;
+#wrapper-pregame {
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 800px;
 }
 
 /* Pre-game */
@@ -48,6 +48,21 @@ body {
 }
 
 /* Game */
+#wrapper {
+  background: blue;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 1920px;
+}
+
+.settlement-spot,
+.edge-spot {
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 1000;
+}
 
 #map.pulse-settlements .edge-spot,
 #map.pulse-edges .settlement-spot {

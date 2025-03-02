@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 func TestBuildRoadSetup1PhaseSuccess(t *testing.T) {
@@ -283,6 +284,79 @@ func TestBuildRoadErrorNotRoadOrSettlementAttached(t *testing.T) {
 			t.Errorf("expected to not be able to build road without being connected to settlement/city or road, but it built just fine")
 		}
 	})
+}
+
+func TestAvailableEdgesPlayerRoundRegularPhase(t *testing.T) {
+	createGame := func(settlementMap, roadMap map[string][]int) *testUtils.GameState {
+		game := testUtils.CreateTestGame(
+			testUtils.MockWithRoundType(testUtils.Regular),
+			testUtils.MockWithSettlementsByPlayer(settlementMap),
+			testUtils.MockWithRoadsByPlayer(roadMap),
+		)
+		return game
+	}
+	var tests = []struct {
+		description    string
+		roadMap        map[string][]int
+		settlementMap  map[string][]int
+		expectedResult []int
+	}{
+		{
+			description: "some available edges around settlements",
+			roadMap: map[string][]int{
+				"1": {1, 55},
+				"2": {7, 41},
+			},
+			settlementMap: map[string][]int{
+				"1": {1, 42},
+				"2": {7, 32},
+			},
+			expectedResult: []int{2, 6, 19, 20, 54, 56, 57, 65},
+		},
+		{
+			description: "some available edges around settlements, but with opponent blocking",
+			roadMap: map[string][]int{
+				"1": {1, 55},
+				"2": {2, 56},
+			},
+			settlementMap: map[string][]int{
+				"1": {1, 42},
+				"2": {3, 32},
+			},
+			expectedResult: []int{6, 19, 20, 54, 57, 65},
+		},
+		{
+			description: "no available edges around settlements, blocked by opponents",
+			roadMap: map[string][]int{
+				"1": {4, 71},
+				"2": {3, 11},
+				"3": {5, 6, 70},
+				"4": {32, 60, 72},
+			},
+			settlementMap: map[string][]int{
+				"1": {5, 54},
+				"2": {3, 32},
+				"3": {1, 52},
+				"4": {26, 45},
+			},
+			expectedResult: []int{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.description, func(t *testing.T) {
+			game := createGame(tt.settlementMap, tt.roadMap)
+			edges, err := game.AvailableEdges("1")
+			if err != nil {
+				t.Errorf("expected to be able to check available vertices, actually got error %s", err.Error())
+			}
+			expectedResultSet := utils.SetFromSlice(tt.expectedResult)
+			actualResultSet := utils.SetFromSlice(edges)
+			if !expectedResultSet.Equal(actualResultSet) {
+				t.Errorf("expected available edges to be %v, actually got %v", tt.expectedResult, edges)
+			}
+		})
+	}
 }
 
 func TestLongestRoad(t *testing.T) {

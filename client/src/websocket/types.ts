@@ -52,6 +52,17 @@ export namespace SettlersWSServer {
     "setup.build-settlement": {
       vertices: number[];
     };
+    "setup.settlement-build.success": {
+      logs: string[];
+      settlement: SettlersCore.Building;
+    };
+    "setup.build-road": {
+      edges: number[];
+    };
+    "setup.road-build.success": {
+      logs: string[];
+      road: SettlersCore.Building;
+    };
     hydrate: {
       state: {
         map: SettlersCore.Map;
@@ -82,6 +93,12 @@ export namespace SettlersWSServer {
     };
     "setup.new-settlement": {
       vertex: number;
+    };
+    "game.new-road": {
+      edge: number;
+    };
+    "setup.new-road": {
+      edge: number;
     };
   };
 

@@ -15,12 +15,28 @@ func buildPlayerReconnectedBroadcast(player *entities.GamePlayer) *types.WebSock
 	}
 }
 
-func buildSettlementSetupBuildSuccessBroadcast(room *entities.Room, logs []string) *types.WebSocketMessage {
+func buildSettlementSetupBuildSuccessBroadcast(builderID string, vertexID int, logs []string) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
 		Type: "setup.settlement-build.success",
 		Payload: map[string]interface{}{
-			"settlements": room.Game.AllSettlements(),
-			"logs":        logs,
+			"settlement": map[string]interface{}{
+				"id":    vertexID,
+				"owner": builderID,
+			},
+			"logs": logs,
+		},
+	}
+}
+
+func buildRoadSetupBuildSuccessBroadcast(builderID string, edgeID int, logs []string) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "setup.road-build.success",
+		Payload: map[string]interface{}{
+			"road": map[string]interface{}{
+				"id":    edgeID,
+				"owner": builderID,
+			},
+			"logs": logs,
 		},
 	}
 }
