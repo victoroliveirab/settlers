@@ -1,4 +1,4 @@
-package match
+package matchsetup
 
 import (
 	"github.com/victoroliveirab/settlers/router/ws/entities"

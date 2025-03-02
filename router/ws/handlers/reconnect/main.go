@@ -1,10 +1,11 @@
-package match
+package reconnect
 
 import (
 	"fmt"
 
 	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 )
 
 func TryReconnectPlayer(player *entities.GamePlayer) error {
@@ -27,10 +28,10 @@ func TryReconnectPlayer(player *entities.GamePlayer) error {
 	}
 
 	if game.RoundType() == core.SetupSettlement1 || game.RoundType() == core.SetupSettlement2 {
-		err := SendBuildSetupSettlementRequest(player)
+		err := matchsetup.SendBuildSetupSettlementRequest(player)
 		return err
 	} else if game.RoundType() == core.SetupRoad1 || game.RoundType() == core.SetupRoad2 {
-		err := SendBuildSetupRoadRequest(player)
+		err := matchsetup.SendBuildSetupRoadRequest(player)
 		return err
 	} else if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular {
 		return nil // hydrate will take care of it

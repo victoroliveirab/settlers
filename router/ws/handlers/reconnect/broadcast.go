@@ -1,4 +1,4 @@
-package match
+package reconnect
 
 import (
 	"github.com/victoroliveirab/settlers/router/ws/entities"
@@ -11,15 +11,6 @@ func buildPlayerReconnectedBroadcast(player *entities.GamePlayer) *types.WebSock
 		Payload: map[string]interface{}{
 			"player": player.Username,
 			"bot":    false,
-		},
-	}
-}
-
-func BuildPlayerRoundBroadcast(room *entities.Room) *types.WebSocketMessage {
-	return &types.WebSocketMessage{
-		Type: "game.player-round",
-		Payload: map[string]interface{}{
-			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
 		},
 	}
 }

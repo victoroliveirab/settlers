@@ -5,6 +5,7 @@ import (
 
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
+	"github.com/victoroliveirab/settlers/router/ws/handlers/reconnect"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
@@ -25,7 +26,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 
 		// ongoing match, player may be trying to reconnect
 		if room.Game != nil {
-			err := match.TryReconnectPlayer(player)
+			err := reconnect.TryReconnectPlayer(player)
 			if err != nil {
 				wsErr := match.SendReconnectPlayerError(player, err)
 				return true, wsErr

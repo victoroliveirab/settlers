@@ -4,7 +4,7 @@ import (
 	"github.com/victoroliveirab/settlers/core"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
-	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
+	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 )
 
 func StartMatch(room *entities.Room) error {
@@ -47,7 +47,7 @@ func StartMatch(room *entities.Room) error {
 				break
 			}
 		}
-		match.SendBuildSetupSettlementRequest(firstPlayer)
+		matchsetup.SendBuildSetupSettlementRequest(firstPlayer)
 	})
 	return nil
 }
