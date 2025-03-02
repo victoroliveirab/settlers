@@ -8,6 +8,7 @@
 
 body {
   height: 100vh;
+  font-family: monospace;
 }
 
 #wrapper-pregame {
@@ -51,10 +52,72 @@ body {
 #wrapper {
   background: blue;
   height: 100%;
-  display: flex;
+  display: grid;
   align-items: center;
   justify-content: center;
+  grid-template-columns: 180px minmax(640px, 1fr);
+  grid-template-rows: 120px 1fr 120px;
   max-width: 1920px;
+}
+
+#wrapper > .container {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+}
+
+/* Player section */
+#players {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+#players > div {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 2;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-width: 4px;
+  border-color: black;
+  border-style: ridge;
+}
+
+#players > div > h2 {
+  font-size: 14px;
+}
+
+#players > div > ul {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-flow: row;
+  column-gap: 4px;
+  row-gap: 4px;
+  font-size: 12px;
+}
+
+#players > div[data-current="true"]::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  height: 16px;
+  width: 16px;
+  background: white;
+  border-radius: 9999px;
+  border: 1px solid black;
+}
+
+/* Map section */
+
+#wrapper svg {
+  height: calc(100vh - 250px);
+  font-family: sans-serif;
 }
 
 .settlement-spot,
@@ -114,4 +177,18 @@ body {
   100% {
     filter: brightness(115%);
   }
+}
+
+/* Dice section */
+#dice {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+}
+
+#dice > div {
+  width: 45%;
+  aspect-ratio: 1;
+  background: gray;
 }

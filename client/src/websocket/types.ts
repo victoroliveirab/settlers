@@ -45,6 +45,7 @@ export namespace SettlersWSServer {
       owner: SettlersCore.Player["name"];
     };
     "game.start": {
+      currentRoundPlayer: SettlersCore.Player["name"];
       logs: string[];
       map: SettlersCore.Map;
       players: SettlersCore.Player[];
@@ -62,6 +63,12 @@ export namespace SettlersWSServer {
     "setup.road-build.success": {
       logs: string[];
       road: SettlersCore.Building;
+    };
+    "setup.player-round-changed": {
+      currentRoundPlayer: SettlersCore.Player["name"];
+    };
+    "game.player-round": {
+      currentRoundPlayer: SettlersCore.Player["name"];
     };
     hydrate: {
       state: {
@@ -100,6 +107,7 @@ export namespace SettlersWSServer {
     "setup.new-road": {
       edge: number;
     };
+    "game.dice-roll": {};
   };
 
   export type IncomingMessage<T extends keyof IncomingMessages> = {

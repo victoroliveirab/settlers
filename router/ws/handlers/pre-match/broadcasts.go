@@ -16,9 +16,10 @@ func buildStartGameBroadcast(room *entities.Room, logs []string) *types.WebSocke
 	return &types.WebSocketMessage{
 		Type: "game.start",
 		Payload: map[string]interface{}{
-			"map":     room.Game.Map(),
-			"players": room.Game.Players(),
-			"logs":    logs,
+			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
+			"map":                room.Game.Map(),
+			"players":            room.Game.Players(),
+			"logs":               logs,
 		},
 	}
 }

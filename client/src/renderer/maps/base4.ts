@@ -39,9 +39,10 @@ export default class Base4MapRenderer extends BaseMapRenderer {
       g.append(hexagon);
 
       if (element.resource !== "Desert") {
-        const { circle, text } = this.generateNumberToken(element.token);
+        const { circle, text, frequency } = this.generateNumberToken(element.token);
         g.append(circle);
         g.append(text);
+        g.append(frequency);
       }
 
       const edgesCandidates = this.generateEdges();

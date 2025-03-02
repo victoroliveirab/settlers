@@ -53,33 +53,24 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		room.EnqueueBroadcastMessage(buildRoadSetupBuildSuccessBroadcast(player.Username, edgeID, []string{fmt.Sprintf("%s just built a road.", player.Username)}), []int64{}, func() {
 			if game.RoundType() == core.FirstRound {
 				room.EnqueueBroadcastMessage(buildSetupPhaseOverBroadcast(room), []int64{}, func() {
-					nextRoundPlayer := game.CurrentRoundPlayer()
-					for _, participant := range room.Participants {
-						if participant.Player != nil && participant.Player.Username == nextRoundPlayer.ID {
-							err := sendPlayerRoundRequest(participant.Player)
-							if err != nil {
-								// TODO handle this err properly
-								fmt.Println("err")
-								fmt.Println(err)
-							}
-							break
-						}
-					}
+					room.EnqueueBroadcastMessage(buildPlayerRoundBroadcast(room), []int64{}, nil)
 				})
 				return
 			}
-			nextRoundPlayer := game.CurrentRoundPlayer()
-			for _, participant := range room.Participants {
-				if participant.Player != nil && participant.Player.Username == nextRoundPlayer.ID {
-					err := SendBuildSetupSettlementRequest(participant.Player)
-					if err != nil {
-						// TODO handle this err properly
-						fmt.Println("err")
-						fmt.Println(err)
+			room.EnqueueBroadcastMessage(buildSetupPlayerRoundChangedBroadcast(room), []int64{}, func() {
+				nextRoundPlayer := game.CurrentRoundPlayer()
+				for _, participant := range room.Participants {
+					if participant.Player != nil && participant.Player.Username == nextRoundPlayer.ID {
+						err := SendBuildSetupSettlementRequest(participant.Player)
+						if err != nil {
+							// TODO handle this err properly
+							fmt.Println("err")
+							fmt.Println(err)
+						}
+						break
 					}
-					break
 				}
-			}
+			})
 		})
 		return true, nil
 	default:

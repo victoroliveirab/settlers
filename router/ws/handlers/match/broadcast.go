@@ -44,6 +44,16 @@ func buildRoadSetupBuildSuccessBroadcast(builderID string, edgeID int, logs []st
 	}
 }
 
+func buildSetupPlayerRoundChangedBroadcast(room *entities.Room) *types.WebSocketMessage {
+	playerRound := room.Game.CurrentRoundPlayer()
+	return &types.WebSocketMessage{
+		Type: "setup.player-round-changed",
+		Payload: map[string]interface{}{
+			"currentRoundPlayer": playerRound.ID,
+		},
+	}
+}
+
 func buildSetupPhaseOverBroadcast(room *entities.Room) *types.WebSocketMessage {
 	logs := make([]string, 0)
 	hands := make(map[string]map[string]int)
@@ -79,6 +89,15 @@ func buildSetupPhaseOverBroadcast(room *entities.Room) *types.WebSocketMessage {
 		Payload: map[string]interface{}{
 			"hands": hands,
 			"logs":  logs,
+		},
+	}
+}
+
+func buildPlayerRoundBroadcast(room *entities.Room) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "game.player-round",
+		Payload: map[string]interface{}{
+			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
 		},
 	}
 }

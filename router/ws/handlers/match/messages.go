@@ -31,9 +31,3 @@ func sendBuildSetupRoadRequest(player *entities.GamePlayer) error {
 		Type: "setup.build-road",
 	})
 }
-
-func sendPlayerRoundRequest(player *entities.GamePlayer) error {
-	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
-		Type: "game.player-round",
-	})
-}

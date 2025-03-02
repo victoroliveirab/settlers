@@ -9,21 +9,66 @@ export default class GameRenderer {
     private readonly mapName: string,
   ) {
     this.root.style.display = "";
-    this.root.innerHTML = "";
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.id = "map";
-    svg.setAttribute("width", "720px");
-    svg.setAttribute("height", "800px");
-    svg.setAttribute("viewBox", "-60 -60 120 120");
-    svg.setAttribute("version", "1.1");
-    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    this.root.appendChild(svg);
+    const svg = this.root.querySelector<SVGElement>("#map")!;
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("height", "100%");
     this.mapRenderer = new Base4MapRenderer(svg, 10, 10, 1);
   }
 
   drawMap(map: SettlersCore.Map) {
     this.mapRenderer.draw(map);
   }
+
+  drawPlayers(players: SettlersCore.Player[], currentRoundPlayer: string) {
+    const playersContainer = this.root.querySelector<HTMLDivElement>("#players")!;
+    playersContainer.innerHTML = "";
+    players.forEach((player) => {
+      const div = document.createElement("div");
+      div.style.background = player.color;
+      const playerNameElement = document.createElement("h2");
+      playerNameElement.textContent = player.name;
+      div.appendChild(playerNameElement);
+
+      const infoElement = document.createElement("ul");
+
+      const numberOfCardsElement = document.createElement("li");
+      numberOfCardsElement.textContent = `#R: ${0}`;
+      const numberOfDevCardsElement = document.createElement("li");
+      numberOfDevCardsElement.textContent = `#D: ${0}`;
+      const longestRoadElement = document.createElement("li");
+      longestRoadElement.textContent = `LG: ${0}`;
+      const knightsElement = document.createElement("li");
+      knightsElement.textContent = `#K: ${0}`;
+      const points = document.createElement("li");
+      points.textContent = `#P: ${0}`;
+
+      infoElement.appendChild(numberOfCardsElement);
+      infoElement.appendChild(numberOfDevCardsElement);
+      infoElement.appendChild(longestRoadElement);
+      infoElement.appendChild(knightsElement);
+      infoElement.appendChild(points);
+      div.appendChild(infoElement);
+
+      if (player.name === currentRoundPlayer) {
+        div.dataset.current = "true";
+      }
+
+      playersContainer.appendChild(div);
+    });
+  }
+
+  drawDices(dices: [number, number], onClick?: () => void) {
+    dices.forEach((dice, index) => {
+      const selector = `#dice${index + 1}`;
+      const element = this.root.querySelector<HTMLDivElement>(selector)!;
+      element.textContent = String(dice);
+    });
+    if (onClick) {
+      this.root.querySelector("#dice")?.addEventListener("click", onClick, { once: true });
+    }
+  }
+
+  drawHud(hand: SettlersCore.Hand) {}
 
   drawSettlement(settlement: SettlersCore.Building, color: string) {
     const { id } = settlement;
@@ -93,5 +138,11 @@ export default class GameRenderer {
       edge.addEventListener("click", ref);
       edge.dataset.disabled = "false";
     });
+  }
+
+  renderNewLog(log: string) {
+    const entry = document.createElement("p");
+    entry.textContent = log;
+    this.root.querySelector("#logs")?.append(entry);
   }
 }

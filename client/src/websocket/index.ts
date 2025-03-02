@@ -73,8 +73,8 @@ export default class WebSocketConnection {
       }
       case "game.start": {
         // TODO: get map name from payload
-        const { map, players } = message.payload;
-        this.stateManager.setInitialState(map, players);
+        const { currentRoundPlayer, map, players } = message.payload;
+        this.stateManager.setInitialState(map, players, null, currentRoundPlayer);
         break;
       }
       case "setup.build-settlement": {
@@ -97,9 +97,20 @@ export default class WebSocketConnection {
         this.stateManager.addRoad(road);
         break;
       }
+      case "setup.player-round-changed": {
+        const { currentRoundPlayer } = message.payload;
+        this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
+        break;
+      }
+      case "game.player-round": {
+        const { currentRoundPlayer } = message.payload;
+        this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
+        break;
+      }
       case "hydrate": {
-        const { map, players, roads, settlements } = message.payload.state;
-        this.stateManager.setInitialState(map, players);
+        const { currentRoundPlayer, hand, map, players, roads, settlements } =
+          message.payload.state;
+        this.stateManager.setInitialState(map, players, hand, currentRoundPlayer);
         Object.values(settlements).forEach((settlement) => {
           this.stateManager.addSettlement(settlement);
         });
@@ -144,6 +155,13 @@ export default class WebSocketConnection {
       payload: {
         edge: edgeID,
       },
+    });
+  }
+
+  onDiceRollRequested() {
+    this.sendMessage({
+      type: "game.dice-roll",
+      payload: {},
     });
   }
 

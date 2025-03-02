@@ -3,11 +3,22 @@ import PreGameRenderer from "../renderer/pre-game";
 import WebSocketConnection from "../websocket";
 import { SettlersCore } from "../websocket/types";
 
-type UIPart = "map" | "participantList" | "road" | "startButton" | "vertices";
+type UIPart =
+  | "dice"
+  | "hud"
+  | "map"
+  | "participantList"
+  | "playerList"
+  | "road"
+  | "startButton"
+  | "vertices";
 
 const defaultUpdateUIState: Record<UIPart, boolean> = {
+  dice: false,
+  hud: false,
   map: false,
   participantList: false,
+  playerList: false,
   road: false,
   startButton: false,
   vertices: false,
@@ -16,11 +27,14 @@ const defaultUpdateUIState: Record<UIPart, boolean> = {
 export default class GameState {
   private participants: SettlersCore.Participant[] = [];
   private players: SettlersCore.Player[] = [];
+  private currentRoundPlayer: string = "";
   private map!: SettlersCore.Map;
   private owner: SettlersCore.Player | null = null;
   private cities: SettlersCore.Building[] = [];
   private roads: SettlersCore.Building[] = [];
   private settlements: SettlersCore.Building[] = [];
+  private hand!: SettlersCore.Hand;
+  private dices: [number, number] = [0, 0];
 
   private preGameRenderer: PreGameRenderer;
   private gameRenderer!: GameRenderer;
@@ -41,7 +55,12 @@ export default class GameState {
     this.service = service;
   }
 
-  setInitialState(map: SettlersCore.Map, players: SettlersCore.Player[]) {
+  setInitialState(
+    map: SettlersCore.Map,
+    players: SettlersCore.Player[],
+    hand: SettlersCore.Hand | null,
+    currentRoundPlayer: string,
+  ) {
     if (this.hasSetInitialState) {
       throw new Error("should not set initial state twice");
     }
@@ -49,8 +68,13 @@ export default class GameState {
     this.gameRenderer = new GameRenderer(this.root, "base4");
     this.map = map;
     this.players = players;
+    if (hand) this.hand = hand;
+    this.setCurrentRoundPlayer(currentRoundPlayer);
+
     this.hasSetInitialState = true;
     this.shouldUpdateUIPart.map = true;
+    this.shouldUpdateUIPart.playerList = true;
+    this.shouldUpdateUIPart.hud = true;
   }
 
   setParticipants(participants: SettlersCore.Participant[]) {
@@ -68,6 +92,21 @@ export default class GameState {
       }
     }
     console.warn(`trying to set player#${player} as owner, but they are not a participant`);
+  }
+
+  setCurrentRoundPlayer(player: string) {
+    this.currentRoundPlayer = player;
+    this.shouldUpdateUIPart.playerList = true;
+    if (this.userName === player) {
+      console.log("HERE?");
+      this.shouldUpdateUIPart.dice = true;
+    }
+  }
+
+  setDices(dice1: number, dice2: number) {
+    this.dices[0] = dice1;
+    this.dices[1] = dice2;
+    this.shouldUpdateUIPart.dice = true;
   }
 
   addSettlement(settlement: SettlersCore.Building) {
@@ -90,6 +129,12 @@ export default class GameState {
       return;
     }
     this.shouldUpdateUIPart.road = true;
+  }
+
+  addLogs(logs: string[]) {
+    logs.forEach((log) => {
+      this.gameRenderer.renderNewLog(log);
+    });
   }
 
   enableVerticesToBuildSettlement(vertices: number[], phase: "game" | "setup") {
@@ -120,6 +165,22 @@ export default class GameState {
                 this.service.onReadyChange(state);
               },
             );
+            break;
+          }
+          case "playerList": {
+            this.gameRenderer.drawPlayers(this.players, this.currentRoundPlayer);
+            break;
+          }
+          case "dice": {
+            if (this.currentRoundPlayer === this.userName) {
+              console.log("IF");
+              this.gameRenderer.drawDices(this.dices, () => {
+                this.service.onDiceRollRequested();
+              });
+            } else {
+              console.log("ELSE");
+              this.gameRenderer.drawDices(this.dices);
+            }
             break;
           }
           case "startButton": {

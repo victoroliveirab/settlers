@@ -33,8 +33,7 @@ func TryReconnectPlayer(player *entities.GamePlayer) error {
 		err := SendBuildSetupRoadRequest(player)
 		return err
 	} else if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular {
-		err := sendPlayerRoundRequest(player)
-		return err
+		return nil // hydrate will take care of it
 	}
 
 	err = fmt.Errorf("Cannot reconnect player#%s: not known round type %s", player.Username, core.RoundTypeTranslation[game.RoundType()])

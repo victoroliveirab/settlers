@@ -81,14 +81,35 @@ export default abstract class BaseMapRenderer {
 
     const text = document.createElementNS(this.ns, "text");
     text.setAttribute("x", "0");
-    text.setAttribute("y", "1.25");
+    text.setAttribute("y", "0.5");
     text.setAttribute("text-anchor", "middle");
-    text.setAttribute("font-size", "4px");
-    text.setAttribute("fill", "black");
+    text.setAttribute("font-size", "3.5px");
+    text.setAttribute("fill", number === 6 || number === 8 ? "red" : "black");
     text.textContent = String(number);
+
+    const frequency = document.createElementNS(this.ns, "text");
+    frequency.setAttribute("x", "0");
+    frequency.setAttribute("y", "1.5");
+    frequency.setAttribute("text-anchor", "middle");
+    frequency.setAttribute("font-size", "3.5px");
+    frequency.setAttribute("fill", number === 6 || number === 8 ? "red" : "black");
+    let dots = "";
+    if (number === 2 || number === 12) {
+      dots = ".";
+    } else if (number === 3 || number === 11) {
+      dots = "..";
+    } else if (number === 4 || number === 10) {
+      dots = "...";
+    } else if (number === 5 || number === 9) {
+      dots = "....";
+    } else if (number === 6 || number === 8) {
+      dots = ".....";
+    }
+    frequency.textContent = dots;
 
     return {
       circle,
+      frequency,
       text,
     };
   }
