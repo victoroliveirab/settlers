@@ -124,11 +124,11 @@ func SetupRoutes(db *sql.DB) {
 			http.Error(w, "Wrong username and/or password", http.StatusBadRequest)
 		}
 
-		session, err := models.SessionCreate(db, userID, username, time.Hour)
+		session, err := models.SessionCreate(db, userID, username, 30*24*time.Hour)
 		cookie := http.Cookie{
 			Name:     SESSION_COOKIE_NAME,
 			Value:    session,
-			MaxAge:   60 * 60,
+			MaxAge:   30 * 24 * 60 * 60,
 			Path:     "/",
 			HttpOnly: true,
 			Secure:   true,
@@ -138,7 +138,7 @@ func SetupRoutes(db *sql.DB) {
 		userCookie := http.Cookie{
 			Name:   USER_COOKIE_NAME,
 			Value:  username,
-			MaxAge: 200 * 60 * 60 * 24 * 30,
+			MaxAge: 30 * 24 * 60 * 60,
 			Path:   "/",
 			Secure: true,
 		}
@@ -156,7 +156,7 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
-			room, err := l.CreateRoom(id, "base4", 4)
+			room, err := l.CreateRoom(id, "base4", 2)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}
