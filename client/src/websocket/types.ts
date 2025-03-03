@@ -127,6 +127,7 @@ export namespace SettlersWSServer {
       edge: number;
     };
     "game.dice-roll": {};
+    "game.end-round": {};
   };
 
   export type IncomingMessage<T extends keyof IncomingMessages> = {

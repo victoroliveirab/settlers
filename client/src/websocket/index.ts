@@ -188,9 +188,15 @@ export default class WebSocketConnection {
   }
 
   onDiceRollRequested() {
-    console.log("request dice");
     this.sendMessage({
       type: "game.dice-roll",
+      payload: {},
+    });
+  }
+
+  onEndRound() {
+    this.sendMessage({
+      type: "game.end-round",
       payload: {},
     });
   }

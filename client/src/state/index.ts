@@ -106,9 +106,7 @@ export default class GameState {
   setCurrentRoundPlayer(player: string) {
     this.currentRoundPlayer = player;
     this.shouldUpdateUIPart.playerList = true;
-    if (this.userName === player) {
-      this.shouldUpdateUIPart.dice = true;
-    }
+    this.shouldUpdateUIPart.dice = true;
   }
 
   setHand(hand: SettlersCore.Hand) {
@@ -213,8 +211,12 @@ export default class GameState {
               this.gameRenderer.drawDices(this.dices, () => {
                 this.service.onDiceRollRequested();
               });
+              this.gameRenderer.updatePassButton();
             } else {
               this.gameRenderer.drawDices(this.dices);
+              this.gameRenderer.updatePassButton(() => {
+                this.service.onEndRound();
+              });
             }
             break;
           }

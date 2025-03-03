@@ -1,36 +1,38 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Settlers</title>
-    <link rel="stylesheet" href="/static/styles.css" />
-  </head>
 
-  <body>
-    <div id="wrapper-pregame"></div>
-    <div id="wrapper" style="display: none">
-      <div class="container" id="not-sure-yet">&nbsp;</div>
-      <div class="container" id="players">&nbsp;</div>
-      <div class="container" id="logs">LOGS</div>
-      <div class="container">
-        <svg
-          id="map"
-          viewBox="-60 -60 120 120"
-          version="1.1"
-          xmlns="http://www.w3.org/2000/svg"
-        ></svg>
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settlers</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+
+<body>
+  <div id="wrapper-pregame"></div>
+  <div id="wrapper" style="display: none">
+    <div class="container" id="not-sure-yet">&nbsp;</div>
+    <div class="container" id="players">&nbsp;</div>
+    <div class="container" id="logs">LOGS</div>
+    <div class="container">
+      <svg id="map" viewBox="-60 -60 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="container" id="round">
+      <div id="actions">
+        <button id="action-pass" disabled>Pass</button>
+        <button id="action-trade" disabled>Trade</button>
       </div>
-      <div class="container" id="dice">
+      <div id="dice">
         <div id="dice1"></div>
         <div id="dice2"></div>
       </div>
-      <div class="container" id="hud">
-        <ul id="resources"></div>
-        <ul id="dev"></div>
-      </div>
+    </div>
+    <div class="container" id="hud">
+      <ul id="resources"></ul>
+      <ul id="dev"></ul>
     </div>
     <script type="module" src="/static/app.js"></script>
-  </body>
+</body>
+
 </html>

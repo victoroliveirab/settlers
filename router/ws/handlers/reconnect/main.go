@@ -33,7 +33,7 @@ func TryReconnectPlayer(player *entities.GamePlayer) error {
 	} else if game.RoundType() == core.SetupRoad1 || game.RoundType() == core.SetupRoad2 {
 		err := matchsetup.SendBuildSetupRoadRequest(player)
 		return err
-	} else if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular {
+	} else if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular || game.RoundType() == core.BetweenTurns {
 		return nil // hydrate will take care of it
 	}
 

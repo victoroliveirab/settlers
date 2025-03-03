@@ -34,6 +34,8 @@ const noop = () => {};
 export default class GameRenderer {
   private mapRenderer: BaseMapRenderer;
   private diceEventHandler: () => void = noop;
+  private passEventHandler: () => void = noop;
+  private tradeEventHandler: () => void = noop;
 
   constructor(
     private readonly root: HTMLElement,
@@ -169,6 +171,23 @@ export default class GameRenderer {
     spot.style.opacity = "1";
     spot.style.fill = color;
     spot.dataset.disabled = "true";
+  }
+
+  updatePassButton(onClick?: () => void) {
+    const button = this.root.querySelector<HTMLButtonElement>("#action-pass");
+    if (!button) {
+      console.warn("pass button not found");
+      return;
+    }
+    if (onClick) {
+      this.passEventHandler = onClick;
+      button.disabled = false;
+      button.addEventListener("click", this.passEventHandler, { once: true });
+    } else {
+      this.passEventHandler = noop;
+      button.disabled = true;
+      button.removeEventListener("click", this.passEventHandler);
+    }
   }
 
   makeVerticesClickable(verticesIDs: number[], cb: (vertexID: number) => void) {
