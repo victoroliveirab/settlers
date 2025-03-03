@@ -1,6 +1,8 @@
 package core
 
 import (
+	"math"
+
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -24,6 +26,17 @@ func (state *GameState) NumberOfDevCardsByPlayer() map[string]int {
 		}
 	}
 	return devCardsByPlayer
+}
+
+func (state *GameState) discardAmountByPlayer(playerID string) int {
+	total := 0
+	for _, count := range state.playerResourceHandMap[playerID] {
+		total += count
+	}
+	if total <= state.maxCards {
+		return 0
+	}
+	return int(math.Floor(float64(total) / 2))
 }
 
 func (state *GameState) hasBuildingAtSameEdge(vertexID int) int {

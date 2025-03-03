@@ -3,7 +3,6 @@ package core
 import (
 	"fmt"
 	"maps"
-	"math"
 	"math/rand"
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
@@ -122,7 +121,8 @@ type GameState struct {
 	currentPlayerNumberOfPlayedDevCards int
 
 	// discard related
-	discardMap map[string]int
+	discardMap                     map[string]int
+	playerDiscardedCurrentRoundMap map[string]bool
 
 	// cards related
 	playerResourceHandMap        map[string]map[string]int
@@ -206,6 +206,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.dice1 = 0
 	state.dice2 = 0
 	state.discardMap = make(map[string]int)
+	state.playerDiscardedCurrentRoundMap = make(map[string]bool)
 
 	state.playerResourceHandMap = make(map[string]map[string]int)
 	state.playerDevelopmentHandMap = make(map[string]map[string]int)
@@ -380,14 +381,7 @@ func (state *GameState) DiscardAmountByPlayer(playerID string) int {
 	if state.roundType != DiscardPhase {
 		return 0
 	}
-	total := 0
-	for _, count := range state.playerResourceHandMap[playerID] {
-		total += count
-	}
-	if total <= state.maxCards {
-		return 0
-	}
-	return int(math.Floor(float64(total) / 2))
+	return state.discardAmountByPlayer(playerID)
 }
 
 func (state *GameState) ActiveTradeOffers() []Trade {

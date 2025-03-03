@@ -98,7 +98,7 @@ func (state *GameState) RollDice(playerID string) error {
 func (state *GameState) handle7() {
 	shouldMoveToDiscardPhase := false
 	for _, player := range state.players {
-		toDiscard := state.DiscardAmountByPlayer(player.ID)
+		toDiscard := state.discardAmountByPlayer(player.ID)
 		if toDiscard > 0 {
 			shouldMoveToDiscardPhase = true
 			break
@@ -125,6 +125,7 @@ func (state *GameState) EndRound(playerID string) error {
 
 	state.dice1 = 0
 	state.dice2 = 0
+	state.playerDiscardedCurrentRoundMap = make(map[string]bool)
 	newIndex := state.currentPlayerIndex + 1
 	if newIndex >= len(state.players) {
 		newIndex = 0
