@@ -19,6 +19,7 @@ func generateGameStateDump(player *entities.GamePlayer) map[string]interface{} {
 		"currentRoundPlayer": currentRoundPlayer.ID,
 		"hand":               game.ResourceHandByPlayer(player.Username),
 		"resourceCount":      game.NumberOfResourcesByPlayer(),
+		"devCount":           game.NumberOfDevCardsByPlayer(),
 		"dice":               game.Dice(),
 	}
 }

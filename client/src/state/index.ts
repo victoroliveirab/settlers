@@ -4,8 +4,9 @@ import WebSocketConnection from "../websocket";
 import { SettlersCore } from "../websocket/types";
 
 type UIPart =
+  | "devHand"
   | "dice"
-  | "hud"
+  | "hand"
   | "map"
   | "participantList"
   | "playerList"
@@ -14,8 +15,9 @@ type UIPart =
   | "vertices";
 
 const defaultUpdateUIState: Record<UIPart, boolean> = {
+  devHand: false,
   dice: false,
-  hud: false,
+  hand: false,
   map: false,
   participantList: false,
   playerList: false,
@@ -40,6 +42,14 @@ export default class GameState {
     Ore: 0,
     Sheep: 0,
   };
+  private devHand: SettlersCore.DevHand = {
+    Knight: 0,
+    Monopoly: 0,
+    "Road Building": 0,
+    "Victory Point": 0,
+    "Year of Plenty": 0,
+  };
+
   private dices: [number, number] = [0, 0];
   private resourceCount!: Record<string, number>;
 
@@ -103,7 +113,12 @@ export default class GameState {
 
   setHand(hand: SettlersCore.Hand) {
     this.hand = hand;
-    this.shouldUpdateUIPart.hud = true;
+    this.shouldUpdateUIPart.hand = true;
+  }
+
+  setDevHand(devHand: SettlersCore.DevHand) {
+    this.devHand = devHand;
+    this.shouldUpdateUIPart.devHand = true;
   }
 
   setResourcesCounts(counts: Record<string, number>) {
@@ -201,6 +216,14 @@ export default class GameState {
             } else {
               this.gameRenderer.drawDices(this.dices);
             }
+            break;
+          }
+          case "hand": {
+            this.gameRenderer.drawHand(this.hand);
+            break;
+          }
+          case "devHand": {
+            this.gameRenderer.drawDevHand(this.devHand);
             break;
           }
           case "startButton": {

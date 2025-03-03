@@ -19,6 +19,7 @@ func buildStartGameBroadcast(room *entities.Room, logs []string) *types.WebSocke
 			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
 			"map":                room.Game.Map(),
 			"players":            room.Game.Players(),
+			"resourceCount":      room.Game.NumberOfResourcesByPlayer(), // not necessary, but maybe we want to give players initial resources sometime
 			"logs":               logs,
 		},
 	}

@@ -1,8 +1,15 @@
 export namespace SettlersCore {
-  export type Resource = "Brick" | "Ore" | "Desert" | "Grain" | "Sheep" | "Lumber";
+  export type Resource = "Brick" | "Ore" | "Grain" | "Sheep" | "Lumber";
+  export type DevelopmentCard =
+    | "Knight"
+    | "Victory Point"
+    | "Year of Plenty"
+    | "Road Building"
+    | "Monopoly";
+  export type TileType = Resource | "Desert";
   export type Tile = {
     id: number;
-    resource: Resource;
+    resource: TileType;
     token: number;
     edges: number[];
     vertices: number[];
@@ -26,6 +33,7 @@ export namespace SettlersCore {
   export type Cities = Record<Building["id"], Building>;
   export type Roads = Record<Building["id"], Building>;
   export type Hand = Record<Resource, number>;
+  export type DevHand = Record<DevelopmentCard, number>;
 }
 
 export namespace SettlersWSServer {
@@ -49,6 +57,7 @@ export namespace SettlersWSServer {
       logs: string[];
       map: SettlersCore.Map;
       players: SettlersCore.Player[];
+      resourceCount: Record<SettlersCore.Player["name"], number>;
     };
     "setup.build-settlement": {
       vertices: number[];

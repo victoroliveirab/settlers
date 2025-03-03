@@ -73,10 +73,11 @@ export default class WebSocketConnection {
       }
       case "game.start": {
         // TODO: get map name from payload
-        const { currentRoundPlayer, map, players } = message.payload;
+        const { currentRoundPlayer, map, players, resourceCount } = message.payload;
         this.stateManager.setMap(map);
         this.stateManager.setPlayers(players);
         this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
+        this.stateManager.setResourcesCounts(resourceCount);
         break;
       }
       case "setup.build-settlement": {

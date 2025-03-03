@@ -182,7 +182,7 @@ body {
 /* Dice section */
 #dice {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 4px;
   padding: 4px;
 }
@@ -192,3 +192,75 @@ body {
   aspect-ratio: 1;
   background: gray;
 }
+
+/* HUD section */
+#hud {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+}
+
+#resources,
+#dev {
+  overflow-x: auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  list-style: none;
+}
+
+#resources {
+  flex-grow: 1;
+}
+
+#resources > li,
+#dev > li {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50%;
+  font-size: 16px;
+  aspect-ratio: 1;
+  position: relative;
+  background: gray;
+}
+
+#resources > li::before,
+#dev > li::before {
+  z-index: 1;
+  position: absolute;
+  content: "";
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 50%;
+  aspect-ratio: 1;
+  background: black;
+  border-radius: 9999px;
+}
+
+#resources > li > span,
+#dev > li > span {
+  z-index: 2;
+}
+
+#resources > li[data-type="Lumber"] {
+  background: green;
+}
+
+#resources > li[data-type="Brick"] {
+  background: maroon;
+}
+
+#resources > li[data-type="Sheep"] {
+  background: limegreen;
+}
+
+#resources > li[data-type="Grain"] {
+  background: yellow;
+}
+
+#resources > li[data-type="Ore"] {
+  background: gray;
+}
+

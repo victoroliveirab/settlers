@@ -13,6 +13,22 @@ type Player = {
   resourceCount: number;
 };
 
+const resourceEmojis = Object.freeze({
+  Lumber: "🌲",
+  Brick: "🧱",
+  Sheep: "🐑",
+  Grain: "🌾",
+  Ore: "⛰️",
+});
+
+const developmentEmojis = Object.freeze({
+  Knight: "⚔️",
+  "Victory Point": "🎖️",
+  "Road Building": "🛤️",
+  "Year of Plenty": "🎁",
+  Monopoly: "🎩",
+});
+
 const noop = () => {};
 
 export default class GameRenderer {
@@ -87,7 +103,47 @@ export default class GameRenderer {
     }
   }
 
-  drawHud(hand: SettlersCore.Hand) {}
+  drawHand(hand: SettlersCore.Hand) {
+    const resourcesElement = this.root.querySelector("#resources")!;
+    resourcesElement.innerHTML = "";
+    const resources: SettlersCore.Resource[] = ["Lumber", "Brick", "Sheep", "Grain", "Ore"];
+    resources.forEach((resource) => {
+      if (hand[resource] > 0) {
+        for (let i = 0; i < hand[resource]; ++i) {
+          const element = document.createElement("li");
+          element.dataset.type = resource;
+          const text = document.createElement("span");
+          text.textContent = resourceEmojis[resource];
+          element.appendChild(text);
+          resourcesElement.appendChild(element);
+        }
+      }
+    });
+  }
+
+  drawDevHand(devHand: SettlersCore.DevHand) {
+    const devElement = this.root.querySelector("#dev")!;
+    devElement.innerHTML = "";
+    const devTypes: SettlersCore.DevelopmentCard[] = [
+      "Knight",
+      "Year of Plenty",
+      "Road Building",
+      "Monopoly",
+      "Victory Point",
+    ];
+    devTypes.forEach((type) => {
+      if (devHand[type] > 0) {
+        for (let i = 0; i < devHand[type]; ++i) {
+          const element = document.createElement("li");
+          element.dataset.type = type;
+          const text = document.createElement("span");
+          text.textContent = developmentEmojis[type];
+          element.appendChild(text);
+          devElement.appendChild(element);
+        }
+      }
+    });
+  }
 
   drawSettlement(settlement: SettlersCore.Building, color: string) {
     const { id } = settlement;

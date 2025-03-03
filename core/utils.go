@@ -15,6 +15,17 @@ func (state *GameState) NumberOfResourcesByPlayer() map[string]int {
 	return resourcesByPlayer
 }
 
+func (state *GameState) NumberOfDevCardsByPlayer() map[string]int {
+	devCardsByPlayer := make(map[string]int)
+	for player, hand := range state.playerDevelopmentHandMap {
+		devCardsByPlayer[player] = 0
+		for _, count := range hand {
+			devCardsByPlayer[player] += count
+		}
+	}
+	return devCardsByPlayer
+}
+
 func (state *GameState) hasBuildingAtSameEdge(vertexID int) int {
 	edges := state.definition.EdgesByVertex[vertexID]
 	for _, edgeID := range edges {
