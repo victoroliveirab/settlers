@@ -115,6 +115,7 @@ export default class WebSocketConnection {
           }),
           {} as Record<string, number>,
         );
+        this.stateManager.setPhase("game");
         this.stateManager.setResourcesCounts(resourceCount);
         this.stateManager.setHand(hands[this.stateManager.userName]);
         break;
@@ -134,6 +135,7 @@ export default class WebSocketConnection {
       case "hydrate": {
         const { currentRoundPlayer, dice, hand, map, players, resourceCount, roads, settlements } =
           message.payload.state;
+        this.stateManager.setPhase("game");
         this.stateManager.setMap(map);
         this.stateManager.setPlayers(players);
         this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);

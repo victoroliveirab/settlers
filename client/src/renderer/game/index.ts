@@ -180,7 +180,10 @@ export default class GameRenderer {
       return;
     }
     if (onClick) {
-      this.passEventHandler = onClick;
+      this.passEventHandler = () => {
+        button.disabled = true;
+        onClick();
+      };
       button.disabled = false;
       button.addEventListener("click", this.passEventHandler, { once: true });
     } else {

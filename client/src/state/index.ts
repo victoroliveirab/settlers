@@ -9,6 +9,7 @@ type UIPart =
   | "hand"
   | "map"
   | "participantList"
+  | "passAction"
   | "playerList"
   | "road"
   | "startButton"
@@ -20,6 +21,7 @@ const defaultUpdateUIState: Record<UIPart, boolean> = {
   hand: false,
   map: false,
   participantList: false,
+  passAction: false,
   playerList: false,
   road: false,
   startButton: false,
@@ -57,6 +59,7 @@ export default class GameState {
   private gameRenderer!: GameRenderer;
   private service!: WebSocketConnection;
 
+  private phase: "setup" | "game" | "postgame" = "setup";
   private shouldUpdateUIPart: Record<UIPart, boolean> = { ...defaultUpdateUIState };
 
   constructor(
@@ -69,6 +72,10 @@ export default class GameState {
 
   setService(service: WebSocketConnection) {
     this.service = service;
+  }
+
+  setPhase(phase: typeof this.phase) {
+    this.phase = phase;
   }
 
   setMap(map: SettlersCore.Map) {
@@ -106,6 +113,7 @@ export default class GameState {
   setCurrentRoundPlayer(player: string) {
     this.currentRoundPlayer = player;
     this.shouldUpdateUIPart.playerList = true;
+    if (this.phase !== "game") return;
     this.shouldUpdateUIPart.dice = true;
   }
 
@@ -128,6 +136,7 @@ export default class GameState {
     this.dices[0] = dice1;
     this.dices[1] = dice2;
     this.shouldUpdateUIPart.dice = true;
+    this.shouldUpdateUIPart.passAction = true;
   }
 
   addSettlement(settlement: SettlersCore.Building) {
@@ -203,20 +212,14 @@ export default class GameState {
             break;
           }
           case "dice": {
-            if (
-              this.currentRoundPlayer === this.userName &&
-              this.dices[0] === 0 &&
-              this.dices[1] === 0
-            ) {
+            // FIXME: this lets the user fire up an additional dice request
+            // Server will block the request, but we should improve this logic
+            if (this.currentRoundPlayer === this.userName) {
               this.gameRenderer.drawDices(this.dices, () => {
                 this.service.onDiceRollRequested();
               });
-              this.gameRenderer.updatePassButton();
             } else {
               this.gameRenderer.drawDices(this.dices);
-              this.gameRenderer.updatePassButton(() => {
-                this.service.onEndRound();
-              });
             }
             break;
           }
@@ -226,6 +229,20 @@ export default class GameState {
           }
           case "devHand": {
             this.gameRenderer.drawDevHand(this.devHand);
+            break;
+          }
+          case "passAction": {
+            if (
+              this.dices[0] > 0 &&
+              this.dices[1] > 0 &&
+              this.currentRoundPlayer === this.userName
+            ) {
+              this.gameRenderer.updatePassButton(() => {
+                this.service.onEndRound();
+              });
+            } else {
+              this.gameRenderer.updatePassButton();
+            }
             break;
           }
           case "startButton": {
