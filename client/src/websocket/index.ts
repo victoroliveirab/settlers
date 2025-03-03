@@ -73,11 +73,12 @@ export default class WebSocketConnection {
       }
       case "game.start": {
         // TODO: get map name from payload
-        const { currentRoundPlayer, map, players, resourceCount } = message.payload;
+        const { currentRoundPlayer, logs, map, players, resourceCount } = message.payload;
         this.stateManager.setMap(map);
         this.stateManager.setPlayers(players);
         this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
         this.stateManager.setResourcesCounts(resourceCount);
+        this.stateManager.addLogs(logs);
         break;
       }
       case "setup.build-settlement": {
@@ -86,8 +87,9 @@ export default class WebSocketConnection {
         break;
       }
       case "setup.settlement-build.success": {
-        const { settlement } = message.payload;
+        const { logs, settlement } = message.payload;
         this.stateManager.addSettlement(settlement);
+        this.stateManager.addLogs(logs);
         break;
       }
       case "setup.build-road": {
@@ -96,8 +98,9 @@ export default class WebSocketConnection {
         break;
       }
       case "setup.road-build.success": {
-        const { road } = message.payload;
+        const { logs, road } = message.payload;
         this.stateManager.addRoad(road);
+        this.stateManager.addLogs(logs);
         break;
       }
       case "setup.player-round-changed": {
@@ -106,7 +109,7 @@ export default class WebSocketConnection {
         break;
       }
       case "setup.end": {
-        const { hands } = message.payload;
+        const { hands, logs } = message.payload;
         // REFACTOR: don't like doing logic here, but for now it's fine
         const resourceCount = Object.entries(hands).reduce(
           (acc, [player, resources]) => ({
@@ -118,6 +121,7 @@ export default class WebSocketConnection {
         this.stateManager.setPhase("game");
         this.stateManager.setResourcesCounts(resourceCount);
         this.stateManager.setHand(hands[this.stateManager.userName]);
+        this.stateManager.addLogs(logs);
         break;
       }
       case "game.player-round": {
@@ -126,10 +130,11 @@ export default class WebSocketConnection {
         break;
       }
       case "game.dice-roll.success": {
-        const { dices, hand, resourceCount } = message.payload;
+        const { dices, hand, logs, resourceCount } = message.payload;
         this.stateManager.setDices(dices[0], dices[1]);
         this.stateManager.setHand(hand);
         this.stateManager.setResourcesCounts(resourceCount);
+        this.stateManager.addLogs(logs);
         break;
       }
       case "hydrate": {
