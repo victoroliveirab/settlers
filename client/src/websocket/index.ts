@@ -74,7 +74,9 @@ export default class WebSocketConnection {
       case "game.start": {
         // TODO: get map name from payload
         const { currentRoundPlayer, map, players } = message.payload;
-        this.stateManager.setInitialState(map, players, null, currentRoundPlayer);
+        this.stateManager.setMap(map);
+        this.stateManager.setPlayers(players);
+        this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
         break;
       }
       case "setup.build-settlement": {
@@ -107,10 +109,22 @@ export default class WebSocketConnection {
         this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
         break;
       }
+      case "game.dice-roll.success": {
+        const { dices, hand, resourceCount } = message.payload;
+        this.stateManager.setDices(dices[0], dices[1]);
+        this.stateManager.setHand(hand);
+        this.stateManager.setResourcesCounts(resourceCount);
+        break;
+      }
       case "hydrate": {
-        const { currentRoundPlayer, hand, map, players, roads, settlements } =
+        const { currentRoundPlayer, dice, hand, map, players, resourceCount, roads, settlements } =
           message.payload.state;
-        this.stateManager.setInitialState(map, players, hand, currentRoundPlayer);
+        this.stateManager.setMap(map);
+        this.stateManager.setPlayers(players);
+        this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
+        this.stateManager.setHand(hand);
+        this.stateManager.setResourcesCounts(resourceCount);
+        this.stateManager.setDices(dice[0], dice[1]);
         Object.values(settlements).forEach((settlement) => {
           this.stateManager.addSettlement(settlement);
         });
@@ -159,6 +173,7 @@ export default class WebSocketConnection {
   }
 
   onDiceRollRequested() {
+    console.log("request dice");
     this.sendMessage({
       type: "game.dice-roll",
       payload: {},

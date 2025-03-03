@@ -2,8 +2,23 @@ import type { SettlersCore } from "../../websocket/types";
 import BaseMapRenderer from "../maps/base";
 import Base4MapRenderer from "../maps/base4";
 
+type Player = {
+  color: string;
+  devHandCount: number;
+  isCurrentRound: boolean;
+  knights: number;
+  longestRoad: number;
+  name: string;
+  points: number;
+  resourceCount: number;
+};
+
+const noop = () => {};
+
 export default class GameRenderer {
   private mapRenderer: BaseMapRenderer;
+  private diceEventHandler: () => void = noop;
+
   constructor(
     private readonly root: HTMLElement,
     private readonly mapName: string,
@@ -19,7 +34,7 @@ export default class GameRenderer {
     this.mapRenderer.draw(map);
   }
 
-  drawPlayers(players: SettlersCore.Player[], currentRoundPlayer: string) {
+  drawPlayers(players: Player[]) {
     const playersContainer = this.root.querySelector<HTMLDivElement>("#players")!;
     playersContainer.innerHTML = "";
     players.forEach((player) => {
@@ -32,15 +47,15 @@ export default class GameRenderer {
       const infoElement = document.createElement("ul");
 
       const numberOfCardsElement = document.createElement("li");
-      numberOfCardsElement.textContent = `#R: ${0}`;
+      numberOfCardsElement.textContent = `#R: ${player.resourceCount}`;
       const numberOfDevCardsElement = document.createElement("li");
-      numberOfDevCardsElement.textContent = `#D: ${0}`;
+      numberOfDevCardsElement.textContent = `#D: ${player.devHandCount}`;
       const longestRoadElement = document.createElement("li");
-      longestRoadElement.textContent = `LG: ${0}`;
+      longestRoadElement.textContent = `LG: ${player.longestRoad}`;
       const knightsElement = document.createElement("li");
-      knightsElement.textContent = `#K: ${0}`;
+      knightsElement.textContent = `#K: ${player.knights}`;
       const points = document.createElement("li");
-      points.textContent = `#P: ${0}`;
+      points.textContent = `#P: ${player.points}`;
 
       infoElement.appendChild(numberOfCardsElement);
       infoElement.appendChild(numberOfDevCardsElement);
@@ -49,7 +64,7 @@ export default class GameRenderer {
       infoElement.appendChild(points);
       div.appendChild(infoElement);
 
-      if (player.name === currentRoundPlayer) {
+      if (player.isCurrentRound) {
         div.dataset.current = "true";
       }
 
@@ -58,13 +73,17 @@ export default class GameRenderer {
   }
 
   drawDices(dices: [number, number], onClick?: () => void) {
+    const element = this.root.querySelector("#dice");
+    if (!element) return;
+    element.removeEventListener("click", this.diceEventHandler);
     dices.forEach((dice, index) => {
       const selector = `#dice${index + 1}`;
       const element = this.root.querySelector<HTMLDivElement>(selector)!;
       element.textContent = String(dice);
     });
     if (onClick) {
-      this.root.querySelector("#dice")?.addEventListener("click", onClick, { once: true });
+      this.diceEventHandler = onClick;
+      element.addEventListener("click", this.diceEventHandler, { once: true });
     }
   }
 

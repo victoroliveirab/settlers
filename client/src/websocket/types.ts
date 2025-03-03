@@ -70,6 +70,12 @@ export namespace SettlersWSServer {
     "game.player-round": {
       currentRoundPlayer: SettlersCore.Player["name"];
     };
+    "game.dice-roll.success": {
+      dices: [number, number];
+      hand: SettlersCore.Hand;
+      logs: string[];
+      resourceCount: Record<SettlersCore.Player["name"], number>;
+    };
     hydrate: {
       state: {
         map: SettlersCore.Map;
