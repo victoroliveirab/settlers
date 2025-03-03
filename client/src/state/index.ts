@@ -62,7 +62,7 @@ export default class GameState {
   constructor(
     private readonly pregameRoot: HTMLElement,
     private readonly root: HTMLElement,
-    private readonly userName: string,
+    readonly userName: string,
   ) {
     this.preGameRenderer = new PreGameRenderer(pregameRoot);
   }

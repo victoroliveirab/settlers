@@ -76,6 +76,10 @@ export namespace SettlersWSServer {
     "setup.player-round-changed": {
       currentRoundPlayer: SettlersCore.Player["name"];
     };
+    "setup.end": {
+      hands: Record<SettlersCore.Player["name"], SettlersCore.Hand>;
+      logs: string[];
+    };
     "game.player-round": {
       currentRoundPlayer: SettlersCore.Player["name"];
     };

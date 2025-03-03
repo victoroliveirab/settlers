@@ -105,6 +105,20 @@ export default class WebSocketConnection {
         this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
         break;
       }
+      case "setup.end": {
+        const { hands } = message.payload;
+        // REFACTOR: don't like doing logic here, but for now it's fine
+        const resourceCount = Object.entries(hands).reduce(
+          (acc, [player, resources]) => ({
+            ...acc,
+            [player]: Object.values(resources).reduce((acc, quantity) => acc + quantity, 0),
+          }),
+          {} as Record<string, number>,
+        );
+        this.stateManager.setResourcesCounts(resourceCount);
+        this.stateManager.setHand(hands[this.stateManager.userName]);
+        break;
+      }
       case "game.player-round": {
         const { currentRoundPlayer } = message.payload;
         this.stateManager.setCurrentRoundPlayer(currentRoundPlayer);
