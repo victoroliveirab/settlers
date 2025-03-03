@@ -113,6 +113,11 @@ func (state *GameState) EndRound(playerID string) error {
 		return err
 	}
 
+	if state.dice1 == 0 && state.dice2 == 0 {
+		err := fmt.Errorf("Cannot end round without rolling dice")
+		return err
+	}
+
 	state.dice1 = 0
 	state.dice2 = 0
 	newIndex := state.currentPlayerIndex + 1
