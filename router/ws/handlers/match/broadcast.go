@@ -5,21 +5,35 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
-func buildPlayerReconnectedBroadcast(player *entities.GamePlayer) *types.WebSocketMessage {
-	return &types.WebSocketMessage{
-		Type: "game.player-reconnect",
-		Payload: map[string]interface{}{
-			"player": player.Username,
-			"bot":    false,
-		},
-	}
-}
-
 func BuildPlayerRoundBroadcast(room *entities.Room) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
 		Type: "game.player-round",
 		Payload: map[string]interface{}{
 			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
+		},
+	}
+}
+
+func buildMoveRobberDueTo7Broadcast(room *entities.Room) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "game.move-robber-request",
+		Payload: map[string]interface{}{
+			"availableTiles":     room.Game.UnblockedTiles(),
+			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
+		},
+	}
+}
+
+func buildDiscardCardsBroadcast(room *entities.Room) *types.WebSocketMessage {
+	quantityByPlayers := make(map[string]int)
+	for _, participant := range room.Participants {
+		username := participant.Player.Username
+		quantityByPlayers[username] = room.Game.DiscardAmountByPlayer(username)
+	}
+	return &types.WebSocketMessage{
+		Type: "game.discard-cards-request",
+		Payload: map[string]interface{}{
+			"quantityByPlayers": quantityByPlayers,
 		},
 	}
 }

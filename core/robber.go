@@ -74,3 +74,13 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 	state.playerResourceHandMap[robbedID][robbedResource]--
 	return nil
 }
+
+func (state *GameState) UnblockedTiles() []int {
+	tileIDs := make([]int, 0)
+	for _, tile := range state.tiles {
+		if !tile.Blocked {
+			tileIDs = append(tileIDs, tile.ID)
+		}
+	}
+	return tileIDs
+}
