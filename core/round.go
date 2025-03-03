@@ -60,6 +60,11 @@ func (state *GameState) RollDice(playerID string) error {
 		return err
 	}
 
+	if state.dice1 > 0 || state.dice2 > 0 {
+		err := fmt.Errorf("Cannot roll dice twice in round")
+		return err
+	}
+
 	state.dice1 = state.rand.Intn(6) + 1
 	state.dice2 = state.rand.Intn(6) + 1
 
