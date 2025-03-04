@@ -1,7 +1,7 @@
 import GameRenderer from "../renderer/game";
 import PreGameRenderer from "../renderer/pre-game";
 import GameState from "../state";
-import { SettlersWSServer } from "./types";
+import { SettlersCore, SettlersWSServer } from "./types";
 
 function safeParse(text: string):
   | {
@@ -137,6 +137,11 @@ export default class WebSocketConnection {
         this.stateManager.addLogs(logs);
         break;
       }
+      case "game.discard-cards-request": {
+        const { quantityByPlayers } = message.payload;
+        this.stateManager.setQuantitiesToDiscard(quantityByPlayers);
+        break;
+      }
       case "hydrate": {
         const { currentRoundPlayer, dice, hand, map, players, resourceCount, roads, settlements } =
           message.payload.state;
@@ -198,6 +203,15 @@ export default class WebSocketConnection {
     this.sendMessage({
       type: "game.dice-roll",
       payload: {},
+    });
+  }
+
+  onDiscardCardsSelected(cards: Record<SettlersCore.Resource, number>) {
+    this.sendMessage({
+      type: "game.discard-cards",
+      payload: {
+        resources: cards,
+      },
     });
   }
 

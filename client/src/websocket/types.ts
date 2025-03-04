@@ -89,6 +89,9 @@ export namespace SettlersWSServer {
       logs: string[];
       resourceCount: Record<SettlersCore.Player["name"], number>;
     };
+    "game.discard-cards-request": {
+      quantityByPlayers: Record<SettlersCore.Player["name"], number>;
+    };
     hydrate: {
       state: {
         map: SettlersCore.Map;
@@ -128,6 +131,9 @@ export namespace SettlersWSServer {
     };
     "game.dice-roll": {};
     "game.end-round": {};
+    "game.discard-cards": {
+      resources: Record<SettlersCore.Resource, number>;
+    };
   };
 
   export type IncomingMessage<T extends keyof IncomingMessages> = {

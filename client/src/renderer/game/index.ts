@@ -10,8 +10,11 @@ type Player = {
   longestRoad: number;
   name: string;
   points: number;
+  quantityToDiscard: number;
   resourceCount: number;
 };
+
+const resourcesOrder: SettlersCore.Resource[] = ["Lumber", "Brick", "Sheep", "Grain", "Ore"];
 
 const resourceEmojis = Object.freeze({
   Lumber: "🌲",
@@ -80,6 +83,13 @@ export default class GameRenderer {
       infoElement.appendChild(longestRoadElement);
       infoElement.appendChild(knightsElement);
       infoElement.appendChild(points);
+
+      if (player.quantityToDiscard > 0) {
+        const discarding = document.createElement("li");
+        discarding.textContent = "❌";
+        infoElement.appendChild(discarding);
+      }
+
       div.appendChild(infoElement);
 
       if (player.isCurrentRound) {
@@ -108,8 +118,7 @@ export default class GameRenderer {
   drawHand(hand: SettlersCore.Hand) {
     const resourcesElement = this.root.querySelector("#resources")!;
     resourcesElement.innerHTML = "";
-    const resources: SettlersCore.Resource[] = ["Lumber", "Brick", "Sheep", "Grain", "Ore"];
-    resources.forEach((resource) => {
+    resourcesOrder.forEach((resource) => {
       if (hand[resource] > 0) {
         for (let i = 0; i < hand[resource]; ++i) {
           const element = document.createElement("li");
@@ -191,6 +200,85 @@ export default class GameRenderer {
       button.disabled = true;
       button.removeEventListener("click", this.passEventHandler);
     }
+  }
+
+  renderDiscardModal(
+    hand: SettlersCore.Hand,
+    quantityToDiscard: number,
+    onSubmit: (selectedCards: SettlersCore.Resource[]) => void,
+  ) {
+    const container = this.root.querySelector<HTMLDivElement>("#discard");
+    if (!container) {
+      console.warn("discard dom node not found");
+      return;
+    }
+    container.style.display = "flex";
+    const subtitle = container.querySelector<HTMLHeadingElement>("h4")!;
+    subtitle.textContent = `Discard ${quantityToDiscard} cards`;
+
+    let numberOfSelectedCards = 0;
+    const counter = container.querySelector<HTMLHeadingElement>("h5")!;
+    counter.textContent = `0/${quantityToDiscard}`;
+
+    const discardButton = container.querySelector<HTMLButtonElement>("#action-discard")!;
+    discardButton.disabled = true;
+
+    const list = container.querySelector<HTMLUListElement>("#discard-card-list")!;
+    list.innerHTML = "";
+
+    discardButton.addEventListener(
+      "click",
+      () => {
+        const selectedCards = list.querySelectorAll<HTMLLIElement>('li[data-selected="true"]');
+        if (selectedCards.length !== quantityToDiscard) return;
+
+        onSubmit(Array.from(selectedCards).map((el) => el.dataset.type as SettlersCore.Resource));
+      },
+      { once: true },
+    );
+
+    resourcesOrder.forEach((resource) => {
+      if (hand[resource] === 0) return;
+      for (let i = 0; i < hand[resource]; ++i) {
+        const card = document.createElement("li");
+        card.dataset.type = resource;
+        card.dataset.selected = "false";
+        const text = document.createElement("span");
+        text.textContent = resourceEmojis[resource];
+        card.appendChild(text);
+        card.addEventListener("click", () => {
+          const selected = card.dataset.selected;
+          if (selected === "false") {
+            card.dataset.selected = "true";
+          } else {
+            card.dataset.selected = "false";
+          }
+
+          numberOfSelectedCards = list.querySelectorAll('li[data-selected="true"]').length;
+          counter.textContent = `${numberOfSelectedCards}/${quantityToDiscard}`;
+
+          if (numberOfSelectedCards === quantityToDiscard) {
+            discardButton.disabled = false;
+          } else {
+            discardButton.disabled = true;
+          }
+        });
+        list.appendChild(card);
+      }
+    });
+  }
+
+  hideDiscardModal() {
+    const container = this.root.querySelector<HTMLDivElement>("#discard");
+    if (!container) {
+      console.warn("discard dom node not found");
+      return;
+    }
+
+    container.style.display = "";
+
+    const list = container.querySelector<HTMLUListElement>("#discard-card-list")!;
+    list.innerHTML = "";
   }
 
   makeVerticesClickable(verticesIDs: number[], cb: (vertexID: number) => void) {

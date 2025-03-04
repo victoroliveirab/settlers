@@ -63,6 +63,30 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		}
 
 		return true, nil
+	case "game.discard-cards":
+		payload, err := parseDiscardCardsPayload(message.Payload)
+		if err != nil {
+			wsErr := sendDiscardCardsError(player.Connection, player.ID, err)
+			return true, wsErr
+		}
+
+		room := player.Room
+		game := room.Game
+		err = game.DiscardPlayerCards(player.Username, payload.resources)
+		if err != nil {
+			wsErr := sendDiscardCardsError(player.Connection, player.ID, err)
+			return true, wsErr
+		}
+
+		formattedResources := utils.FormatResources(payload.resources)
+		logs := []string{fmt.Sprintf("%s discarded %s", player.Username, formattedResources)}
+
+		room.EnqueueBroadcastMessage(buildDiscardCardsSuccessBroadcast(room, logs), []int64{}, func() {
+			if game.RoundType() == core.MoveRobberDue7 {
+				room.EnqueueBroadcastMessage(buildMoveRobberDueTo7Broadcast(room), []int64{}, nil)
+			}
+		})
+		return true, nil
 	case "game.end-round":
 		room := player.Room
 		game := room.Game

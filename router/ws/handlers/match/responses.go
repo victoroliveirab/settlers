@@ -35,3 +35,12 @@ func sendEndRoundError(conn *types.WebSocketConnection, userID int64, err error)
 		},
 	})
 }
+
+func sendDiscardCardsError(conn *types.WebSocketConnection, userID int64, err error) error {
+	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+		Type: "game.discard-cards.error",
+		Payload: map[string]interface{}{
+			"error": err.Error(),
+		},
+	})
+}

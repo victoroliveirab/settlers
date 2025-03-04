@@ -37,3 +37,19 @@ func buildDiscardCardsBroadcast(room *entities.Room) *types.WebSocketMessage {
 		},
 	}
 }
+
+func buildDiscardCardsSuccessBroadcast(room *entities.Room, logs []string) *types.WebSocketMessage {
+	quantityByPlayers := make(map[string]int)
+	for _, participant := range room.Participants {
+		username := participant.Player.Username
+		quantityByPlayers[username] = room.Game.DiscardAmountByPlayer(username)
+	}
+	return &types.WebSocketMessage{
+		Type: "game.discard-cards.success",
+		Payload: map[string]interface{}{
+			"quantityByPlayers": quantityByPlayers,
+			"logs":              logs,
+		},
+	}
+
+}
