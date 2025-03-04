@@ -6,6 +6,7 @@ import { SettlersCore } from "../websocket/types";
 type UIPart =
   | "devHand"
   | "dice"
+  | "diceAction"
   | "discard"
   | "hand"
   | "map"
@@ -19,6 +20,7 @@ type UIPart =
 const defaultUpdateUIState: Record<UIPart, boolean> = {
   devHand: false,
   dice: false,
+  diceAction: false,
   discard: false,
   hand: false,
   map: false,
@@ -124,7 +126,7 @@ export default class GameState {
     this.currentRoundPlayer = player;
     this.shouldUpdateUIPart.playerList = true;
     if (this.phase !== "game") return;
-    this.shouldUpdateUIPart.dice = true;
+    if (player === this.userName) this.shouldUpdateUIPart.diceAction = true;
   }
 
   setHand(hand: SettlersCore.Hand) {
@@ -232,15 +234,13 @@ export default class GameState {
             break;
           }
           case "dice": {
-            // FIXME: this lets the user fire up an additional dice request
-            // Server will block the request, but we should improve this logic
-            if (this.currentRoundPlayer === this.userName) {
-              this.gameRenderer.drawDices(this.dices, () => {
-                this.service.onDiceRollRequested();
-              });
-            } else {
-              this.gameRenderer.drawDices(this.dices);
-            }
+            this.gameRenderer.drawDices(this.dices);
+            break;
+          }
+          case "diceAction": {
+            this.gameRenderer.attachClickHandlerToDice(() => {
+              this.service.onDiceRollRequested();
+            });
             break;
           }
           case "hand": {

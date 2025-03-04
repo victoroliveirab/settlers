@@ -100,7 +100,7 @@ export default class GameRenderer {
     });
   }
 
-  drawDices(dices: [number, number], onClick?: () => void) {
+  drawDices(dices: [number, number]) {
     const element = this.root.querySelector("#dice");
     if (!element) return;
     element.removeEventListener("click", this.diceEventHandler);
@@ -109,10 +109,18 @@ export default class GameRenderer {
       const element = this.root.querySelector<HTMLDivElement>(selector)!;
       element.textContent = String(dice);
     });
-    if (onClick) {
-      this.diceEventHandler = onClick;
-      element.addEventListener("click", this.diceEventHandler, { once: true });
-    }
+  }
+
+  attachClickHandlerToDice(onClick: () => void) {
+    const element = this.root.querySelector("#dice");
+    if (!element) return;
+    element.removeEventListener("click", this.diceEventHandler);
+    this.diceEventHandler = () => {
+      element.classList.remove("pulse");
+      onClick();
+    };
+    element.addEventListener("click", this.diceEventHandler, { once: true });
+    element.classList.add("pulse");
   }
 
   drawHand(hand: SettlersCore.Hand) {
