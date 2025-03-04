@@ -220,6 +220,7 @@ export default class GameRenderer {
       console.warn("discard dom node not found");
       return;
     }
+    if (container.style.display === "flex") return; // Already rendered
     container.style.display = "flex";
     const subtitle = container.querySelector<HTMLHeadingElement>("h4")!;
     subtitle.textContent = `Discard ${quantityToDiscard} cards`;

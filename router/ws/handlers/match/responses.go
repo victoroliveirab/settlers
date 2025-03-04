@@ -36,6 +36,16 @@ func sendEndRoundError(conn *types.WebSocketConnection, userID int64, err error)
 	})
 }
 
+func sendDiscardCardsSuccess(room *entities.Room, player *entities.GamePlayer) error {
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
+		Type: "game.discard-cards.success",
+		Payload: map[string]interface{}{
+			"hand":          room.Game.ResourceHandByPlayer(player.Username),
+			"resourceCount": room.Game.NumberOfResourcesByPlayer(), // not necessary, but maybe we want to give players initial resources sometime
+		},
+	})
+}
+
 func sendDiscardCardsError(conn *types.WebSocketConnection, userID int64, err error) error {
 	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
 		Type: "game.discard-cards.error",

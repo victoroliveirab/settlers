@@ -154,10 +154,7 @@ export default class GameState {
   setQuantitiesToDiscard(quantityByPlayers: Record<string, number>) {
     this.quantityByPlayers = quantityByPlayers;
     this.shouldUpdateUIPart.playerList = true;
-
-    if (quantityByPlayers[this.userName] > 0) {
-      this.shouldUpdateUIPart.discard = true;
-    }
+    this.shouldUpdateUIPart.discard = true;
   }
 
   addSettlement(settlement: SettlersCore.Building) {
@@ -266,21 +263,25 @@ export default class GameState {
             break;
           }
           case "discard": {
-            this.gameRenderer.renderDiscardModal(
-              this.hand,
-              this.quantityByPlayers[this.userName],
-              (selectedCards: SettlersCore.Resource[]) => {
-                const resources = {} as Record<SettlersCore.Resource, number>;
-                selectedCards.forEach((card) => {
-                  if (!resources[card]) {
-                    resources[card] = 1;
-                  } else {
-                    resources[card]++;
-                  }
-                });
-                this.service.onDiscardCardsSelected(resources);
-              },
-            );
+            if (this.quantityByPlayers[this.userName] > 0) {
+              this.gameRenderer.renderDiscardModal(
+                this.hand,
+                this.quantityByPlayers[this.userName],
+                (selectedCards: SettlersCore.Resource[]) => {
+                  const resources = {} as Record<SettlersCore.Resource, number>;
+                  selectedCards.forEach((card) => {
+                    if (!resources[card]) {
+                      resources[card] = 1;
+                    } else {
+                      resources[card]++;
+                    }
+                  });
+                  this.service.onDiscardCardsSelected(resources);
+                },
+              );
+            } else {
+              this.gameRenderer.hideDiscardModal();
+            }
             break;
           }
           case "startButton": {

@@ -92,6 +92,14 @@ export namespace SettlersWSServer {
     "game.discard-cards-request": {
       quantityByPlayers: Record<SettlersCore.Player["name"], number>;
     };
+    "game.discard-cards.success": {
+      hand: SettlersCore.Hand;
+      resourceCount: Record<SettlersCore.Player["name"], number>;
+    };
+    "game.discarded-cards": {
+      logs: string[];
+      quantityByPlayers: Record<SettlersCore.Player["name"], number>;
+    };
     hydrate: {
       state: {
         map: SettlersCore.Map;

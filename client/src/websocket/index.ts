@@ -142,6 +142,18 @@ export default class WebSocketConnection {
         this.stateManager.setQuantitiesToDiscard(quantityByPlayers);
         break;
       }
+      case "game.discard-cards.success": {
+        const { hand, resourceCount } = message.payload;
+        this.stateManager.setHand(hand);
+        this.stateManager.setResourcesCounts(resourceCount);
+        break;
+      }
+      case "game.discarded-cards": {
+        const { quantityByPlayers, logs } = message.payload;
+        this.stateManager.setQuantitiesToDiscard(quantityByPlayers);
+        this.stateManager.addLogs(logs);
+        break;
+      }
       case "hydrate": {
         const { currentRoundPlayer, dice, hand, map, players, resourceCount, roads, settlements } =
           message.payload.state;
