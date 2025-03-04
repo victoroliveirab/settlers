@@ -8,6 +8,7 @@ export namespace SettlersCore {
     | "Monopoly";
   export type TileType = Resource | "Desert";
   export type Tile = {
+    blocked: boolean;
     id: number;
     resource: TileType;
     token: number;
@@ -98,7 +99,11 @@ export namespace SettlersWSServer {
     };
     "game.discarded-cards": {
       logs: string[];
+      resourceCount: Record<SettlersCore.Player["name"], number>;
       quantityByPlayers: Record<SettlersCore.Player["name"], number>;
+    };
+    "game.move-robber-request": {
+      availableTiles: SettlersCore.Tile["id"][];
     };
     hydrate: {
       state: {
@@ -141,6 +146,9 @@ export namespace SettlersWSServer {
     "game.end-round": {};
     "game.discard-cards": {
       resources: Record<SettlersCore.Resource, number>;
+    };
+    "game.move-robber": {
+      tile: number;
     };
   };
 

@@ -69,6 +69,7 @@ export default abstract class BaseMapRenderer {
   }
 
   abstract draw(map: SettlersCore.Map): void;
+  abstract drawRobbers(tilesIDs: number[]): void;
 
   protected generateNumberToken(number: number) {
     const circle = document.createElementNS(this.ns, "circle");
@@ -112,5 +113,16 @@ export default abstract class BaseMapRenderer {
       frequency,
       text,
     };
+  }
+
+  protected generateRobber() {
+    const robber = document.createElementNS(this.ns, "rect");
+    robber.setAttribute("transform", "rotate(45)");
+    robber.setAttribute("x", "-3");
+    robber.setAttribute("y", "-3");
+    robber.setAttribute("width", "3");
+    robber.setAttribute("height", "3");
+    robber.setAttribute("fill", "black");
+    return robber;
   }
 }

@@ -18,8 +18,7 @@ func buildMoveRobberDueTo7Broadcast(room *entities.Room) *types.WebSocketMessage
 	return &types.WebSocketMessage{
 		Type: "game.move-robber-request",
 		Payload: map[string]interface{}{
-			"availableTiles":     room.Game.UnblockedTiles(),
-			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
+			"availableTiles": room.Game.UnblockedTiles(),
 		},
 	}
 }

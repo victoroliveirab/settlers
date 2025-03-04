@@ -19,7 +19,7 @@ type MapBlock struct {
 	Vertices    [6]int        `json:"vertices"`
 	Edges       [6]int        `json:"edges"`
 	Coordinates HexCoordinate `json:"coordinates"`
-	Blocked     bool
+	Blocked     bool          `json:"blocked"`
 }
 
 type Player struct {

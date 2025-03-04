@@ -55,6 +55,7 @@ export default class GameState {
     "Victory Point": 0,
     "Year of Plenty": 0,
   };
+  private robbers: number[] = [];
 
   private dices: [number, number] = [0, 0];
   private resourceCount!: Record<string, number>;
@@ -197,12 +198,22 @@ export default class GameState {
     });
   }
 
+  enableRobberMovement(availableTiles: number[]) {
+    if (this.currentRoundPlayer === this.userName) {
+      this.gameRenderer.makeTilesClickable(availableTiles, (tileID) => {
+        this.service.onRobberNewPositionSelected(tileID);
+      });
+    }
+  }
+
   repaintScreen() {
     for (const [uiPart, shouldRerender] of Object.entries(this.shouldUpdateUIPart)) {
       if (shouldRerender) {
         switch (uiPart as UIPart) {
           case "map": {
             this.gameRenderer.drawMap(this.map);
+            this.robbers = this.map.filter((tile) => tile.blocked).map((tile) => tile.id);
+            this.gameRenderer.drawRobbers(this.robbers);
             break;
           }
           case "participantList": {

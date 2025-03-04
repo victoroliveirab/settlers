@@ -149,9 +149,15 @@ export default class WebSocketConnection {
         break;
       }
       case "game.discarded-cards": {
-        const { quantityByPlayers, logs } = message.payload;
+        const { resourceCount, quantityByPlayers, logs } = message.payload;
         this.stateManager.setQuantitiesToDiscard(quantityByPlayers);
+        this.stateManager.setResourcesCounts(resourceCount);
         this.stateManager.addLogs(logs);
+        break;
+      }
+      case "game.move-robber-request": {
+        const { availableTiles } = message.payload;
+        this.stateManager.enableRobberMovement(availableTiles);
         break;
       }
       case "hydrate": {
@@ -223,6 +229,15 @@ export default class WebSocketConnection {
       type: "game.discard-cards",
       payload: {
         resources: cards,
+      },
+    });
+  }
+
+  onRobberNewPositionSelected(tileID: number) {
+    this.sendMessage({
+      type: "game.move-robber",
+      payload: {
+        tile: tileID,
       },
     });
   }

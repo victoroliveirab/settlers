@@ -55,6 +55,10 @@ export default class GameRenderer {
     this.mapRenderer.draw(map);
   }
 
+  drawRobbers(tilesIDs: number[]) {
+    this.mapRenderer.drawRobbers(tilesIDs);
+  }
+
   drawPlayers(players: Player[]) {
     const playersContainer = this.root.querySelector<HTMLDivElement>("#players")!;
     playersContainer.innerHTML = "";
@@ -331,6 +335,28 @@ export default class GameRenderer {
     edges.forEach((edge) => {
       edge.addEventListener("click", ref);
       edge.dataset.disabled = "false";
+    });
+  }
+
+  makeTilesClickable(tilesIDs: number[], cb: (tileID: number) => void) {
+    const surface = this.root.querySelector("#map") as SVGElement;
+    surface.classList.add("pulse-tiles");
+    const tiles = Array.from(
+      surface.querySelectorAll<Settlers.SVGHexagon>("[data-type='tile']"),
+    ).filter((tile) => tilesIDs.includes(+tile.dataset.id));
+    let ref = function onTileClick(e: Event) {
+      const tile = e.target as Settlers.SVGHexagon;
+      const tileID = Number(tile.dataset.id);
+      cb(tileID);
+      tiles.forEach((tile) => {
+        tile.removeEventListener("click", ref);
+        tile.dataset.disabled = "true";
+      });
+      surface.classList.remove("pulse-tiles");
+    };
+    tiles.forEach((tile) => {
+      tile.addEventListener("click", ref);
+      tile.dataset.disabled = "false";
     });
   }
 

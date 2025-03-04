@@ -57,6 +57,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		}
 
 		if game.RoundType() == core.MoveRobberDue7 {
+			// NOTE: should this be a broadcast? Let's rethink this
 			room.EnqueueBroadcastMessage(buildMoveRobberDueTo7Broadcast(room), []int64{}, nil)
 		} else if game.RoundType() == core.DiscardPhase {
 			room.EnqueueBroadcastMessage(buildDiscardCardsBroadcast(room), []int64{}, nil)

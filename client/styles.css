@@ -148,7 +148,7 @@ body {
 }
 
 #map.pulse-tiles polygon[data-type="tile"][data-disabled="false"] {
-  animation-name: pulse-tile;
+  animation-name: pulse-tiles;
   animation-duration: 0.45s;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
@@ -165,7 +165,7 @@ body {
   }
 }
 
-@keyframes pulse-tile {
+@keyframes pulse-tiles {
   0% {
     filter: brightness(100%);
   }

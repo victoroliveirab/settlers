@@ -69,6 +69,20 @@ export default class Base4MapRenderer extends BaseMapRenderer {
     });
   }
 
+  drawRobbers(tilesIDs: number[]) {
+    const robbers = this.root.querySelectorAll("rect[data-robber='true']");
+    robbers.forEach((robber) => {
+      robber.remove();
+    });
+
+    tilesIDs.forEach((tileID) => {
+      const robber = this.generateRobber();
+      const hexagon = this.root.querySelector(`polygon[data-id="${tileID}"]`)!;
+      const group = hexagon.parentElement!;
+      group.appendChild(robber);
+    });
+  }
+
   private generateEdges() {
     const edges: SVGRectElement[] = [];
     this.pathCoordinates.forEach(([x, y, w, h, r]) => {
