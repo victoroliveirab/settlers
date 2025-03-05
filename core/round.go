@@ -125,6 +125,7 @@ func (state *GameState) EndRound(playerID string) error {
 		return err
 	}
 
+	state.roundNumber += 1
 	state.dice1 = 0
 	state.dice2 = 0
 	state.playerDiscardedCurrentRoundMap = make(map[string]bool)

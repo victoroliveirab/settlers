@@ -126,7 +126,7 @@ type GameState struct {
 
 	// cards related
 	playerResourceHandMap        map[string]map[string]int
-	playerDevelopmentHandMap     map[string]map[string]int
+	playerDevelopmentHandMap     map[string]map[string][]*coreT.DevelopmentCard
 	developmentCards             []*coreT.DevelopmentCard
 	developmentCardHeadIndex     int
 	playerDevelopmentCardUsedMap map[string]map[string]int
@@ -209,7 +209,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.playerDiscardedCurrentRoundMap = make(map[string]bool)
 
 	state.playerResourceHandMap = make(map[string]map[string]int)
-	state.playerDevelopmentHandMap = make(map[string]map[string]int)
+	state.playerDevelopmentHandMap = make(map[string]map[string][]*coreT.DevelopmentCard)
 
 	state.playerSettlementMap = make(map[string][]int)
 	state.playerCityMap = make(map[string][]int)
@@ -232,7 +232,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 		state.playerPortMap[player.ID] = make([]int, 0)
 		state.playerLongestRoad[player.ID] = make([]int, 0)
 		state.playerResourceHandMap[player.ID] = make(map[string]int)
-		state.playerDevelopmentHandMap[player.ID] = make(map[string]int)
+		state.playerDevelopmentHandMap[player.ID] = make(map[string][]*coreT.DevelopmentCard)
 		state.playerDevelopmentCardUsedMap[player.ID] = map[string]int{
 			"Knight":         0,
 			"Monopoly":       0,
@@ -246,11 +246,11 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 		state.playerResourceHandMap[player.ID]["Sheep"] = 0
 		state.playerResourceHandMap[player.ID]["Ore"] = 0
 
-		state.playerDevelopmentHandMap[player.ID]["Knight"] = 0
-		state.playerDevelopmentHandMap[player.ID]["Victory Point"] = 0
-		state.playerDevelopmentHandMap[player.ID]["Road Building"] = 0
-		state.playerDevelopmentHandMap[player.ID]["Year of Plenty"] = 0
-		state.playerDevelopmentHandMap[player.ID]["Monopoly"] = 0
+		state.playerDevelopmentHandMap[player.ID]["Knight"] = make([]*coreT.DevelopmentCard, 0)
+		state.playerDevelopmentHandMap[player.ID]["Victory Point"] = make([]*coreT.DevelopmentCard, 0)
+		state.playerDevelopmentHandMap[player.ID]["Road Building"] = make([]*coreT.DevelopmentCard, 0)
+		state.playerDevelopmentHandMap[player.ID]["Year of Plenty"] = make([]*coreT.DevelopmentCard, 0)
+		state.playerDevelopmentHandMap[player.ID]["Monopoly"] = make([]*coreT.DevelopmentCard, 0)
 
 		state.points[player.ID] = 0
 	}
@@ -296,7 +296,11 @@ func (state *GameState) RoundType() int {
 }
 
 func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int {
-	return state.playerDevelopmentHandMap[playerID]
+	devHand := make(map[string]int)
+	for name, cards := range state.playerDevelopmentHandMap[playerID] {
+		devHand[name] = len(cards)
+	}
+	return devHand
 }
 
 func (state *GameState) ResourceHandByPlayer(playerID string) map[string]int {

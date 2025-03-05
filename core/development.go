@@ -1,6 +1,10 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/victoroliveirab/settlers/utils"
+)
 
 func (state *GameState) BuyDevelopmentCard(playerID string) error {
 	if playerID != state.currentPlayer().ID {
@@ -8,7 +12,7 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 		return err
 	}
 
-	if state.roundType != FirstRound && state.roundType != Regular {
+	if state.roundType != Regular {
 		err := fmt.Errorf("Cannot buy development card during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
@@ -29,9 +33,10 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 	state.playerResourceHandMap[playerID]["Ore"]--
 
 	card := state.developmentCards[state.developmentCardHeadIndex]
+	card.RoundBought = state.roundNumber
 	state.developmentCardHeadIndex++
 
-	state.playerDevelopmentHandMap[playerID][card.Name]++
+	state.playerDevelopmentHandMap[playerID][card.Name] = append(state.playerDevelopmentHandMap[playerID][card.Name], card)
 
 	if card.Name == "Victory Point" {
 		state.updatePoints()
@@ -53,7 +58,7 @@ func (state *GameState) UseKnight(playerID string) error {
 		return err
 	}
 
-	if state.playerDevelopmentHandMap[playerID]["Knight"] == 0 {
+	if len(state.playerDevelopmentHandMap[playerID]["Knight"]) == 0 {
 		err := fmt.Errorf("Player %s doesn't have a knight card", playerID)
 		return err
 	}
@@ -63,7 +68,11 @@ func (state *GameState) UseKnight(playerID string) error {
 		return err
 	}
 
-	state.playerDevelopmentHandMap[playerID]["Knight"]--
+	err := state.consumeDevelopmentCardByPlayer(playerID, "Knight")
+	if err != nil {
+		return err
+	}
+
 	state.currentPlayerNumberOfPlayedDevCards++
 	state.playerDevelopmentCardUsedMap[playerID]["Knight"]++
 	changed := state.recountKnights()
@@ -89,7 +98,7 @@ func (state *GameState) UseMonopoly(playerID string) error {
 		return err
 	}
 
-	if state.playerDevelopmentHandMap[playerID]["Monopoly"] == 0 {
+	if len(state.playerDevelopmentHandMap[playerID]["Monopoly"]) == 0 {
 		err := fmt.Errorf("Player %s doesn't have a monopoly card", playerID)
 		return err
 	}
@@ -99,7 +108,11 @@ func (state *GameState) UseMonopoly(playerID string) error {
 		return err
 	}
 
-	state.playerDevelopmentHandMap[playerID]["Monopoly"]--
+	err := state.consumeDevelopmentCardByPlayer(playerID, "Monopoly")
+	if err != nil {
+		return err
+	}
+
 	state.currentPlayerNumberOfPlayedDevCards++
 	state.playerDevelopmentCardUsedMap[playerID]["Monopoly"]++
 	state.roundType = MonopolyPickResource
@@ -142,7 +155,7 @@ func (state *GameState) UseRoadBuilding(playerID string) error {
 		return err
 	}
 
-	if state.playerDevelopmentHandMap[playerID]["Road Building"] == 0 {
+	if len(state.playerDevelopmentHandMap[playerID]["Road Building"]) == 0 {
 		err := fmt.Errorf("Player %s doesn't have a road building card", playerID)
 		return err
 	}
@@ -157,7 +170,11 @@ func (state *GameState) UseRoadBuilding(playerID string) error {
 		return err
 	}
 
-	state.playerDevelopmentHandMap[playerID]["Road Building"]--
+	err := state.consumeDevelopmentCardByPlayer(playerID, "Road Building")
+	if err != nil {
+		return err
+	}
+
 	state.currentPlayerNumberOfPlayedDevCards++
 	state.playerDevelopmentCardUsedMap[playerID]["Road Building"]++
 	state.roundType = BuildRoad1Development
@@ -221,7 +238,7 @@ func (state *GameState) UseYearOfPlenty(playerID string) error {
 		return err
 	}
 
-	if state.playerDevelopmentHandMap[playerID]["Year of Plenty"] == 0 {
+	if len(state.playerDevelopmentHandMap[playerID]["Year of Plenty"]) == 0 {
 		err := fmt.Errorf("Player %s doesn't have a Year of Plenty card", playerID)
 		return err
 	}
@@ -231,7 +248,11 @@ func (state *GameState) UseYearOfPlenty(playerID string) error {
 		return err
 	}
 
-	state.playerDevelopmentHandMap[playerID]["Year of Plenty"]--
+	err := state.consumeDevelopmentCardByPlayer(playerID, "Year of Plenty")
+	if err != nil {
+		return err
+	}
+
 	state.currentPlayerNumberOfPlayedDevCards++
 	state.playerDevelopmentCardUsedMap[playerID]["Year of Plenty"]++
 	state.roundType = YearOfPlentyPickResources
@@ -252,5 +273,24 @@ func (state *GameState) PickYearOfPlentyResources(playerID, resource1, resource2
 	state.playerResourceHandMap[playerID][resource1]++
 	state.playerResourceHandMap[playerID][resource2]++
 	state.roundType = Regular
+	return nil
+}
+
+func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType string) error {
+	index := -1
+	for i, card := range state.playerDevelopmentHandMap[playerID][devCardType] {
+		if card.RoundBought < state.roundNumber {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		err := fmt.Errorf("Cannot play development card bought this turn")
+		return err
+	}
+
+	cards := state.playerDevelopmentHandMap[playerID][devCardType]
+	utils.SliceRemove(&cards, index)
+	state.playerDevelopmentHandMap[playerID][devCardType] = cards
 	return nil
 }

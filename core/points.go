@@ -64,7 +64,7 @@ func (state *GameState) updatePoints() {
 		sum := 0
 		sum += state.pointsPerSettlement * len(state.playerSettlementMap[playerID])
 		sum += state.pointsPerCity * len(state.playerCityMap[playerID])
-		sum += state.playerDevelopmentHandMap[playerID]["Victory Point"]
+		sum += len(state.playerDevelopmentHandMap[playerID]["Victory Point"])
 
 		if state.mostKnights.PlayerID == playerID {
 			sum += state.pointsPerMostKnights

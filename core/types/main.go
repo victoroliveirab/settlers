@@ -28,5 +28,6 @@ type Player struct {
 }
 
 type DevelopmentCard struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	RoundBought int    `json:"-"`
 }

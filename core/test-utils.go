@@ -98,7 +98,7 @@ func MockWithResourcesByPlayer(resourcesByPlayer map[string]map[string]int) Game
 	}
 }
 
-func MockWithDevelopmentsByPlayer(developmentCardsByPlayer map[string]map[string]int) GameStateOption {
+func MockWithDevelopmentsByPlayer(developmentCardsByPlayer map[string]map[string][]*coreT.DevelopmentCard) GameStateOption {
 	return func(gs *GameState) {
 		gs.playerDevelopmentHandMap = developmentCardsByPlayer
 	}

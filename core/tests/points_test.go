@@ -4,12 +4,14 @@ import (
 	"testing"
 
 	testUtils "github.com/victoroliveirab/settlers/core"
+	coreT "github.com/victoroliveirab/settlers/core/types"
 )
 
 func TestPointsMultipleConfigurations(t *testing.T) {
-	createGame := func(settlementMap, cityMap, roadMap map[string][]int, developmentCardsByPlayer, usedDevelopmentCardsByPlayer map[string]map[string]int) *testUtils.GameState {
+	createGame := func(settlementMap, cityMap, roadMap map[string][]int, developmentCardsByPlayer map[string]map[string][]*coreT.DevelopmentCard, usedDevelopmentCardsByPlayer map[string]map[string]int) *testUtils.GameState {
 		game := testUtils.CreateTestGame(
 			testUtils.MockWithRoundType(testUtils.Regular),
+			testUtils.MockWithRoundNumber(25),
 			testUtils.MockWithSettlementsByPlayer(settlementMap),
 			testUtils.MockWithCitiesByPlayer(cityMap),
 			testUtils.MockWithRoadsByPlayer(roadMap),
@@ -22,7 +24,7 @@ func TestPointsMultipleConfigurations(t *testing.T) {
 
 	var tests = []struct {
 		description          string
-		developmentCards     map[string]map[string]int
+		developmentCards     map[string]map[string][]*coreT.DevelopmentCard
 		developmentCardsUsed map[string]map[string]int
 		cityMap              map[string][]int
 		roadMap              map[string][]int
@@ -31,9 +33,18 @@ func TestPointsMultipleConfigurations(t *testing.T) {
 	}{
 		{
 			description: "no longest road and no most knights achieved yet",
-			developmentCards: map[string]map[string]int{
+			developmentCards: map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Victory Point": 2,
+					"Victory Point": {
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+					},
 				},
 			},
 			developmentCardsUsed: map[string]map[string]int{
@@ -65,9 +76,18 @@ func TestPointsMultipleConfigurations(t *testing.T) {
 		},
 		{
 			description: "no longest road yet, but most knights achieved",
-			developmentCards: map[string]map[string]int{
+			developmentCards: map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Victory Point": 2,
+					"Victory Point": {
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+					},
 				},
 			},
 			developmentCardsUsed: map[string]map[string]int{
@@ -99,9 +119,18 @@ func TestPointsMultipleConfigurations(t *testing.T) {
 		},
 		{
 			description: "longest road achieved, but no most knights yet",
-			developmentCards: map[string]map[string]int{
+			developmentCards: map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Victory Point": 2,
+					"Victory Point": {
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+					},
 				},
 			},
 			developmentCardsUsed: map[string]map[string]int{
@@ -133,9 +162,18 @@ func TestPointsMultipleConfigurations(t *testing.T) {
 		},
 		{
 			description: "longest road and most knights achieved",
-			developmentCards: map[string]map[string]int{
+			developmentCards: map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Victory Point": 2,
+					"Victory Point": {
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+						&coreT.DevelopmentCard{
+							Name:        "Victory Point",
+							RoundBought: 1,
+						},
+					},
 				},
 			},
 			developmentCardsUsed: map[string]map[string]int{
@@ -206,9 +244,18 @@ func TestPointsIncreaseOnSettlementBuild(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -263,9 +310,18 @@ func TestPointsIncreaseOnCityBuild(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -320,9 +376,18 @@ func TestPointsIncreaseOnLongestRoadAchieved(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -377,9 +442,18 @@ func TestPointsIncreaseOnLongestRoadStolen(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -453,9 +527,18 @@ func TestPointsDecreaseOnLongestRoadRevoked(t *testing.T) {
 			"3": {32, 53},
 			"4": {15, 16},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -517,12 +600,26 @@ func TestPointsIncreaseOnFirstMostKnights(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Knight": 1,
+				"Knight": {
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 1,
+					},
+				},
 			},
 			"2": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -530,6 +627,7 @@ func TestPointsIncreaseOnFirstMostKnights(t *testing.T) {
 				"Knight": 2,
 			},
 		}),
+		testUtils.MockWithRoundNumber(25),
 		testUtils.MockWithPoints(),
 	)
 
@@ -579,12 +677,26 @@ func TestPointsIncreaseOnStolenMostKnights(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 			"2": {
-				"Knight": 1,
+				"Knight": {
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -595,6 +707,7 @@ func TestPointsIncreaseOnStolenMostKnights(t *testing.T) {
 				"Knight": 3,
 			},
 		}),
+		testUtils.MockWithRoundNumber(25),
 		testUtils.MockWithPoints(),
 	)
 
@@ -651,9 +764,22 @@ func TestGameOverOnTargetPointAchievedByBuildingSettlement(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 3,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithPoints(),
@@ -710,9 +836,18 @@ func TestGameOverOnTargetPointAchievedByBuildingCity(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Victory Point": 2,
+				"Victory Point": {
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Victory Point",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithPoints(),
@@ -821,9 +956,14 @@ func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
 			"3": {54, 69},
 			"4": {32, 33},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Knight": 1,
+				"Knight": {
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 1,
+					},
+				},
 			},
 		}),
 		testUtils.MockWithUsedDevelopmentCardsByPlayer(map[string]map[string]int{
@@ -831,6 +971,7 @@ func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
 				"Knight": 2,
 			},
 		}),
+		testUtils.MockWithRoundNumber(25),
 		testUtils.MockWithPoints(),
 	)
 

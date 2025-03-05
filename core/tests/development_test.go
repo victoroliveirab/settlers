@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	testUtils "github.com/victoroliveirab/settlers/core"
+	coreT "github.com/victoroliveirab/settlers/core/types"
 )
 
 func TestBuyDevelopmentCardNotPlayerRound(t *testing.T) {
@@ -51,6 +52,184 @@ func TestBuyDevelopmentCardNotEnoughResources(t *testing.T) {
 	})
 }
 
+func TestPlayDevelopmentCardSameRoundBought(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {1},
+			"2": {42},
+		}),
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+			"1": {
+				"Knight": {&coreT.DevelopmentCard{
+					Name:        "Knight",
+					RoundBought: 5,
+				}},
+			},
+		}),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("player tries to play knight card at the same turn", func(t *testing.T) {
+		err := game.UseKnight("1")
+		if err == nil {
+			t.Errorf("expected to not be able to use knight card same turn bought, but actually used just fine")
+		}
+		if game.RoundType() != testUtils.Regular {
+			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.Regular], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+	})
+}
+
+func TestPlayDevelopmentCardWithMultipleInHand(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {1},
+			"2": {42},
+		}),
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+			"1": {
+				"Knight": {
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 5,
+					}},
+			},
+		}),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("player tries to play knight card with multiple in hand", func(t *testing.T) {
+		devCardsBefore := game.DevelopmentHandByPlayer("1")["Knight"]
+		if devCardsBefore != 2 {
+			t.Errorf("expected to have 2 knight cards before using one, but actually has %d", devCardsBefore)
+		}
+		err := game.UseKnight("1")
+		if err != nil {
+			t.Errorf("expected to use knight card just fine, but actually got error %s", err.Error())
+		}
+		if game.RoundType() != testUtils.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.MoveRobberDueKnight], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+		devCardsAfter := game.DevelopmentHandByPlayer("1")["Knight"]
+		if devCardsAfter != 1 {
+			t.Errorf("expected to have 1 knight cards after using one, but actually has %d", devCardsAfter)
+		}
+	})
+}
+
+func TestPlayMultipleDevelopmentCardsSameRound(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {1},
+			"2": {42},
+		}),
+		testUtils.MockWithRoundNumber(25),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+			"1": {
+				"Knight": {
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 1,
+					},
+					&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 5,
+					}},
+			},
+		}),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+			"2": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("player tries to play multiple development card same turn", func(t *testing.T) {
+		devCards1 := game.DevelopmentHandByPlayer("1")["Knight"]
+		if devCards1 != 2 {
+			t.Errorf("expected to have 2 knight cards before trying to use one, but actually has %d", devCards1)
+		}
+		err := game.UseKnight("1")
+		if err != nil {
+			t.Errorf("expected to use knight card just fine, but actually got error %s", err.Error())
+		}
+		if game.RoundType() != testUtils.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.MoveRobberDueKnight], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+		devCards2 := game.DevelopmentHandByPlayer("1")["Knight"]
+		if devCards2 != 1 {
+			t.Errorf("expected to have 1 knight cards after using one, but actually has %d", devCards2)
+		}
+
+		game.MoveRobber("1", 12)
+		if game.RoundType() != testUtils.Regular {
+			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.Regular], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+		err = game.UseKnight("1")
+		if err == nil {
+			t.Errorf("expected to not be able to use second knight card, but actually used just fine")
+		}
+		if game.RoundType() != testUtils.Regular {
+			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.Regular], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+
+		devCards3 := game.DevelopmentHandByPlayer("1")["Knight"]
+		if devCards3 != 1 {
+			t.Errorf("expected to have 1 knight cards after using one, but actually has %d", devCards3)
+		}
+	})
+}
+
 func TestPlayKnightDevelopmentCardRobOpponentWithCards(t *testing.T) {
 	game := testUtils.CreateTestGame(
 		testUtils.MockWithRoundType(testUtils.Regular),
@@ -58,9 +237,13 @@ func TestPlayKnightDevelopmentCardRobOpponentWithCards(t *testing.T) {
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Knight": 1,
+				"Knight": {&coreT.DevelopmentCard{
+					Name:        "Knight",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -124,9 +307,13 @@ func TestPlayKnightDevelopmentCardRobOpponentWithNoCards(t *testing.T) {
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Knight": 1,
+				"Knight": {&coreT.DevelopmentCard{
+					Name:        "Knight",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -183,16 +370,20 @@ func TestPlayKnightDevelopmentCardRobOpponentWithNoCards(t *testing.T) {
 	})
 }
 
-func TestPlayKnightDevelopmentCardRobItself(t *testing.T) {
+func TestPlayKnightDevelopmentCardRobPlayerNotOnTile(t *testing.T) {
 	game := testUtils.CreateTestGame(
 		testUtils.MockWithRoundType(testUtils.Regular),
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Knight": 1,
+				"Knight": {&coreT.DevelopmentCard{
+					Name:        "Knight",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -206,7 +397,7 @@ func TestPlayKnightDevelopmentCardRobItself(t *testing.T) {
 		}),
 	)
 
-	t.Run("player has knight card, will try to rob player with no cards", func(t *testing.T) {
+	t.Run("player has knight card, will try to rob player not on tile", func(t *testing.T) {
 		err := game.UseKnight("1")
 		if err != nil {
 			t.Errorf("expected to use knight just fine, but actyally got error %s", err.Error())
@@ -217,18 +408,69 @@ func TestPlayKnightDevelopmentCardRobItself(t *testing.T) {
 
 		err = game.MoveRobber("1", 17)
 		if err != nil {
-			t.Errorf("expected to move robber to tile#1 just fine, but actually got error %s", err.Error())
+			t.Errorf("expected to move robber to tile#17 just fine, but actually got error %s", err.Error())
 		}
 		if game.RoundType() != testUtils.PickRobbed {
 			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.PickRobbed], testUtils.RoundTypeTranslation[game.RoundType()])
 		}
 
-		err = game.RobPlayer("1", "1")
+		err = game.RobPlayer("1", "4")
 		if err == nil {
-			t.Errorf("expected to have error since cannot rob from yourself, but actually no error was found")
+			t.Errorf("expected to have error since player #4 isn't on tile#17, but actually no error was found")
+		}
+		if game.RoundType() != testUtils.PickRobbed {
+			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.PickRobbed], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+
+		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
+		if player1NumberOfResources != 5 {
+			t.Errorf("expected player#1 to have 5 cards after robbing, but actually has %d", player1NumberOfResources)
+		}
+	})
+}
+
+func TestPlayKnightDevelopmentCardMoveRobberToTileOnlyOwnedByPlayer(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+			"1": {1},
+			"2": {42},
+		}),
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+			"1": {
+				"Knight": {&coreT.DevelopmentCard{
+					Name:        "Knight",
+					RoundBought: 1,
+				}},
+			},
+		}),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("player has knight card, will move robber to tile which only itself on it", func(t *testing.T) {
+		err := game.UseKnight("1")
+		if err != nil {
+			t.Errorf("expected to use knight just fine, but actyally got error %s", err.Error())
+		}
+		if game.RoundType() != testUtils.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", testUtils.RoundTypeTranslation[testUtils.MoveRobberDueKnight], testUtils.RoundTypeTranslation[game.RoundType()])
+		}
+
+		err = game.MoveRobber("1", 1)
+		if err != nil {
+			t.Errorf("expected to move robber to tile#1 just fine, but actually got error %s", err.Error())
 		}
 		if game.RoundType() != testUtils.Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.Regular, game.RoundType())
+			t.Errorf("expected round type to be %s after knight use to tile owned only by player, but got %s", testUtils.RoundTypeTranslation[testUtils.Regular], testUtils.RoundTypeTranslation[game.RoundType()])
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -245,9 +487,9 @@ func TestPlayKnightDevelopmentCardWithoutHavingOne(t *testing.T) {
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Knight": 0,
+				"Knight": {},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -273,9 +515,13 @@ func TestPlayKnightDevelopmentCardByRound(t *testing.T) {
 	createGame := func(roundType int) *testUtils.GameState {
 		game := testUtils.CreateTestGame(
 			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			testUtils.MockWithRoundNumber(5),
+			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Knight": 1,
+					"Knight": {&coreT.DevelopmentCard{
+						Name:        "Knight",
+						RoundBought: 1,
+					}},
 				},
 			}),
 		)
@@ -319,9 +565,13 @@ func TestPlayMonopolyDevelopmentCardOpponentsHaveResource(t *testing.T) {
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Monopoly": 1,
+				"Monopoly": {&coreT.DevelopmentCard{
+					Name:        "Monopoly",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -389,9 +639,13 @@ func TestPlayMonopolyDevelopmentCardOpponentsDontHaveResource(t *testing.T) {
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Monopoly": 1,
+				"Monopoly": {&coreT.DevelopmentCard{
+					Name:        "Monopoly",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -458,9 +712,10 @@ func TestPlayMonopolyDevelopmentCardWithoutHavingOne(t *testing.T) {
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Monopoly": 0,
+				"Monopoly": {},
 			},
 		}),
 	)
@@ -477,9 +732,13 @@ func TestPlayMonopolyDevelopmentCardByRound(t *testing.T) {
 	createGame := func(roundType int) *testUtils.GameState {
 		game := testUtils.CreateTestGame(
 			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			testUtils.MockWithRoundNumber(5),
+			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Monopoly": 1,
+					"Monopoly": {&coreT.DevelopmentCard{
+						Name:        "Monopoly",
+						RoundBought: 1,
+					}},
 				},
 			}),
 		)
@@ -523,9 +782,13 @@ func TestPlayRoadBuildingDevelopmentCardAvailablePathAvailableRoads(t *testing.T
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Road Building": 1,
+				"Road Building": {&coreT.DevelopmentCard{
+					Name:        "Road Building",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithRoadsByPlayer(map[string][]int{
@@ -566,9 +829,13 @@ func TestPlayRoadBuildingDevelopmentCardUnavailablePathAvailableRoads(t *testing
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Road Building": 1,
+				"Road Building": {&coreT.DevelopmentCard{
+					Name:        "Road Building",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithRoadsByPlayer(map[string][]int{
@@ -658,9 +925,13 @@ func TestPlayRoadBuildingDevelopmentCardAvailablePathUnavailableRoads(t *testing
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Road Building": 1,
+				"Road Building": {&coreT.DevelopmentCard{
+					Name:        "Road Building",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithRoadsByPlayer(map[string][]int{
@@ -683,9 +954,13 @@ func TestPlayRoadBuildingDevelopmentCardAvailablePathOnly1AvailableRoad(t *testi
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Road Building": 1,
+				"Road Building": {&coreT.DevelopmentCard{
+					Name:        "Road Building",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithRoadsByPlayer(map[string][]int{
@@ -719,9 +994,10 @@ func TestPlayRoadBuildingDevelopmentCardWithoutHavingOne(t *testing.T) {
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Road Building": 0,
+				"Road Building": {},
 			},
 		}),
 	)
@@ -738,9 +1014,13 @@ func TestPlayRoadBuildingDevelopmentCardByRound(t *testing.T) {
 	createGame := func(roundType int) *testUtils.GameState {
 		game := testUtils.CreateTestGame(
 			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			testUtils.MockWithRoundNumber(5),
+			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Road Building": 1,
+					"Road Building": {&coreT.DevelopmentCard{
+						Name:        "Road Building",
+						RoundBought: 1,
+					}},
 				},
 			}),
 		)
@@ -784,9 +1064,13 @@ func TestPlayYearOfPlentyDevelopmentCardAvailableResources(t *testing.T) {
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Year of Plenty": 1,
+				"Year of Plenty": {&coreT.DevelopmentCard{
+					Name:        "Year of Plenty",
+					RoundBought: 1,
+				}},
 			},
 		}),
 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
@@ -825,14 +1109,15 @@ func TestPlayYearOfPlentyDevelopmentCardWithoutHavingOne(t *testing.T) {
 		testUtils.MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
-		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+		testUtils.MockWithRoundNumber(5),
+		testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 			"1": {
-				"Year of Plenty": 0,
+				"Year of Plenty": {},
 			},
 		}),
 	)
 
-	t.Run("player has no monopoly card, will try to play one", func(t *testing.T) {
+	t.Run("player has no year of plenty card, will try to play one", func(t *testing.T) {
 		err := game.UseYearOfPlenty("1")
 		if err == nil {
 			t.Errorf("expected to not be able to use year of plenty card, but actually no error was found")
@@ -844,9 +1129,13 @@ func TestPlayYearOfPlentyDevelopmentCardByRound(t *testing.T) {
 	createGame := func(roundType int) *testUtils.GameState {
 		game := testUtils.CreateTestGame(
 			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string]int{
+			testUtils.MockWithRoundNumber(5),
+			testUtils.MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
 				"1": {
-					"Year of Plenty": 1,
+					"Year of Plenty": {&coreT.DevelopmentCard{
+						Name:        "Year of Plenty",
+						RoundBought: 1,
+					}},
 				},
 			}),
 		)

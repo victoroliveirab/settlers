@@ -21,8 +21,8 @@ func (state *GameState) NumberOfDevCardsByPlayer() map[string]int {
 	devCardsByPlayer := make(map[string]int)
 	for player, hand := range state.playerDevelopmentHandMap {
 		devCardsByPlayer[player] = 0
-		for _, count := range hand {
-			devCardsByPlayer[player] += count
+		for _, cards := range hand {
+			devCardsByPlayer[player] += len(cards)
 		}
 	}
 	return devCardsByPlayer
