@@ -128,6 +128,7 @@ func (state *GameState) MakePortTrade(playerID string, vertexID int, givenResour
 }
 
 // FIXME: check blocked players to not allow them to make counter offers
+// TODO: don't allow counter trade offer to be equal to trade offer
 func (state *GameState) MakeCounterTradeOffer(playerID string, tradeID int, counterOfferedResources, counterRequestedResources map[string]int) (int, error) {
 	trade, exists := state.playersTrades[tradeID]
 	if !exists {

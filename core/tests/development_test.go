@@ -7,6 +7,50 @@ import (
 	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
+func TestBuyDevelopmentCardNotPlayerRound(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithCurrentRoundPlayer("2"),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 2,
+				"Brick":  2,
+				"Sheep":  2,
+				"Grain":  2,
+				"Ore":    2,
+			},
+		}),
+	)
+	t.Run("buy development card error - it's not the player's round", func(t *testing.T) {
+		err := game.BuyDevelopmentCard("1")
+		if err == nil {
+			t.Errorf("expected to not be able to buy development card off round, but it bought just fine")
+		}
+	})
+}
+
+func TestBuyDevelopmentCardNotEnoughResources(t *testing.T) {
+	game := testUtils.CreateTestGame(
+		testUtils.MockWithRoundType(testUtils.Regular),
+		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 2,
+				"Brick":  2,
+				"Sheep":  2,
+				"Grain":  2,
+				"Ore":    0,
+			},
+		}),
+	)
+
+	t.Run("buy development card error - player doesn't have enough resources", func(t *testing.T) {
+		err := game.BuyDevelopmentCard("1")
+		if err == nil {
+			t.Errorf("expected to not be able to buy development card without enough resources, but it bought just fine")
+		}
+	})
+}
+
 func TestPlayKnightDevelopmentCardRobOpponentWithCards(t *testing.T) {
 	game := testUtils.CreateTestGame(
 		testUtils.MockWithRoundType(testUtils.Regular),

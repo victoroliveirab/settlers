@@ -92,6 +92,7 @@ func (state *GameState) RollDice(playerID string) error {
 			}
 		}
 	}
+	state.roundType = Regular
 	return nil
 }
 
@@ -112,6 +113,7 @@ func (state *GameState) handle7() {
 	}
 }
 
+// FIXME: disable all active trade offers
 func (state *GameState) EndRound(playerID string) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot end round during other player's round")

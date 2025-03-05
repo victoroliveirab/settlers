@@ -18,6 +18,16 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 		return err
 	}
 
+	resources := state.playerResourceHandMap[playerID]
+	if resources["Sheep"] < 1 || resources["Grain"] < 1 || resources["Ore"] < 1 {
+		err := fmt.Errorf("Insufficient resources to buy a development card")
+		return err
+	}
+
+	state.playerResourceHandMap[playerID]["Sheep"]--
+	state.playerResourceHandMap[playerID]["Grain"]--
+	state.playerResourceHandMap[playerID]["Ore"]--
+
 	card := state.developmentCards[state.developmentCardHeadIndex]
 	state.developmentCardHeadIndex++
 
@@ -29,6 +39,8 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 
 	return nil
 }
+
+// FIXME: dont allow dev card to be played at the same round it was bought
 
 func (state *GameState) UseKnight(playerID string) error {
 	if playerID != state.currentPlayer().ID {
