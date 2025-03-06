@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 func (state *GameState) MoveRobber(playerID string, tileID int) error {
@@ -29,6 +31,10 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 		if tile.ID == tileID {
 			tile.Blocked = true
 			state.roundType = PickRobbed
+			robbablePlayers, _ := state.RobbablePlayers(playerID)
+			if len(robbablePlayers) == 0 {
+				state.roundType = Regular
+			}
 			return nil
 		}
 	}
@@ -48,6 +54,13 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
+
+	robbablePlayers, _ := state.RobbablePlayers(robberID)
+	if !utils.SliceContains(robbablePlayers, robbedID) {
+		err := fmt.Errorf("Cannot rob %s: not in the blocked tile", robbedID)
+		return err
+	}
+
 	state.roundType = Regular
 
 	if robberID == robbedID {
