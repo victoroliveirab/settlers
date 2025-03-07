@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -61,18 +62,29 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		return err
 	}
 
-	state.roundType = Regular
-
 	if robberID == robbedID {
 		err := fmt.Errorf("Cannot rob from yourself")
 		return err
 	}
 
-	resources := make([]string, 0)
+	if state.dice1 == 0 && state.dice2 == 0 {
+		state.roundType = BetweenTurns
+	} else {
+		state.roundType = Regular
+	}
 
-	for resource, quantity := range state.playerResourceHandMap[robbedID] {
+	// NOTE: this is done to enforce ordering for tests (math/random seed)
+	keys := make([]string, 0, len(state.playerResourceHandMap[robbedID]))
+	for kind := range state.playerResourceHandMap[robbedID] {
+		keys = append(keys, kind)
+	}
+	sort.Strings(keys)
+
+	resources := make([]string, 0)
+	for _, resourceName := range keys {
+		quantity := state.playerResourceHandMap[robbedID][resourceName]
 		for i := 0; i < quantity; i++ {
-			resources = append(resources, resource)
+			resources = append(resources, resourceName)
 		}
 	}
 

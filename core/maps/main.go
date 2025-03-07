@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sort"
 
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
@@ -134,7 +135,6 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 			}
 		}
 	}
-
 	utils.SliceShuffle(instance, rand)
 
 	for index, tile := range instance {
@@ -167,15 +167,22 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		ports[vertex2] = portsDefinitions[index]
 	}
 
+	// NOTE: this is done to enforce ordering for tests (math/random seed)
+	keys := make([]string, 0, len(definitions.DevelopmentCards))
+	for kind := range definitions.DevelopmentCards {
+		keys = append(keys, kind)
+	}
+	sort.Strings(keys)
+
 	developmentCards := make([]*coreT.DevelopmentCard, 0)
-	for kind, quantity := range definitions.DevelopmentCards {
+	for _, kind := range keys {
+		quantity := definitions.DevelopmentCards[kind]
 		for i := 0; i < quantity; i++ {
 			developmentCards = append(developmentCards, &coreT.DevelopmentCard{
 				Name: kind,
 			})
 		}
 	}
-
 	utils.SliceShuffle(developmentCards, rand)
 
 	return &generateMapReturnType{
