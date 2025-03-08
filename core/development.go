@@ -45,8 +45,6 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 	return nil
 }
 
-// FIXME: dont allow dev card to be played at the same round it was bought
-
 func (state *GameState) UseKnight(playerID string) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot use knight card during other player's round")
@@ -293,4 +291,8 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 	utils.SliceRemove(&cards, index)
 	state.playerDevelopmentHandMap[playerID][devCardType] = cards
 	return nil
+}
+
+func (state *GameState) NumberOfKnightsUsedByPlayer(playerID string) int {
+	return state.playerDevelopmentCardUsedMap[playerID]["Knight"]
 }

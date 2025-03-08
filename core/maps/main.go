@@ -7,7 +7,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"sort"
 
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
@@ -148,17 +147,13 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		}
 	}
 
+	// NOTE: this is done to enforce ordering for tests (math/random seed)
+	portsDefinitions := MapToShuffledSlice(
+		definitions.PortsByDefinition,
+		func(el string) string { return el },
+		rand,
+	)
 	portsVertices := definitions.PortsLocations
-	portsDefinitions := make([]string, len(portsVertices))
-	index := 0
-	for definition, quantity := range definitions.PortsByDefinition {
-		for i := 0; i < quantity; i++ {
-			portsDefinitions[index] = definition
-			index++
-		}
-	}
-	utils.SliceShuffle(portsDefinitions, rand)
-
 	ports := make(map[int]string)
 	for index, port := range portsVertices {
 		vertex1 := port[0]
@@ -167,23 +162,11 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		ports[vertex2] = portsDefinitions[index]
 	}
 
-	// NOTE: this is done to enforce ordering for tests (math/random seed)
-	keys := make([]string, 0, len(definitions.DevelopmentCards))
-	for kind := range definitions.DevelopmentCards {
-		keys = append(keys, kind)
-	}
-	sort.Strings(keys)
-
-	developmentCards := make([]*coreT.DevelopmentCard, 0)
-	for _, kind := range keys {
-		quantity := definitions.DevelopmentCards[kind]
-		for i := 0; i < quantity; i++ {
-			developmentCards = append(developmentCards, &coreT.DevelopmentCard{
-				Name: kind,
-			})
-		}
-	}
-	utils.SliceShuffle(developmentCards, rand)
+	developmentCards := MapToShuffledSlice[*coreT.DevelopmentCard](
+		definitions.DevelopmentCards,
+		func(el string) *coreT.DevelopmentCard { return &coreT.DevelopmentCard{Name: el} },
+		rand,
+	)
 
 	return &generateMapReturnType{
 		Definition:       definitions,
