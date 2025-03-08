@@ -35,7 +35,7 @@ func (state *GameState) BuildCity(playerID string, vertexID int) error {
 				ID:    vertexID,
 				Owner: playerID,
 			}
-			state.settlementMap[vertexID] = Building{}
+			delete(state.settlementMap, vertexID)
 			state.cityMap[vertexID] = entry
 
 			settlements := state.playerSettlementMap[playerID]
