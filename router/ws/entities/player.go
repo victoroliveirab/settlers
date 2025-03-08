@@ -8,17 +8,17 @@ import (
 
 func NewPlayer(connection *types.WebSocketConnection, user *models.User, room *Room, onDisconnect func(player *GamePlayer)) *GamePlayer {
 	return &GamePlayer{
-		ID:          user.ID,
-		Username:    user.Username,
-		Connection:  connection,
-		Color:       "",
-		Room:        room,
-		OnDisconect: onDisconnect,
+		ID:           user.ID,
+		Username:     user.Username,
+		Connection:   connection,
+		Color:        "",
+		Room:         room,
+		OnDisconnect: onDisconnect,
 	}
 }
 
 func (player *GamePlayer) ListenIncomingMessages(enqueueMessage func(msg *types.WebSocketMessage)) {
-	defer player.OnDisconect(player)
+	defer player.OnDisconnect(player)
 	for {
 		parsedMessage, err := utils.ReadJson(player.Connection, player.ID)
 		if err != nil {

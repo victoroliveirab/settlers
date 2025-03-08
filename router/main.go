@@ -10,6 +10,7 @@ import (
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	"github.com/victoroliveirab/settlers/router/ws/handlers/connect"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
@@ -68,11 +69,12 @@ func SetupRoutes(db *sql.DB) {
 				Instance: conn,
 			}
 
-			connectingPlayer := entities.NewPlayer(wsConn, user, room, func(player *entities.GamePlayer) {
-				room.RemovePlayer(player.ID)
-			})
-			go connectingPlayer.ListenIncomingMessages(func(msg *types.WebSocketMessage) {
-				room.EnqueueIncomingMessage(connectingPlayer, msg)
+			player, err := connect.HandleConnection(wsConn, user, room)
+			if err != nil {
+				return
+			}
+			go player.ListenIncomingMessages(func(msg *types.WebSocketMessage) {
+				room.EnqueueIncomingMessage(player, msg)
 			})
 		}),
 		withSessionMiddleware(db),

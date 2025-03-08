@@ -41,6 +41,7 @@ type Room struct {
 	Participants      []RoomEntry                  `json:"participants"`
 	Private           bool                         `json:"private"`
 	Owner             string                       `json:"owner"`
+	Status            string                       `json:"status"`
 	incomingMsgQueue  chan IncomingMessage         `json:"-"`
 	broadcastMsgQueue chan BroadcastMessage        `json:"-"`
 	handlers          []RoomIncomingMessageHandler `json:"-"`
@@ -49,10 +50,10 @@ type Room struct {
 }
 
 type GamePlayer struct {
-	ID          int64                      `json:"-"`
-	Username    string                     `json:"name"`
-	Connection  *types.WebSocketConnection `json:"-"`
-	Color       string                     `json:"color"`
-	Room        *Room                      `json:"-"`
-	OnDisconect func(player *GamePlayer)   `json:"-"`
+	ID           int64                      `json:"-"`
+	Username     string                     `json:"name"`
+	Connection   *types.WebSocketConnection `json:"-"`
+	Color        string                     `json:"color"`
+	Room         *Room                      `json:"-"`
+	OnDisconnect func(player *GamePlayer)   `json:"-"`
 }

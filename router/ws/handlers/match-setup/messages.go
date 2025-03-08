@@ -6,6 +6,24 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
+func sendHydratePlayer(player *entities.GamePlayer) error {
+	game := player.Room.Game
+	currentRoundPlayer := game.CurrentRoundPlayer()
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
+		Type: "setup.hydrate",
+		Payload: map[string]interface{}{
+			"state": map[string]interface{}{
+				"map":                game.Map(),
+				"settlements":        game.AllSettlements(),
+				"cities":             game.AllCities(),
+				"roads":              game.AllRoads(),
+				"players":            game.Players(),
+				"currentRoundPlayer": currentRoundPlayer.ID,
+			},
+		},
+	})
+}
+
 func SendBuildSetupSettlementRequest(player *entities.GamePlayer) error {
 	vertices, _ := player.Room.Game.AvailableVertices(player.Username)
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{

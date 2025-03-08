@@ -1,4 +1,4 @@
-package reconnect
+package connect
 
 import (
 	"github.com/victoroliveirab/settlers/router/ws/entities"

@@ -18,6 +18,7 @@ func NewRoom(id, mapName string, capacity int, onDestroy func(room *Room)) *Room
 		MapName:           mapName,
 		Participants:      make([]RoomEntry, capacity),
 		Owner:             "",
+		Status:            "prematch",
 		incomingMsgQueue:  make(chan IncomingMessage, 32), // buffer incoming messages
 		broadcastMsgQueue: make(chan BroadcastMessage),    // process msg immediatly, one by one
 		handlers:          make([]RoomIncomingMessageHandler, 0),
@@ -57,19 +58,19 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 	return err
 }
 
-func (room *Room) ReconnectPlayer(player *GamePlayer) error {
+func (room *Room) ReconnectPlayer(playerID int64, connection *types.WebSocketConnection, onDisconnect func(player *GamePlayer)) (*GamePlayer, error) {
 	room.Lock()
 	defer room.Unlock()
 	for index, spot := range room.Participants {
-		if spot.Player != nil && spot.Player.ID == player.ID {
-			room.Participants[index].Player.Connection.Instance = player.Connection.Instance
-			room.Participants[index].Player.OnDisconect = player.OnDisconect
+		if spot.Player != nil && spot.Player.ID == playerID {
+			room.Participants[index].Player.Connection = connection
 			room.Participants[index].Bot = false
-			return nil
+			room.Participants[index].Player.OnDisconnect = onDisconnect
+			return room.Participants[index].Player, nil
 		}
 	}
 	err := fmt.Errorf("Cannot reconnect to room #%s: not part of room", room.ID)
-	return err
+	return nil, err
 }
 
 func (room *Room) TogglePlayerReadyState(playerID int64, newState bool) error {
@@ -125,6 +126,19 @@ func (room *Room) RemovePlayer(playerID int64) error {
 	}
 
 	err := fmt.Errorf("Cannot remove player#%d: not part of room %s", playerID, room.ID)
+	return err
+}
+
+func (room *Room) ProgressStatus() error {
+	if room.Status == "prematch" {
+		room.Status = "setup"
+		return nil
+	}
+	if room.Status == "setup" {
+		room.Status = "match"
+		return nil
+	}
+	err := fmt.Errorf("Cannot proceed status %s", room.Status)
 	return err
 }
 
@@ -221,5 +235,6 @@ func (room *Room) ToMapInterface() map[string]interface{} {
 		"map":          room.MapName,
 		"participants": room.Participants,
 		"owner":        room.Owner,
+		"status":       room.Status,
 	}
 }
