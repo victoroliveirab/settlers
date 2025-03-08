@@ -118,7 +118,7 @@ func (state *GameState) MakePortTrade(playerID string, vertexID int, givenResour
 	}
 
 	if state.playerResourceHandMap[playerID][givenResource] < neededResources {
-		err := fmt.Errorf("Player doesn't have %d %s to trade in port", state.playerResourceHandMap[playerID][givenResource], givenResource)
+		err := fmt.Errorf("Player doesn't have %d %s to trade in port %s", neededResources, givenResource, portType)
 		return err
 	}
 
