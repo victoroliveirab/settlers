@@ -44,6 +44,9 @@ func (state *GameState) handOffInitialResources() {
 		tilesIndexes := state.definition.TilesByVertex[vertexID]
 		for _, index := range tilesIndexes {
 			tile := state.tiles[index]
+			if tile.Resource == "Desert" {
+				continue
+			}
 			state.playerResourceHandMap[playerID][tile.Resource]++
 		}
 	}
@@ -76,7 +79,7 @@ func (state *GameState) RollDice(playerID string) error {
 	}
 
 	for _, tile := range state.tiles {
-		if tile.Token != sum || tile.Blocked {
+		if tile.Token != sum || tile.Blocked || tile.Resource == "Desert" {
 			continue
 		}
 		for _, vertice := range tile.Vertices {
