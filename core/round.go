@@ -116,10 +116,14 @@ func (state *GameState) handle7() {
 	}
 }
 
-// FIXME: disable all active trade offers
 func (state *GameState) EndRound(playerID string) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot end round during other player's round")
+		return err
+	}
+
+	if state.roundType != Regular {
+		err := fmt.Errorf("Cannot end round during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
 
@@ -139,5 +143,11 @@ func (state *GameState) EndRound(playerID string) error {
 	state.currentPlayerIndex = newIndex
 	state.roundType = BetweenTurns
 	state.currentPlayerNumberOfPlayedDevCards = 0
+
+	for _, trade := range state.playersTrades {
+		if trade.Status == "Open" {
+			state.cancelOffer(trade)
+		}
+	}
 	return nil
 }
