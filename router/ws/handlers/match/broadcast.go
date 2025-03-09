@@ -5,12 +5,13 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
-func BuildPlayerRoundBroadcast(room *entities.Room) *types.WebSocketMessage {
+func BuildPlayerRoundOpponentsBroadcast(room *entities.Room) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
-		Type: "game.player-round",
+		Type: "game.player-round-changed",
 		Payload: map[string]interface{}{
 			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
 			"roundType":          room.Game.RoundType(),
+			"round":              room.Game.Round(),
 		},
 	}
 }

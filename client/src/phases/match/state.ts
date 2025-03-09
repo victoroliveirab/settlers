@@ -2,11 +2,12 @@ import type { SettlersCore } from "../../core/types";
 import MatchRenderer from "./renderer";
 import { setDice } from "./state/dice";
 import { setDevHand, setHand } from "./state/hand";
+import { setAvailableEdges, setAvailableVertices } from "./state/internal";
 import { setPlayers, setQuantitiesToDiscard, setResourcesCounts } from "./state/players";
-import { addRoad, setupRoad } from "./state/road";
+import { addRoad, matchRoad, setupRoad } from "./state/road";
 import { enableRobber } from "./state/robber";
 import { setRoundPlayer, setRoundType } from "./state/round";
-import { addSettlement, setupSettlement } from "./state/settlement";
+import { addSettlement, matchSettlement, setupSettlement } from "./state/settlement";
 import MatchWebSocketHandler from "./websocket";
 
 type UIPart =
@@ -74,7 +75,8 @@ export default class MatchStateManager {
   // Roads
   protected roads: SettlersCore.Building[] = [];
   addRoad: (road: SettlersCore.Building) => void;
-  setupRoad: (vertices: number[]) => void;
+  matchRoad: (edges: number[]) => void;
+  setupRoad: (edges: number[]) => void;
 
   // Robber
   protected robbers: number[];
@@ -86,6 +88,7 @@ export default class MatchStateManager {
   // Settlements
   protected settlements: SettlersCore.Building[];
   addSettlement: (settlement: SettlersCore.Building) => void;
+  matchSettlement: (vertices: number[]) => void;
   setupSettlement: (vertices: number[]) => void;
 
   // Buildings
@@ -93,6 +96,10 @@ export default class MatchStateManager {
 
   // Internal
   protected shouldUpdateUIPart: Record<UIPart, boolean> = { ...defaultUpdateUIState };
+  protected availableVertices: number[] = [];
+  protected availableEdges: number[] = [];
+  setAvailableEdges: (edges: number[]) => void;
+  setAvailableVertices: (vertices: number[]) => void;
 
   constructor(
     ws: WebSocket,
@@ -132,6 +139,7 @@ export default class MatchStateManager {
     // Road
     this.roads = [];
     this.addRoad = addRoad.bind(this);
+    this.matchRoad = matchRoad.bind(this);
     this.setupRoad = setupRoad.bind(this);
 
     // Robbers
@@ -144,7 +152,12 @@ export default class MatchStateManager {
     // Settlement
     this.settlements = [];
     this.addSettlement = addSettlement.bind(this);
+    this.matchSettlement = matchSettlement.bind(this);
     this.setupSettlement = setupSettlement.bind(this);
+
+    // Internal
+    this.setAvailableEdges = setAvailableEdges.bind(this);
+    this.setAvailableVertices = setAvailableVertices.bind(this);
 
     // Has to be drawn before everything else
     this.renderer.drawMap(this.map);
@@ -204,6 +217,10 @@ export default class MatchStateManager {
               const color = this.players.find(({ name }) => name === road.owner)!.color;
               this.renderer.drawRoad(road, color);
             });
+            this.renderer.enableEdges(this.availableEdges, false, (edgeID) => {
+              console.log("HERE", edgeID);
+              this.handler.sendMatchNewRoad(edgeID);
+            });
             break;
           }
           case "hand": {
@@ -242,6 +259,9 @@ export default class MatchStateManager {
             });
             this.cities.forEach((city) => {
               // TODO: add draw city handler
+            });
+            this.renderer.enableVertices(this.availableVertices, false, (vertexID) => {
+              this.handler.sendMatchNewSettlement(vertexID);
             });
             break;
           }

@@ -276,10 +276,10 @@ export default class MatchRenderer {
     list.innerHTML = "";
   }
 
-  enableVertices(verticesIDs: number[], cb: (vertexID: number) => void) {
+  enableVertices(verticesIDs: number[], highlight: boolean, cb: (vertexID: number) => void) {
     console.log("enableVertices");
     const surface = this.root.querySelector("#map") as SVGElement;
-    surface.classList.add("pulse-settlements");
+    if (highlight) surface.classList.add("pulse-settlements");
     const vertices = Array.from(
       surface.querySelectorAll<Settlers.SVGVertice>("[data-type='vertice']"),
     ).filter((vertex) => verticesIDs.includes(+vertex.dataset.id));
@@ -299,9 +299,9 @@ export default class MatchRenderer {
     });
   }
 
-  enableEdges(edgesIDs: number[], cb: (edgeID: number) => void) {
+  enableEdges(edgesIDs: number[], highlight: boolean, cb: (edgeID: number) => void) {
     const surface = this.root.querySelector("#map") as SVGElement;
-    surface.classList.add("pulse-edges");
+    if (highlight) surface.classList.add("pulse-edges");
     const edges = Array.from(
       surface.querySelectorAll<Settlers.SVGEdge>("[data-type='edge']"),
     ).filter((edge) => edgesIDs.includes(+edge.dataset.id));

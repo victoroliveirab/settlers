@@ -105,7 +105,9 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 			return true, nil
 		}
 
-		room.EnqueueBroadcastMessage(BuildPlayerRoundBroadcast(room), []int64{}, nil)
+		nextPlayer := room.Participants[game.CurrentRoundPlayerIndex()].Player
+		SendPlayerRound(room, nextPlayer)
+		room.EnqueueBroadcastMessage(BuildPlayerRoundOpponentsBroadcast(room), []int64{nextPlayer.ID}, nil)
 		return true, nil
 	default:
 		return false, nil

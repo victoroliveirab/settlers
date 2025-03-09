@@ -287,6 +287,10 @@ func (state *GameState) CurrentRoundPlayer() coreT.Player {
 	return state.players[state.currentPlayerIndex]
 }
 
+func (state *GameState) CurrentRoundPlayerIndex() int {
+	return state.currentPlayerIndex
+}
+
 func (state *GameState) Dice() [2]int {
 	return [2]int{state.dice1, state.dice2}
 }
@@ -396,4 +400,8 @@ func (state *GameState) ActiveTradeOffers() []Trade {
 		}
 	}
 	return activeTrades
+}
+
+func (state *GameState) Round() int {
+	return state.roundNumber
 }

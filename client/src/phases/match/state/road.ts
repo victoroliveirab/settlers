@@ -7,7 +7,13 @@ export function addRoad(this: MatchStateManager, road: SettlersCore.Building) {
 }
 
 export function setupRoad(this: MatchStateManager, edges: number[]) {
-  this.renderer.enableEdges(edges, (edgeID) => {
+  this.renderer.enableEdges(edges, true, (edgeID) => {
     this.handler.sendSetupNewRoad(edgeID);
+  });
+}
+
+export function matchRoad(this: MatchStateManager, edges: number[]) {
+  this.renderer.enableEdges(edges, false, (edgeID) => {
+    this.handler.sendMatchNewRoad(edgeID);
   });
 }

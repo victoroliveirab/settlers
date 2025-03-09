@@ -64,8 +64,18 @@ export default class MatchWebSocketHandler {
           }),
           {} as Record<string, number>,
         );
-
+        this.state.setResourcesCounts(resourceCount);
         this.state.addLogs(logs);
+        break;
+      }
+      // Match related
+      case "game.your-round": {
+        const { availableEdges, availableVertices, currentRoundPlayer, roundType } =
+          message.payload;
+        this.state.setAvailableEdges(availableEdges);
+        this.state.setAvailableVertices(availableVertices);
+        this.state.setRoundPlayer(currentRoundPlayer);
+        this.state.setRoundType(roundType);
         break;
       }
       case "game.player-round": {
@@ -107,12 +117,24 @@ export default class MatchWebSocketHandler {
     });
   }
 
+  sendMatchNewSettlement(vertexID: number) {
+    this.sendMessage({
+      type: "game.new-settlement",
+      payload: { vertex: vertexID },
+    });
+  }
+
+  sendMatchNewRoad(edgeID: number) {
+    this.sendMessage({
+      type: "game.new-road",
+      payload: { edge: edgeID },
+    });
+  }
+
   sendRobberNewPosition(tileID: number) {
     this.sendMessage({
       type: "game.move-robber",
-      payload: {
-        tile: tileID,
-      },
+      payload: { tile: tileID },
     });
   }
 

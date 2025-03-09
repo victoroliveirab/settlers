@@ -142,11 +142,6 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 		return []int{}, err
 	}
 
-	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != FirstRound && state.roundType != Regular {
-		err := fmt.Errorf("Cannot check available edges during %s", RoundTypeTranslation[state.roundType])
-		return []int{}, err
-	}
-
 	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
 		vertexID := utils.SliceLast(state.playerSettlementMap[playerID])
 		allowedEdgesIDs := state.definition.EdgesByVertex[vertexID]

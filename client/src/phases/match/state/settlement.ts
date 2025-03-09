@@ -7,8 +7,13 @@ export function addSettlement(this: MatchStateManager, settlement: SettlersCore.
 }
 
 export function setupSettlement(this: MatchStateManager, vertices: number[]) {
-  console.log("SETUP SETTLEMENT");
-  this.renderer.enableVertices(vertices, (vertexID) => {
+  this.renderer.enableVertices(vertices, true, (vertexID) => {
     this.handler.sendSetupNewSettlement(vertexID);
+  });
+}
+
+export function matchSettlement(this: MatchStateManager, vertices: number[]) {
+  this.renderer.enableVertices(vertices, false, (vertexID) => {
+    this.handler.sendMatchNewSettlement(vertexID);
   });
 }

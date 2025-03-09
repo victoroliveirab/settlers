@@ -25,6 +25,8 @@ window.onload = () => {
     } else if (data.type === "setup.hydrate" || data.type === "game.hydrate") {
       pregameRoot.remove();
       const {
+        availableEdges,
+        availableVertices,
         currentRoundPlayer,
         dice,
         map,
@@ -37,12 +39,11 @@ window.onload = () => {
       const state = new MatchStateManager(ws, root, userID, "base4", map, players);
       if (dice) state.setDice(dice[0], dice[1]);
       if (resourceCount) state.setResourcesCounts(resourceCount);
-      if (roads) {
-        Object.values<any>(roads).forEach(state.addRoad);
-      }
-      if (settlements) {
-        Object.values<any>(settlements).forEach(state.addSettlement);
-      }
+      if (roads) Object.values<any>(roads).forEach(state.addRoad);
+      if (settlements) Object.values<any>(settlements).forEach(state.addSettlement);
+      if (availableEdges) state.setAvailableEdges(availableEdges);
+      if (availableVertices) state.setAvailableVertices(availableVertices);
+
       state.setRoundPlayer(currentRoundPlayer);
       state.setRoundType(roundType);
       // state.set

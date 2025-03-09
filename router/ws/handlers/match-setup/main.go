@@ -54,7 +54,9 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		room.EnqueueBroadcastMessage(buildRoadSetupBuildSuccessBroadcast(player.Username, edgeID, []string{fmt.Sprintf("%s just built a road.", player.Username)}), []int64{}, func() {
 			if game.RoundType() == core.FirstRound {
 				room.EnqueueBroadcastMessage(buildSetupPhaseOverBroadcast(room), []int64{}, func() {
-					room.EnqueueBroadcastMessage(match.BuildPlayerRoundBroadcast(room), []int64{}, nil)
+					roundPlayer := room.Participants[game.CurrentRoundPlayerIndex()].Player
+					match.SendPlayerRound(room, roundPlayer)
+					room.EnqueueBroadcastMessage(match.BuildPlayerRoundOpponentsBroadcast(room), []int64{roundPlayer.ID}, nil)
 				})
 				return
 			}

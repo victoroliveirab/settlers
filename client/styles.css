@@ -127,6 +127,16 @@ body {
   z-index: 1000;
 }
 
+.settlement-spot[data-disabled="false"],
+.edge-spot[data-disabled="false"] {
+  cursor: pointer;
+}
+
+.settlement-spot[data-disabled="false"]:hover,
+.edge-spot[data-disabled="false"]:hover {
+  opacity: 1;
+}
+
 #map.pulse-settlements .edge-spot,
 #map.pulse-edges .settlement-spot {
   opacity: 0;

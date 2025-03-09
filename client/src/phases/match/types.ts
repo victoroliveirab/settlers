@@ -36,9 +36,17 @@ export namespace SettlersWSServerMatch {
     };
 
     // Actual Match
+    "game.your-round": {
+      availableEdges: number[];
+      availableVertices: number[];
+      currentRoundPlayer: SettlersCore.Player["name"];
+      roundType: number;
+      round: number;
+    };
     "game.player-round": {
       currentRoundPlayer: SettlersCore.Player["name"];
       roundType: number;
+      round: number;
     };
     "game.dice-roll.success": {
       dices: [number, number];
@@ -74,6 +82,12 @@ export namespace SettlersWSServerMatch {
 
     // Match Phase
     "game.dice-roll": {};
+    "game.new-settlement": {
+      vertex: number;
+    };
+    "game.new-road": {
+      edge: number;
+    };
     "game.move-robber": {
       tile: number;
     };
