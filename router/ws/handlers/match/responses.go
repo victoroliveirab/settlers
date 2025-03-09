@@ -14,6 +14,7 @@ func buildDiceRollSuccess(room *entities.Room, player *entities.GamePlayer, logs
 			"hand":          room.Game.ResourceHandByPlayer(player.Username),
 			"logs":          logs,
 			"resourceCount": room.Game.NumberOfResourcesByPlayer(),
+			"roundType":     room.Game.RoundType(),
 		},
 	}
 }

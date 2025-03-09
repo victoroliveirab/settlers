@@ -64,6 +64,7 @@ export namespace SettlersWSServerMatch {
       hand: SettlersCore.Hand;
       logs: string[];
       resourceCount: Record<SettlersCore.Player["name"], number>;
+      roundType: number;
     };
     "game.discard-cards-request": {
       quantityByPlayers: Record<SettlersCore.Player["name"], number>;
@@ -78,7 +79,7 @@ export namespace SettlersWSServerMatch {
       quantityByPlayers: Record<SettlersCore.Player["name"], number>;
     };
     // Match, opponent round related
-    "game.player-round": {
+    "game.player-round-changed": {
       currentRoundPlayer: SettlersCore.Player["name"];
       roundType: number;
       round: number;

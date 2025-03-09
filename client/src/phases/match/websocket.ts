@@ -34,7 +34,6 @@ export default class MatchWebSocketHandler {
       case "setup.build-settlement": {
         const { vertices } = message.payload;
         this.state.setupSettlement(vertices);
-        console.log("DONE");
         break;
       }
       case "setup.settlement-build.success": {
@@ -88,15 +87,16 @@ export default class MatchWebSocketHandler {
       }
       // General
       case "game.dice-roll.success": {
-        const { dices, hand, logs, resourceCount } = message.payload;
+        const { dices, hand, logs, resourceCount, roundType } = message.payload;
         this.state.setDice(dices[0], dices[1]);
         this.state.setHand(hand);
         this.state.setResourcesCounts(resourceCount);
         this.state.addLogs(logs);
+        this.state.setRoundType(roundType);
         break;
       }
       // Match, opponent round related
-      case "game.player-round": {
+      case "game.player-round-changed": {
         const { currentRoundPlayer, roundType } = message.payload;
         this.state.setRoundPlayer(currentRoundPlayer);
         this.state.setRoundType(roundType);

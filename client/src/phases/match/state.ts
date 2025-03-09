@@ -1,3 +1,4 @@
+import { roundTypesByName } from "../../core/constants";
 import type { SettlersCore } from "../../core/types";
 import MatchRenderer from "./renderer";
 import { setDice } from "./state/dice";
@@ -227,7 +228,10 @@ export default class MatchStateManager {
             break;
           }
           case "passAction": {
-            if (this.dice[0] > 0 && this.dice[1] > 0 && this.currentRoundPlayer === this.userName) {
+            if (
+              this.currentRoundPlayer === this.userName &&
+              this.roundType === roundTypesByName.Regular
+            ) {
               this.renderer.updatePassButton(() => {
                 this.handler.sendEndRound();
               });
