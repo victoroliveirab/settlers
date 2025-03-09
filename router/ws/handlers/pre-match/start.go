@@ -38,6 +38,7 @@ func StartMatch(room *entities.Room) error {
 	}
 
 	room.Game = gameState
+	room.Status = "setup"
 
 	room.EnqueueBroadcastMessage(buildStartGameBroadcast(room, []string{"Setup phase starting."}), []int64{}, func() {
 		var firstPlayer *entities.GamePlayer

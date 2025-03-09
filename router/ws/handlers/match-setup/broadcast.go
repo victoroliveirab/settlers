@@ -72,6 +72,8 @@ func buildSetupPhaseOverBroadcast(room *entities.Room) *types.WebSocketMessage {
 		}
 	}
 
+	room.Status = "match"
+
 	logs = append(logs, "Game starting. May the best settler win!")
 
 	return &types.WebSocketMessage{

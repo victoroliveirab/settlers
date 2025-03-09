@@ -23,7 +23,6 @@ func isUserAtRoom(user *models.User, room *entities.Room) bool {
 func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *entities.Room) (*entities.GamePlayer, error) {
 	alreadyPartOfRoom := isUserAtRoom(user, room)
 	playerID := user.ID
-	fmt.Println("HandleConnection", playerID, room.Status)
 
 	if room.Status == "prematch" {
 		if alreadyPartOfRoom {
