@@ -39,14 +39,18 @@ export default class PreMatchStateManager {
     logs: string[],
   ) {
     this.renderer.destroy();
-    new MatchStateManager(this.handler.ws, this.matchRoot, this.userName, {
-      firstPlayer,
-      logs,
-      map,
+    const state = new MatchStateManager(
+      this.handler.ws,
+      this.matchRoot,
+      this.userName,
       mapName,
+      map,
       players,
-      resourceCount: initialResourceCount,
-    });
+    );
+    state.setResourcesCounts(initialResourceCount);
+    state.setRoundPlayer(firstPlayer);
+    state.addLogs(logs);
+    state.updateUI();
   }
 
   setParticipants(participants: SettlersCore.Participant[]) {

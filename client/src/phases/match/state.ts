@@ -2,25 +2,12 @@ import type { SettlersCore } from "../../core/types";
 import MatchRenderer from "./renderer";
 import { setDice } from "./state/dice";
 import { setDevHand, setHand } from "./state/hand";
-import {
-  setPlayers,
-  setQuantitiesToDiscard,
-  setResourcesCounts,
-  setRoundPlayer,
-} from "./state/players";
+import { setPlayers, setQuantitiesToDiscard, setResourcesCounts } from "./state/players";
 import { addRoad, setupRoad } from "./state/road";
 import { enableRobber } from "./state/robber";
+import { setRoundPlayer, setRoundType } from "./state/round";
 import { addSettlement, setupSettlement } from "./state/settlement";
 import MatchWebSocketHandler from "./websocket";
-
-type InitialData = {
-  firstPlayer: SettlersCore.Player["name"];
-  logs: string[];
-  map: SettlersCore.Map;
-  mapName: string;
-  players: SettlersCore.Player[];
-  resourceCount: Record<SettlersCore.Player["name"], number>;
-};
 
 type UIPart =
   | "devHand"
@@ -77,7 +64,7 @@ export default class MatchStateManager {
   // Players
   protected currentRoundPlayer!: string;
   protected discardQuantityByPlayers: Record<SettlersCore.Player["name"], number>;
-  protected resourceCount!: Record<SettlersCore.Player["name"], number>;
+  protected resourceCount: Record<SettlersCore.Player["name"], number> | null = null;
   protected players!: SettlersCore.Player[];
   setPlayers: (players: SettlersCore.Player[]) => void;
   setQuantitiesToDiscard: (quantityByPlayers: Record<SettlersCore.Player["name"], number>) => void;
@@ -92,6 +79,9 @@ export default class MatchStateManager {
   // Robber
   protected robbers: number[];
   enableRobber: (availableTiles: number[]) => void;
+
+  protected roundType: number;
+  setRoundType: (roundType: number) => void;
 
   // Settlements
   protected settlements: SettlersCore.Building[];
@@ -108,9 +98,11 @@ export default class MatchStateManager {
     ws: WebSocket,
     private readonly root: HTMLElement,
     readonly userName: string,
-    data: InitialData,
+    mapName: string,
+    map: SettlersCore.Map,
+    players: SettlersCore.Player[],
   ) {
-    this.renderer = new MatchRenderer(root, data.mapName);
+    this.renderer = new MatchRenderer(root, mapName);
     this.handler = new MatchWebSocketHandler(ws, this);
 
     // Dice
@@ -121,13 +113,13 @@ export default class MatchStateManager {
     this.setHand = setHand.bind(this);
 
     // Map
-    this.map = data.map;
+    this.map = map;
 
     // Player
     this.setResourcesCounts = setResourcesCounts.bind(this);
     this.setRoundPlayer = setRoundPlayer.bind(this);
     this.setPlayers = setPlayers.bind(this);
-    this.setPlayers(data.players);
+    this.setPlayers(players);
     this.discardQuantityByPlayers = this.players.reduce(
       (acc, player) => ({
         ...acc,
@@ -136,8 +128,6 @@ export default class MatchStateManager {
       {},
     );
     this.setQuantitiesToDiscard = setQuantitiesToDiscard.bind(this);
-    this.setResourcesCounts(data.resourceCount);
-    this.setRoundPlayer(data.firstPlayer);
 
     // Road
     this.roads = [];
@@ -147,6 +137,9 @@ export default class MatchStateManager {
     // Robbers
     this.robbers = this.map.filter((tile) => tile.blocked).map((tile) => tile.id);
     this.enableRobber = enableRobber.bind(this);
+
+    this.roundType = 4;
+    this.setRoundType = setRoundType.bind(this);
 
     // Settlement
     this.settlements = [];
@@ -184,6 +177,28 @@ export default class MatchStateManager {
             });
             break;
           }
+          case "discard": {
+            if (this.discardQuantityByPlayers[this.userName] > 0) {
+              this.renderer.renderDiscardModal(
+                this.hand,
+                this.discardQuantityByPlayers[this.userName],
+                (selectedCards: SettlersCore.Resource[]) => {
+                  const resources = {} as Record<SettlersCore.Resource, number>;
+                  selectedCards.forEach((card) => {
+                    if (!resources[card]) {
+                      resources[card] = 1;
+                    } else {
+                      resources[card]++;
+                    }
+                  });
+                  // this.service.onDiscardCardsSelected(resources);
+                },
+              );
+            } else {
+              this.renderer.hideDiscardModal();
+            }
+            break;
+          }
           case "edges": {
             this.roads.forEach((road) => {
               const color = this.players.find(({ name }) => name === road.owner)!.color;
@@ -215,13 +230,12 @@ export default class MatchStateManager {
               name: player.name,
               points: 0,
               quantityToDiscard: this.discardQuantityByPlayers[player.name],
-              resourceCount: this.resourceCount[player.name],
+              resourceCount: this.resourceCount?.[player.name] ?? 0,
             }));
             this.renderer.drawPlayers(players);
             break;
           }
           case "vertices": {
-            console.log("VERTICES");
             this.settlements.forEach((settlement) => {
               const color = this.players.find(({ name }) => name === settlement.owner)!.color;
               this.renderer.drawSettlement(settlement, color);

@@ -69,8 +69,9 @@ export default class MatchWebSocketHandler {
         break;
       }
       case "game.player-round": {
-        const { currentRoundPlayer } = message.payload;
+        const { currentRoundPlayer, roundType } = message.payload;
         this.state.setRoundPlayer(currentRoundPlayer);
+        this.state.setRoundType(roundType);
         break;
       }
       case "game.dice-roll.success": {

@@ -38,6 +38,7 @@ export namespace SettlersWSServerMatch {
     // Actual Match
     "game.player-round": {
       currentRoundPlayer: SettlersCore.Player["name"];
+      roundType: number;
     };
     "game.dice-roll.success": {
       dices: [number, number];

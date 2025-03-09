@@ -23,14 +23,30 @@ window.onload = () => {
     if (data.type.startsWith("room.")) {
       new PreMatchStateManager(ws, e, pregameRoot, root, userID, roomID!);
     } else if (data.type === "setup.hydrate" || data.type === "game.hydrate") {
-      new MatchStateManager(ws, root, userID, {
-        map: data.payload.map,
-        resourceCount: data.payload.resourceCount,
-        firstPlayer: data.payload.currentRoundPlayer,
-        players: data.payload.players,
-        logs: [],
-        mapName: "base4",
-      });
+      pregameRoot.remove();
+      const {
+        currentRoundPlayer,
+        dice,
+        map,
+        players,
+        resourceCount,
+        roads,
+        roundType,
+        settlements,
+      } = data.payload.state;
+      const state = new MatchStateManager(ws, root, userID, "base4", map, players);
+      if (dice) state.setDice(dice[0], dice[1]);
+      if (resourceCount) state.setResourcesCounts(resourceCount);
+      if (roads) {
+        Object.values<any>(roads).forEach(state.addRoad);
+      }
+      if (settlements) {
+        Object.values<any>(settlements).forEach(state.addSettlement);
+      }
+      state.setRoundPlayer(currentRoundPlayer);
+      state.setRoundType(roundType);
+      // state.set
+      state.updateUI();
     }
   };
 };
