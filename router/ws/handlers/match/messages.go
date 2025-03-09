@@ -10,7 +10,7 @@ func sendHydratePlayer(player *entities.GamePlayer) error {
 	game := player.Room.Game
 	currentRoundPlayer := game.CurrentRoundPlayer()
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
-		Type: "setup.hydrate",
+		Type: "game.hydrate",
 		Payload: map[string]interface{}{
 			"state": map[string]interface{}{
 				"map":                game.Map(),
@@ -18,6 +18,7 @@ func sendHydratePlayer(player *entities.GamePlayer) error {
 				"cities":             game.AllCities(),
 				"roads":              game.AllRoads(),
 				"players":            game.Players(),
+				"roundType":          game.RoundType(),
 				"currentRoundPlayer": currentRoundPlayer.ID,
 				"hand":               game.ResourceHandByPlayer(player.Username),
 				"resourceCount":      game.NumberOfResourcesByPlayer(),

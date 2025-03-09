@@ -3,9 +3,9 @@ package connect
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
@@ -62,31 +62,15 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 	}
 
 	if room.Status == "match" {
-
+		player, err := match.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
+			room.RemovePlayer(playerID)
+		})
+		if err != nil {
+			return nil, err
+		}
+		return player, nil
 	}
 
-	return nil, nil
-}
-
-func TryReconnectPlayer(player *entities.GamePlayer) error {
-	room := player.Room
-
-	game := room.Game
-	// Not player's turn, nothing to do
-	if game.CurrentRoundPlayer().ID != player.Username {
-		return nil
-	}
-
-	if game.RoundType() == core.SetupSettlement1 || game.RoundType() == core.SetupSettlement2 {
-		err := matchsetup.SendBuildSetupSettlementRequest(player)
-		return err
-	} else if game.RoundType() == core.SetupRoad1 || game.RoundType() == core.SetupRoad2 {
-		err := matchsetup.SendBuildSetupRoadRequest(player)
-		return err
-	} else if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular || game.RoundType() == core.BetweenTurns {
-		return nil // hydrate will take care of it
-	}
-
-	err := fmt.Errorf("Cannot reconnect player#%s: not known round type %s", player.Username, core.RoundTypeTranslation[game.RoundType()])
-	return err
+	err := fmt.Errorf("Cannot connect to room %s right now: unknown status %s", room.ID, room.Status)
+	return nil, err
 }
