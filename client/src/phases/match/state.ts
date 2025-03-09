@@ -218,7 +218,6 @@ export default class MatchStateManager {
               this.renderer.drawRoad(road, color);
             });
             this.renderer.enableEdges(this.availableEdges, false, (edgeID) => {
-              console.log("HERE", edgeID);
               this.handler.sendMatchNewRoad(edgeID);
             });
             break;

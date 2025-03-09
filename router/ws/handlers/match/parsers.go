@@ -25,3 +25,19 @@ func parseDiscardCardsPayload(payload map[string]interface{}) (*discardCardsPayl
 
 	return &discardCardsPayload{resources: resources}, nil
 }
+
+type roadBuildPayload struct {
+	edgeID int
+}
+
+func parseRoadBuildPayload(payload map[string]interface{}) (*roadBuildPayload, error) {
+	edgeID, ok := payload["edge"].(float64)
+	if !ok {
+		err := fmt.Errorf("malformed data: edge")
+		return nil, err
+	}
+
+	return &roadBuildPayload{
+		edgeID: int(edgeID),
+	}, nil
+}

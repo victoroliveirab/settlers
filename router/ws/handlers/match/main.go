@@ -93,6 +93,26 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 			}
 		})
 		return true, nil
+	case "game.new-road":
+		payload, err := parseRoadBuildPayload(message.Payload)
+		if err != nil {
+			wsErr := sendRoadBuildError(player.Connection, player.ID, err)
+			return true, wsErr
+		}
+
+		edgeID := payload.edgeID
+		room := player.Room
+		game := room.Game
+		err = game.BuildRoad(player.Username, edgeID)
+		if err != nil {
+			wsErr := sendRoadBuildError(player.Connection, player.ID, err)
+			return true, wsErr
+		}
+
+		logs := []string{fmt.Sprintf("%s just built a road.", player.Username)}
+		err = sendRoadBuildSuccess(player, edgeID, logs)
+		room.EnqueueBroadcastMessage(buildRoadBuildSuccessBroadcast(player.Username, edgeID, logs), []int64{player.ID}, nil)
+		return true, err
 	case "game.end-round":
 		room := player.Room
 		game := room.Game
@@ -106,9 +126,9 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		}
 
 		nextPlayer := room.Participants[game.CurrentRoundPlayerIndex()].Player
-		SendPlayerRound(room, nextPlayer)
+		err = SendPlayerRound(room, nextPlayer)
 		room.EnqueueBroadcastMessage(BuildPlayerRoundOpponentsBroadcast(room), []int64{nextPlayer.ID}, nil)
-		return true, nil
+		return true, err
 	default:
 		return false, nil
 	}

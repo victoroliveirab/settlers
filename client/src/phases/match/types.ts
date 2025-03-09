@@ -35,7 +35,7 @@ export namespace SettlersWSServerMatch {
       };
     };
 
-    // Actual Match
+    // Match, player round related
     "game.your-round": {
       availableEdges: number[];
       availableVertices: number[];
@@ -43,11 +43,16 @@ export namespace SettlersWSServerMatch {
       roundType: number;
       round: number;
     };
-    "game.player-round": {
-      currentRoundPlayer: SettlersCore.Player["name"];
-      roundType: number;
-      round: number;
+    "game.move-robber-request": {
+      availableTiles: SettlersCore.Tile["id"][];
     };
+    "game.road-build.success": {
+      availableEdges: number[];
+      hand: SettlersCore.Hand;
+      logs: string[];
+      road: SettlersCore.Building;
+    };
+    // General
     "game.dice-roll.success": {
       dices: [number, number];
       hand: SettlersCore.Hand;
@@ -66,8 +71,11 @@ export namespace SettlersWSServerMatch {
       resourceCount: Record<SettlersCore.Player["name"], number>;
       quantityByPlayers: Record<SettlersCore.Player["name"], number>;
     };
-    "game.move-robber-request": {
-      availableTiles: SettlersCore.Tile["id"][];
+    // Match, opponent round related
+    "game.player-round": {
+      currentRoundPlayer: SettlersCore.Player["name"];
+      roundType: number;
+      round: number;
     };
   };
 

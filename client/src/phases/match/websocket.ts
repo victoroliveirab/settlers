@@ -68,7 +68,7 @@ export default class MatchWebSocketHandler {
         this.state.addLogs(logs);
         break;
       }
-      // Match related
+      // Match, player round related
       case "game.your-round": {
         const { availableEdges, availableVertices, currentRoundPlayer, roundType } =
           message.payload;
@@ -78,18 +78,28 @@ export default class MatchWebSocketHandler {
         this.state.setRoundType(roundType);
         break;
       }
-      case "game.player-round": {
-        const { currentRoundPlayer, roundType } = message.payload;
-        this.state.setRoundPlayer(currentRoundPlayer);
-        this.state.setRoundType(roundType);
+      case "game.road-build.success": {
+        const { availableEdges, hand, logs, road } = message.payload;
+        this.state.setAvailableEdges(availableEdges);
+        this.state.setHand(hand);
+        this.state.addRoad(road);
+        this.state.addLogs(logs);
         break;
       }
+      // General
       case "game.dice-roll.success": {
         const { dices, hand, logs, resourceCount } = message.payload;
         this.state.setDice(dices[0], dices[1]);
         this.state.setHand(hand);
         this.state.setResourcesCounts(resourceCount);
         this.state.addLogs(logs);
+        break;
+      }
+      // Match, opponent round related
+      case "game.player-round": {
+        const { currentRoundPlayer, roundType } = message.payload;
+        this.state.setRoundPlayer(currentRoundPlayer);
+        this.state.setRoundType(roundType);
         break;
       }
     }
