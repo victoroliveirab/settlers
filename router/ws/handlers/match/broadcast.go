@@ -67,3 +67,16 @@ func buildNewRoadBroadcast(builderID string, edgeID int, logs []string) *types.W
 		},
 	}
 }
+
+func buildNewSettlementBroadcast(builderID string, vertexID int, logs []string) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "game.new-settlement.broadcast",
+		Payload: map[string]interface{}{
+			"settlement": map[string]interface{}{
+				"id":    vertexID,
+				"owner": builderID,
+			},
+			"logs": logs,
+		},
+	}
+}

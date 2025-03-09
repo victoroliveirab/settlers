@@ -80,3 +80,29 @@ func sendNewRoadError(conn *types.WebSocketConnection, userID int64, err error) 
 		},
 	})
 }
+
+func sendNewSettlementSuccess(player *entities.GamePlayer, vertexID int, logs []string) error {
+	game := player.Room.Game
+	availableVertices, _ := game.AvailableVertices(player.Username)
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
+		Type: "game.new-road.success",
+		Payload: map[string]interface{}{
+			"availableVertices": availableVertices,
+			"hand":              game.ResourceHandByPlayer(player.Username),
+			"settlement": map[string]interface{}{
+				"id":    vertexID,
+				"owner": player.Username,
+			},
+			"logs": logs,
+		},
+	})
+}
+
+func sendNewSettlementError(conn *types.WebSocketConnection, userID int64, err error) error {
+	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+		Type: "game.new-settlement.error",
+		Payload: map[string]interface{}{
+			"error": err.Error(),
+		},
+	})
+}

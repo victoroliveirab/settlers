@@ -7,8 +7,24 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
+type newRoadPayload struct {
+	edgeID int
+}
+
+func parseNewRoadPayload(payload map[string]interface{}) (*newRoadPayload, error) {
+	edgeID, ok := payload["edge"].(float64)
+	if !ok {
+		err := fmt.Errorf("malformed data: edge")
+		return nil, err
+	}
+
+	return &newRoadPayload{
+		edgeID: int(edgeID),
+	}, nil
+}
+
 func handleNewRoad(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
-	payload, err := parseRoadBuildPayload(message.Payload)
+	payload, err := parseNewRoadPayload(message.Payload)
 	if err != nil {
 		wsErr := sendNewRoadError(player.Connection, player.ID, err)
 		return true, wsErr

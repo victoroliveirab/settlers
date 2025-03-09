@@ -1,12 +1,8 @@
 package match
 
 import (
-	"fmt"
-
-	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
 func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
@@ -17,6 +13,8 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		return handleDiscardCards(player, message)
 	case "game.new-road":
 		return handleNewRoad(player, message)
+	case "game.new-settlement":
+		return handleNewSettlement(player, message)
 	case "game.end-round":
 		return handleEndRound(player, message)
 	default:

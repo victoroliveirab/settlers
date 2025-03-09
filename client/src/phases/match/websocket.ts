@@ -102,6 +102,18 @@ export default class MatchWebSocketHandler {
         this.state.setRoundType(roundType);
         break;
       }
+      case "game.new-road.broadcast": {
+        const { logs, road } = message.payload;
+        this.state.addRoad(road);
+        this.state.addLogs(logs);
+        break;
+      }
+      case "game.new-settlement.broadcast": {
+        const { logs, settlement } = message.payload;
+        this.state.addSettlement(settlement);
+        this.state.addLogs(logs);
+        break;
+      }
     }
     this.state.updateUI();
   }

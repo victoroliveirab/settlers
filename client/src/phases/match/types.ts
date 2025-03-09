@@ -52,6 +52,12 @@ export namespace SettlersWSServerMatch {
       logs: string[];
       road: SettlersCore.Building;
     };
+    "game.new-settlement.success": {
+      availableVertices: number[];
+      hand: SettlersCore.Hand;
+      logs: string[];
+      settlement: SettlersCore.Building;
+    };
     // General
     "game.dice-roll.success": {
       dices: [number, number];
@@ -76,6 +82,14 @@ export namespace SettlersWSServerMatch {
       currentRoundPlayer: SettlersCore.Player["name"];
       roundType: number;
       round: number;
+    };
+    "game.new-road.broadcast": {
+      logs: string[];
+      road: SettlersCore.Building;
+    };
+    "game.new-settlement.broadcast": {
+      logs: string[];
+      settlement: SettlersCore.Building;
     };
   };
 
