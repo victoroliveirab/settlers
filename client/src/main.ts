@@ -29,6 +29,7 @@ window.onload = () => {
         availableVertices,
         currentRoundPlayer,
         dice,
+        hand,
         map,
         players,
         resourceCount,
@@ -37,6 +38,7 @@ window.onload = () => {
         settlements,
       } = data.payload.state;
       const state = new MatchStateManager(ws, root, userID, "base4", map, players);
+      if (hand) state.setHand(hand);
       if (dice) state.setDice(dice[0], dice[1]);
       if (resourceCount) state.setResourcesCounts(resourceCount);
       if (roads) Object.values<any>(roads).forEach(state.addRoad);

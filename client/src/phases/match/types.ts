@@ -46,7 +46,7 @@ export namespace SettlersWSServerMatch {
     "game.move-robber-request": {
       availableTiles: SettlersCore.Tile["id"][];
     };
-    "game.road-build.success": {
+    "game.new-road.success": {
       availableEdges: number[];
       hand: SettlersCore.Hand;
       logs: string[];

@@ -55,11 +55,11 @@ func sendDiscardCardsError(conn *types.WebSocketConnection, userID int64, err er
 	})
 }
 
-func sendRoadBuildSuccess(player *entities.GamePlayer, edgeID int, logs []string) error {
+func sendNewRoadSuccess(player *entities.GamePlayer, edgeID int, logs []string) error {
 	game := player.Room.Game
 	availableEdges, _ := game.AvailableEdges(player.Username)
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
-		Type: "game.road-build.success",
+		Type: "game.new-road.success",
 		Payload: map[string]interface{}{
 			"availableEdges": availableEdges,
 			"hand":           game.ResourceHandByPlayer(player.Username),
@@ -72,7 +72,7 @@ func sendRoadBuildSuccess(player *entities.GamePlayer, edgeID int, logs []string
 	})
 }
 
-func sendRoadBuildError(conn *types.WebSocketConnection, userID int64, err error) error {
+func sendNewRoadError(conn *types.WebSocketConnection, userID int64, err error) error {
 	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
 		Type: "game.new-road.error",
 		Payload: map[string]interface{}{

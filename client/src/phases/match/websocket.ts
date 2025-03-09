@@ -78,7 +78,7 @@ export default class MatchWebSocketHandler {
         this.state.setRoundType(roundType);
         break;
       }
-      case "game.road-build.success": {
+      case "game.new-road.success": {
         const { availableEdges, hand, logs, road } = message.payload;
         this.state.setAvailableEdges(availableEdges);
         this.state.setHand(hand);

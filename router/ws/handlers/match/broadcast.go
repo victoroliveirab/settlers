@@ -55,9 +55,9 @@ func buildDiscardedCardsBroadcast(room *entities.Room, logs []string) *types.Web
 	}
 }
 
-func buildRoadBuildSuccessBroadcast(builderID string, edgeID int, logs []string) *types.WebSocketMessage {
+func buildNewRoadBroadcast(builderID string, edgeID int, logs []string) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
-		Type: "game.road-build.broadcast",
+		Type: "game.new-road.broadcast",
 		Payload: map[string]interface{}{
 			"road": map[string]interface{}{
 				"id":    edgeID,
