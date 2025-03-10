@@ -102,6 +102,12 @@ export default class MatchWebSocketHandler {
         this.state.setRoundType(roundType);
         break;
       }
+      case "game.move-robber-request": {
+        const { availableTiles, currentRoundPlayer } = message.payload;
+        this.state.setRoundPlayer(currentRoundPlayer);
+        this.state.enableRobber(availableTiles);
+        break;
+      }
       case "game.discard-cards-request": {
         const { quantityByPlayers } = message.payload;
         this.state.setQuantitiesToDiscard(quantityByPlayers);

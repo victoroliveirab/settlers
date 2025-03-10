@@ -25,7 +25,9 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 		return nil, err
 	}
 
-	if game.RoundType() == core.DiscardPhase {
+	roundType := game.RoundType()
+
+	if roundType == core.DiscardPhase {
 		// TODO: better manage this vs. buildDiscardCardsBroadcast
 		msg := buildDiscardCardsBroadcast(room)
 		err := utils.WriteJson(player.Connection, playerID, msg)
@@ -37,8 +39,13 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 		return player, nil
 	}
 
-	if game.RoundType() == core.FirstRound || game.RoundType() == core.Regular || game.RoundType() == core.BetweenTurns {
+	if roundType == core.FirstRound || roundType == core.Regular || roundType == core.BetweenTurns {
 		return player, nil // hydrate will take care of it
+	} else if roundType == core.MoveRobberDue7 || roundType == core.MoveRobberDueKnight {
+		// TODO: better manage this vs. buildMoveRobberBroadcast
+		msg := buildMoveRobberBroadcast(room, []string{})
+		err := utils.WriteJson(player.Connection, playerID, msg)
+		return player, err
 	}
 
 	err = fmt.Errorf("Cannot reconnect player#%s during match: not known round type %s", player.Username, core.RoundTypeTranslation[game.RoundType()])

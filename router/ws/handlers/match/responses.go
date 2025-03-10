@@ -107,3 +107,12 @@ func sendNewSettlementError(conn *types.WebSocketConnection, userID int64, err e
 		},
 	})
 }
+
+func sendMoveRobberError(conn *types.WebSocketConnection, userID int64, err error) error {
+	return utils.WriteJson(conn, userID, &types.WebSocketMessage{
+		Type: "game.move-robber.error",
+		Payload: map[string]interface{}{
+			"error": err.Error(),
+		},
+	})
+}

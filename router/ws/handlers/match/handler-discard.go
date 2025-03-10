@@ -58,7 +58,9 @@ func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketMes
 
 	room.EnqueueBroadcastMessage(buildDiscardedCardsBroadcast(room, logs), []int64{}, func() {
 		if game.RoundType() == core.MoveRobberDue7 {
-			room.EnqueueBroadcastMessage(buildMoveRobberDueTo7Broadcast(room), []int64{}, nil)
+			currentRoundPlayer := game.CurrentRoundPlayer().ID
+			logs := []string{"All players have discarded.", fmt.Sprintf("%s moving robber", currentRoundPlayer)}
+			room.EnqueueBroadcastMessage(buildMoveRobberBroadcast(room, logs), []int64{}, nil)
 		}
 	})
 	return true, nil

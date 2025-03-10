@@ -11,6 +11,8 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 		return handleDiceRoll(player, message)
 	case "game.discard-cards":
 		return handleDiscardCards(player, message)
+	case "game.move-robber":
+		return handleMoveRobber(player, message)
 	case "game.new-road":
 		return handleNewRoad(player, message)
 	case "game.new-settlement":

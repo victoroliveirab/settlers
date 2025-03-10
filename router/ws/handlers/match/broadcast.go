@@ -5,6 +5,15 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
+func BuildLogsBroadcast(room *entities.Room, logs []string) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "game.logs",
+		Payload: map[string]interface{}{
+			"logs": logs,
+		},
+	}
+}
+
 func BuildPlayerRoundOpponentsBroadcast(room *entities.Room) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
 		Type: "game.player-round-changed",
@@ -16,11 +25,13 @@ func BuildPlayerRoundOpponentsBroadcast(room *entities.Room) *types.WebSocketMes
 	}
 }
 
-func buildMoveRobberDueTo7Broadcast(room *entities.Room) *types.WebSocketMessage {
+func buildMoveRobberBroadcast(room *entities.Room, logs []string) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
 		Type: "game.move-robber-request",
 		Payload: map[string]interface{}{
-			"availableTiles": room.Game.UnblockedTiles(),
+			"availableTiles":     room.Game.UnblockedTiles(),
+			"currentRoundPlayer": room.Game.CurrentRoundPlayer().ID,
+			"logs":               logs,
 		},
 	}
 }
@@ -78,5 +89,22 @@ func buildNewSettlementBroadcast(builderID string, vertexID int, logs []string) 
 			},
 			"logs": logs,
 		},
+	}
+}
+
+// REFACTOR: rebuild this to send all the blocked tiles instead (in case multiple robbers)
+func buildRobberMovedBroadcast(tileID int, logs []string) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type: "game.move-robber.broadcast",
+		Payload: map[string]interface{}{
+			"tile": tileID,
+		},
+	}
+}
+
+func buildRobFinishedBroadcast(room *entities.Room) *types.WebSocketMessage {
+	return &types.WebSocketMessage{
+		Type:    "game.rob-finished",
+		Payload: map[string]interface{}{},
 	}
 }

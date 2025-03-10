@@ -55,8 +55,9 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketMessage
 	}
 
 	if game.RoundType() == core.MoveRobberDue7 {
+		logs := []string{fmt.Sprintf("%s moving robber", player.Username)}
 		// NOTE: should this be a broadcast? Let's rethink this
-		room.EnqueueBroadcastMessage(buildMoveRobberDueTo7Broadcast(room), []int64{}, nil)
+		room.EnqueueBroadcastMessage(buildMoveRobberBroadcast(room, logs), []int64{}, nil)
 	} else if game.RoundType() == core.DiscardPhase {
 		room.EnqueueBroadcastMessage(buildDiscardCardsBroadcast(room), []int64{}, nil)
 	}
