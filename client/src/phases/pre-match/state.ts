@@ -95,9 +95,11 @@ export default class PreMatchStateManager {
               ...param,
               label: roomParamsLabels[param.key],
             })),
-            (key, value) => {
-              this.handler.sendParamUpdate(key, value);
-            },
+            this.owner?.name === this.userName
+              ? (key, value) => {
+                  this.handler.sendParamUpdate(key, value);
+                }
+              : undefined,
           );
           break;
         }

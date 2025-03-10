@@ -66,7 +66,6 @@ export default class PreMatchRenderer {
     owner: SettlersCore.Player["name"] | null,
     onClick: () => void,
   ) {
-    console.log({ participants, userName, owner });
     if (userName !== owner) return;
     const isReady = participants.every((participant) => participant.ready);
     const startButton = this.root.querySelector<HTMLButtonElement>("#start-game")!;
@@ -77,7 +76,7 @@ export default class PreMatchRenderer {
     }
   }
 
-  renderParams(params: Param[], onChange: (key: string, value: number) => void) {
+  renderParams(params: Param[], onChange?: (key: string, value: number) => void) {
     const container = this.root.querySelector<HTMLDivElement>("#params")!;
     container.innerHTML = "";
     const selects: HTMLSelectElement[] = [];
@@ -89,16 +88,21 @@ export default class PreMatchRenderer {
       element.appendChild(label);
 
       const select = document.createElement("select");
-      select.addEventListener(
-        "change",
-        () => {
-          selects.forEach((el) => {
-            el.disabled = true;
-          });
-          onChange(param.key, Number(select.value));
-        },
-        { once: true },
-      );
+      if (onChange) {
+        select.disabled = false;
+        select.addEventListener(
+          "change",
+          () => {
+            selects.forEach((el) => {
+              el.disabled = true;
+            });
+            onChange(param.key, Number(select.value));
+          },
+          { once: true },
+        );
+      } else {
+        select.disabled = true;
+      }
       param.values.forEach((value) => {
         const option = document.createElement("option");
         option.textContent = String(value);
