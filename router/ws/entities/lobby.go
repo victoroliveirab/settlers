@@ -3,13 +3,16 @@ package entities
 import (
 	"fmt"
 
+	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
 	"github.com/victoroliveirab/settlers/logger"
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 func NewLobby() *Lobby {
 	return &Lobby{
-		roomByPlayer: make(map[int64]*Room),
-		rooms:        make(map[string]*Room),
+		availableRooms: []string{"base4"},
+		roomByPlayer:   make(map[int64]*Room),
+		rooms:          make(map[string]*Room),
 	}
 }
 
@@ -23,12 +26,34 @@ func (lobby *Lobby) CreateRoom(id, mapName string, capacity int) (*Room, error) 
 		return nil, err
 	}
 
-	if mapName != "base4" {
-		err := fmt.Errorf("Not supported map. Maps supported: base4")
+	if !utils.SliceContains(lobby.availableRooms, mapName) {
+		err := fmt.Errorf("Not supported map. Maps supported: %v", lobby.availableRooms)
 		return nil, err
 	}
 
-	newRoom := NewRoom(id, mapName, capacity, func(room *Room) {
+	meta, err := mapsdefinitions.GetMetadata(mapName)
+	if err != nil {
+		return nil, err
+	}
+
+	paramsMeta := make(RoomParamsMeta)
+	paramsValues := make(map[string]int)
+	for key := range meta.Params {
+		paramsMeta[key] = RoomParamsMetaEntry{
+			Key:         key,
+			Description: meta.Params[key].Description,
+			Priority:    meta.Params[key].Priority,
+			Value:       meta.Params[key].Default,
+			Values:      meta.Params[key].Values,
+		}
+		paramsValues[key] = meta.Params[key].Default
+	}
+	params := RoomParams{
+		Meta:   paramsMeta,
+		Values: paramsValues,
+	}
+
+	newRoom := NewRoom(id, mapName, capacity, params, func(room *Room) {
 		lobby.DestroyRoom(room.ID)
 	})
 	lobby.rooms[id] = newRoom

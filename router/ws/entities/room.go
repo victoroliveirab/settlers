@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
@@ -11,13 +12,14 @@ import (
 
 var color [4]string = [4]string{"green", "orange", "blue", "black"}
 
-func NewRoom(id, mapName string, capacity int, onDestroy func(room *Room)) *Room {
+func NewRoom(id, mapName string, capacity int, params RoomParams, onDestroy func(room *Room)) *Room {
 	return &Room{
 		ID:                id,
 		Capacity:          capacity,
 		MapName:           mapName,
 		Participants:      make([]RoomEntry, capacity),
 		Owner:             "",
+		params:            params,
 		Status:            "prematch",
 		incomingMsgQueue:  make(chan IncomingMessage, 32), // buffer incoming messages
 		broadcastMsgQueue: make(chan BroadcastMessage),    // process msg immediatly, one by one
@@ -228,6 +230,42 @@ func (room *Room) Destroy(reason string) {
 	room.onDestroy(room)
 }
 
+func (room *Room) GetParams() []RoomParamsMetaEntry {
+	var entries []RoomParamsMetaEntry
+	for _, v := range room.params.Meta {
+		entries = append(entries, RoomParamsMetaEntry{
+			Key:         v.Key,
+			Description: v.Description,
+			Priority:    v.Priority,
+			Value:       room.params.Values[v.Key],
+			Values:      v.Values,
+		})
+	}
+
+	sort.Slice(entries, func(i, j int) bool {
+		if entries[i].Priority == entries[j].Priority {
+			return entries[i].Key < entries[j].Key // Alphabetical order
+		}
+		return entries[i].Priority > entries[j].Priority // Higher priority first
+	})
+
+	return entries
+}
+
+func (room *Room) UpdateParam(key string, value int) error {
+	_, exists := room.params.Values[key]
+	if !exists {
+		err := fmt.Errorf("unknown param: %s", key)
+		return err
+	}
+	if !utils.SliceContains(room.params.Meta[key].Values, value) {
+		err := fmt.Errorf("invalid value for param %s: %d", key, value)
+		return err
+	}
+	room.params.Values[key] = value
+	return nil
+}
+
 func (room *Room) ToMapInterface() map[string]interface{} {
 	return map[string]interface{}{
 		"id":           room.ID,
@@ -236,5 +274,6 @@ func (room *Room) ToMapInterface() map[string]interface{} {
 		"participants": room.Participants,
 		"owner":        room.Owner,
 		"status":       room.Status,
+		"params":       room.GetParams(),
 	}
 }

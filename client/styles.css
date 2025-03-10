@@ -14,25 +14,27 @@ body {
 #wrapper-pregame {
   height: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  max-width: 800px;
+  padding: 32px;
+  padding-bottom: 0;
+  background: blue;
+  max-height: 480px;
+  max-width: 640px;
+  margin: 0 auto;
+  transform: translateY(50%);
+}
+
+#wrapper-pregame > div {
+  width: 100%;
 }
 
 /* Pre-game */
-.pre-game-container {
-  height: 100%;
-  width: 100%;
-  max-height: 480px;
-  max-width: 640px;
-  padding: 32px;
-  background: blue;
-}
 
-.pre-game-container > .players {
+#player-list > .players {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
   background: aqua;
 }
@@ -46,6 +48,36 @@ body {
 .pre-game-spot.pre-game-player {
   border: 8px solid black;
   background: orange;
+}
+
+#params {
+  flex: 1;
+  background: white;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 16px;
+  row-gap: 16px;
+  overflow-y: auto;
+}
+
+#params > .param {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px;
+}
+
+#params > .param > h3 {
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+
+/* Start game button */
+#start-game {
+  visibility: hidden;
+  height: 32px;
+  width: 100%;
+  cursor: pointer;
 }
 
 /* Game */
@@ -111,6 +143,33 @@ body {
   background: white;
   border-radius: 9999px;
   border: 1px solid black;
+}
+
+/* Sidebar */
+#sidebar {
+  display: flex;
+  flex-direction: column;
+}
+
+#logs {
+  flex: 1;
+}
+
+#info {
+  height: 120px;
+  width: 100%;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+#resources-left {
+  flex: 1;
+}
+
+#timer {
+  text-align: center;
 }
 
 /* Map section */

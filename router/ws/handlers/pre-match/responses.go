@@ -6,16 +6,9 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func sendRoomJoinRequestSuccess(player *entities.GamePlayer) error {
+func sendUpdateParamError(player *entities.GamePlayer, err error) error {
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
-		Type:    "room.join.success",
-		Payload: player.Room.ToMapInterface(),
-	})
-}
-
-func sendRoomJoinRequestError(player *entities.GamePlayer, err error) error {
-	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
-		Type: "room.join.error",
+		Type: "room.update-param.error",
 		Payload: map[string]interface{}{
 			"error": err.Error(),
 		},

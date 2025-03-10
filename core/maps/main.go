@@ -40,6 +40,12 @@ type meta struct {
 		Min int
 		Max int
 	}
+	Params map[string]struct {
+		Default     int
+		Description string
+		Priority    int
+		Values      []int
+	}
 }
 
 type jsonStructure struct {
@@ -54,7 +60,7 @@ type generateMapReturnType struct {
 	DevelopmentCards []*coreT.DevelopmentCard
 }
 
-var MapCollection map[string]MapDefinition = make(map[string]MapDefinition)
+var MapCollection map[string]jsonStructure = make(map[string]jsonStructure)
 
 func LoadMap(name string) error {
 	filename := fmt.Sprintf("%s.json", name)
@@ -83,17 +89,19 @@ func LoadMap(name string) error {
 		return fmt.Errorf("failed to unmarshal JSON: %w", err)
 	}
 
-	MapCollection[name] = data.Data
+	MapCollection[name] = data
 	logger.LogSystemMessage(action, "loaded map successfully")
 	return nil
 }
 
 func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
-	definitions, exists := MapCollection[name]
+	data, exists := MapCollection[name]
 	if !exists {
 		err := fmt.Errorf("cannot generate unknown map %s", name)
 		return nil, err
 	}
+
+	definitions := data.Data
 
 	instance := make([]*coreT.MapBlock, 0)
 	resourcesLeft := make([]int, 0)
@@ -174,4 +182,13 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		Ports:            ports,
 		Tiles:            instance,
 	}, nil
+}
+
+func GetMetadata(mapName string) (*meta, error) {
+	data, exists := MapCollection[mapName]
+	if !exists {
+		err := fmt.Errorf("%s doesn't exist in memory", mapName)
+		return nil, err
+	}
+	return &data.Meta, nil
 }

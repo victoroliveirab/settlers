@@ -2,6 +2,29 @@ package prematch
 
 import "fmt"
 
+type updateParamPayload struct {
+	Key   string
+	Value int
+}
+
+func parseUpdateParamPayload(payload map[string]interface{}) (*updateParamPayload, error) {
+	key, ok := payload["key"].(string)
+	if !ok {
+		err := fmt.Errorf("malformed data: key")
+		return nil, err
+	}
+
+	value, ok := payload["value"].(float64)
+	if !ok {
+		err := fmt.Errorf("malformed data: value")
+		return nil, err
+	}
+	return &updateParamPayload{
+		Key:   key,
+		Value: int(value),
+	}, nil
+}
+
 type roomPayload struct {
 	RoomID string
 }

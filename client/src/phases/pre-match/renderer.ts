@@ -1,5 +1,13 @@
 import type { SettlersCore } from "../../core/types";
 
+type Param = {
+  description: string;
+  key: string;
+  label: string;
+  value: number;
+  values: number[];
+};
+
 export default class PreMatchRenderer {
   constructor(readonly root: HTMLElement) {}
 
@@ -8,10 +16,8 @@ export default class PreMatchRenderer {
     userName: SettlersCore.Player["name"],
     onReadyChange: (state: boolean) => void,
   ) {
-    this.root.innerHTML = "";
-    const container = document.createElement("div");
-    container.classList.add("pre-game-container");
-    this.root.appendChild(container);
+    const container = this.root.querySelector<HTMLDivElement>("#player-list")!;
+    container.innerHTML = "";
     const playersContainer = document.createElement("div");
     playersContainer.classList.add("players");
     container.appendChild(playersContainer);
@@ -60,18 +66,51 @@ export default class PreMatchRenderer {
     owner: SettlersCore.Player["name"] | null,
     onClick: () => void,
   ) {
-    const startButton = document.createElement("button");
-    startButton.textContent = "Start";
-    startButton.disabled = true;
+    console.log({ participants, userName, owner });
+    if (userName !== owner) return;
     const isReady = participants.every((participant) => participant.ready);
-    this.root.querySelector(".pre-game-container")?.appendChild(startButton);
+    const startButton = this.root.querySelector<HTMLButtonElement>("#start-game")!;
+    startButton.style.visibility = "visible";
+    startButton.disabled = !isReady;
     if (isReady) {
-      const isRoomOwner = owner === userName;
-      startButton.disabled = !isRoomOwner;
-      if (isRoomOwner) {
-        startButton.addEventListener("click", onClick, { once: true });
-      }
+      startButton.addEventListener("click", onClick, { once: true });
     }
+  }
+
+  renderParams(params: Param[], onChange: (key: string, value: number) => void) {
+    const container = this.root.querySelector<HTMLDivElement>("#params")!;
+    container.innerHTML = "";
+    const selects: HTMLSelectElement[] = [];
+    params.forEach((param) => {
+      const element = document.createElement("div");
+      element.classList.add("param");
+      const label = document.createElement("h3");
+      label.textContent = param.label;
+      element.appendChild(label);
+
+      const select = document.createElement("select");
+      select.addEventListener(
+        "change",
+        () => {
+          selects.forEach((el) => {
+            el.disabled = true;
+          });
+          onChange(param.key, Number(select.value));
+        },
+        { once: true },
+      );
+      param.values.forEach((value) => {
+        const option = document.createElement("option");
+        option.textContent = String(value);
+        option.value = String(value);
+        select.appendChild(option);
+      });
+      select.value = String(param.value);
+
+      selects.push(select);
+      element.appendChild(select);
+      container.appendChild(element);
+    });
   }
 
   destroy() {

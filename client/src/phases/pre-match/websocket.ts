@@ -32,17 +32,21 @@ export default class PreMatchWebSocketHandler {
     const message = safeParse(event.data);
     if (!message) return;
 
+    console.log({ message });
+
     switch (message.type) {
       case "room.connect.success": {
-        const { owner, participants } = message.payload;
+        const { owner, params, participants } = message.payload;
         this.state.setParticipants(participants);
         this.state.setOwner(owner);
+        this.state.setParams(params);
         break;
       }
       case "room.new-update": {
-        const { owner, participants } = message.payload;
+        const { owner, params, participants } = message.payload;
         this.state.setParticipants(participants);
         this.state.setOwner(owner);
+        this.state.setParams(params);
         break;
       }
       case "game.start": {
@@ -52,10 +56,18 @@ export default class PreMatchWebSocketHandler {
       }
       default: {
         console.warn(`Unknown message type: ${(message as any).type}`);
+        console.warn(message);
         return;
       }
     }
     this.state.updateUI();
+  }
+
+  sendParamUpdate(key: string, value: number) {
+    this.sendMessage({
+      type: "room.update-param",
+      payload: { key, value },
+    });
   }
 
   sendReadyState(roomID: string, state: boolean) {

@@ -8,6 +8,12 @@ export namespace SettlersWSServerPreMatch {
       map: string;
       participants: SettlersCore.Participant[];
       owner: SettlersCore.Player["name"];
+      params: {
+        description: string;
+        key: string;
+        value: number;
+        values: number[];
+      }[];
     };
     "room.new-update": {
       id: string;
@@ -15,6 +21,12 @@ export namespace SettlersWSServerPreMatch {
       map: string;
       participants: SettlersCore.Participant[];
       owner: SettlersCore.Player["name"];
+      params: {
+        description: string;
+        key: string;
+        value: number;
+        values: number[];
+      }[];
     };
     "game.start": {
       currentRoundPlayer: SettlersCore.Player["name"];
@@ -26,6 +38,10 @@ export namespace SettlersWSServerPreMatch {
   };
 
   export type OutgoingMessages = {
+    "room.update-param": {
+      key: string;
+      value: number;
+    };
     "room.toggle-ready": {
       roomID: string;
       ready: boolean;

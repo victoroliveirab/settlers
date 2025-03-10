@@ -1,11 +1,20 @@
+import { roomParamsLabels } from "../../core/constants";
 import { SettlersCore } from "../../core/types";
 import MatchStateManager from "../match/state";
 import PreMatchRenderer from "./renderer";
 import PreMatchWebSocketHandler from "./websocket";
 
-type UIPart = "participantList" | "startButton";
+type UIPart = "params" | "participantList" | "startButton";
+
+type PreMatchParam = {
+  description: string;
+  key: string;
+  value: number;
+  values: number[];
+};
 
 const defaultUpdateUIState: Record<UIPart, boolean> = {
+  params: false,
   participantList: false,
   startButton: false,
 };
@@ -15,6 +24,7 @@ export default class PreMatchStateManager {
   private renderer: PreMatchRenderer;
   private participants: SettlersCore.Participant[] = [];
   private owner: SettlersCore.Participant["player"] | null = null;
+  private params: PreMatchParam[] | null = null;
 
   private shouldUpdateUIPart: Record<UIPart, boolean> = { ...defaultUpdateUIState };
 
@@ -70,10 +80,27 @@ export default class PreMatchStateManager {
     console.warn(`trying to set player#${player} as owner, but they are not a participant`);
   }
 
+  setParams(params: PreMatchParam[]) {
+    this.params = params;
+    this.shouldUpdateUIPart.params = true;
+  }
+
   updateUI() {
     for (const [uiPart, shouldRerender] of Object.entries(this.shouldUpdateUIPart)) {
       if (!shouldRerender) return;
       switch (uiPart as UIPart) {
+        case "params": {
+          this.renderer.renderParams(
+            this.params!.map((param) => ({
+              ...param,
+              label: roomParamsLabels[param.key],
+            })),
+            (key, value) => {
+              this.handler.sendParamUpdate(key, value);
+            },
+          );
+          break;
+        }
         case "participantList": {
           this.renderer.renderParticipantList(this.participants, this.userName, (state) => {
             this.handler.sendReadyState(this.roomID, state);
@@ -81,6 +108,7 @@ export default class PreMatchStateManager {
           break;
         }
         case "startButton": {
+          console.log("HERE?");
           this.renderer.renderStartButton(
             this.participants,
             this.userName,

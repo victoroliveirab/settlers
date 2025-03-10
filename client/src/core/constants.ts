@@ -1,5 +1,21 @@
 import { SettlersCore } from "./types";
 
+export const roomParamsLabels: Record<string, string> = {
+  bankTradeAmount: "Bank Trade Amount",
+  maxCards: "Max Allowed Resources",
+  maxSettlements: "Max Number of Settlements / player",
+  maxCities: "Max Number of Cities / player",
+  maxRoads: "Max Number of Roads / player",
+  maxDevCardsPerRound: "Max Development Cards Played / round",
+  targetPoint: "Target Score",
+  pointsPerSettlement: "Points Awarded / settlement",
+  pointsPerCity: "Points Awarded / city",
+  pointsForMostKnights: "Points Awarded for Most Knights",
+  pointsForLongestRoad: "Points Awarded for Longest Road",
+  longestRoadMinimum: "Minimum Road Size for Longest Road Award",
+  mostKnightsMinimum: "Minimum Knights Used for Most Knights Award",
+};
+
 export const roundTypes = [
   "SettlementSetup#1",
   "RoadSetup#1",

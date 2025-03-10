@@ -9,15 +9,31 @@ import (
 
 func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
 	switch message.Type {
+	case "room.update-param":
+		if player.Username != player.Room.Owner {
+			err := fmt.Errorf("Cannot update room param: not room owner")
+			wsErr := sendUpdateParamError(player, err)
+			return true, wsErr
+		}
+		payload, err := parseUpdateParamPayload(message.Payload)
+		if err != nil {
+			wsErr := sendUpdateParamError(player, err)
+			return true, wsErr
+		}
+
+		room := player.Room
+		err = room.UpdateParam(payload.Key, payload.Value)
+		if err != nil {
+			wsErr := sendUpdateParamError(player, err)
+			return true, wsErr
+		}
+
+		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		return true, nil
 	case "room.toggle-ready":
 		payload, err := parsePlayerReadyState(message.Payload)
 		if err != nil {
 			wsErr := sendToggleReadyRequestError(player, err)
-			return true, wsErr
-		}
-
-		if payload.RoomID != player.Room.ID {
-			wsErr := sendRoomJoinRequestError(player, fmt.Errorf("Cannot toggle ready in room#%s: not part of room", payload.RoomID))
 			return true, wsErr
 		}
 

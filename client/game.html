@@ -10,11 +10,23 @@
 </head>
 
 <body>
-  <div id="wrapper-pregame"></div>
+  <div id="wrapper-pregame">
+    <div id="player-list"></div>
+    <div id="params"></div>
+    <div>
+      <button id="start-game">Start Match</button>
+    </div>
+  </div>
   <div id="wrapper" style="display: none">
     <div class="container" id="not-sure-yet">&nbsp;</div>
     <div class="container" id="players">&nbsp;</div>
-    <div class="container" id="logs"></div>
+    <div class="container" id="sidebar">
+      <div id="logs"></div>
+      <div id="info">
+        <ul id="resources-left"></ul>
+        <div id="timer">00:00</div>
+      </div>
+    </div>
     <div class="container">
       <svg id="map" viewBox="-60 -60 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
     </div>
