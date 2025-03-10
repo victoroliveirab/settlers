@@ -43,10 +43,25 @@ body {
   height: 120px;
   width: 120px;
   border: 8px dashed black;
+  padding: 4px;
 }
 
 .pre-game-spot.pre-game-player {
   border: 8px solid black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pre-game-player > h2 {
+  font-size: 10px;
+  text-align: center;
+}
+
+.pre-game-player > select {
+  width: 80%;
 }
 
 #params {

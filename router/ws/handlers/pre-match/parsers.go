@@ -25,6 +25,22 @@ func parseUpdateParamPayload(payload map[string]interface{}) (*updateParamPayloa
 	}, nil
 }
 
+type playerChangeColorPayload struct {
+	Color string
+}
+
+func parsePlayerChangeColorPayload(payload map[string]interface{}) (*playerChangeColorPayload, error) {
+	color, ok := payload["color"].(string)
+	if !ok {
+		err := fmt.Errorf("malformed data: roomID")
+		return nil, err
+	}
+
+	return &playerChangeColorPayload{
+		Color: color,
+	}, nil
+}
+
 type roomPayload struct {
 	RoomID string
 }

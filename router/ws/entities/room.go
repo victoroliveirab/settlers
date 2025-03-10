@@ -10,7 +10,7 @@ import (
 	"github.com/victoroliveirab/settlers/utils"
 )
 
-var color [4]string = [4]string{"green", "orange", "blue", "black"}
+var availableColors []string = []string{"palegreen", "orange", "maroon", "lemonchiffon", "blue", "crimson", "orangered", "white", "aliceblue", "lightslategray"}
 
 func NewRoom(id, mapName string, capacity int, params RoomParams, onDestroy func(room *Room)) *Room {
 	return &Room{
@@ -43,7 +43,7 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 	}
 	for i, spot := range room.Participants {
 		if spot.Player == nil {
-			player.Color = color[i]
+			player.Color = availableColors[i]
 			room.Participants[i] = RoomEntry{
 				Player: player,
 				Ready:  false,
@@ -87,6 +87,32 @@ func (room *Room) TogglePlayerReadyState(playerID int64, newState bool) error {
 	}
 
 	err := fmt.Errorf("Cannot toggle player#%d ready state to %v: not part of room %s", playerID, newState, room.ID)
+	return err
+}
+
+func (room *Room) ChangePlayerColor(playerID int64, color string) error {
+	room.Lock()
+	defer room.Unlock()
+
+	if !utils.SliceContains(availableColors, color) {
+		err := fmt.Errorf("Cannot use color %s: unknown color", color)
+		return err
+	}
+
+	for _, participant := range room.Participants {
+		if participant.Player != nil && participant.Player.Color == color {
+			err := fmt.Errorf("Cannot use color %s: color taken", color)
+			return err
+		}
+	}
+	for index, participant := range room.Participants {
+		if participant.Player != nil && participant.Player.ID == playerID {
+			room.Participants[index].Player.Color = color
+			return nil
+		}
+	}
+
+	err := fmt.Errorf("Cannot set color for %d: player not found", playerID)
 	return err
 }
 
@@ -275,5 +301,6 @@ func (room *Room) ToMapInterface() map[string]interface{} {
 		"owner":        room.Owner,
 		"status":       room.Status,
 		"params":       room.GetParams(),
+		"colors":       availableColors,
 	}
 }

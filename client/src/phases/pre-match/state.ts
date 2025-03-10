@@ -25,6 +25,7 @@ export default class PreMatchStateManager {
   private participants: SettlersCore.Participant[] = [];
   private owner: SettlersCore.Participant["player"] | null = null;
   private params: PreMatchParam[] | null = null;
+  private colors: string[] = [];
 
   private shouldUpdateUIPart: Record<UIPart, boolean> = { ...defaultUpdateUIState };
 
@@ -61,6 +62,10 @@ export default class PreMatchStateManager {
     state.setRoundPlayer(firstPlayer);
     state.addLogs(logs);
     state.updateUI();
+  }
+
+  setColors(colors: string[]) {
+    this.colors = colors;
   }
 
   setParticipants(participants: SettlersCore.Participant[]) {
@@ -104,13 +109,25 @@ export default class PreMatchStateManager {
           break;
         }
         case "participantList": {
-          this.renderer.renderParticipantList(this.participants, this.userName, (state) => {
-            this.handler.sendReadyState(this.roomID, state);
-          });
+          const colors = this.colors.map((color) => ({
+            disabled: this.participants.some((participant) => participant.player?.color === color),
+            label: color,
+            value: color,
+          }));
+          this.renderer.renderParticipantList(
+            this.participants,
+            this.userName,
+            colors,
+            (state) => {
+              this.handler.sendReadyState(this.roomID, state);
+            },
+            (color) => {
+              this.handler.sendColorUpdate(color);
+            },
+          );
           break;
         }
         case "startButton": {
-          console.log("HERE?");
           this.renderer.renderStartButton(
             this.participants,
             this.userName,

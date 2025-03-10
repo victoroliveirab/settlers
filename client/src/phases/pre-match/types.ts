@@ -14,6 +14,7 @@ export namespace SettlersWSServerPreMatch {
         value: number;
         values: number[];
       }[];
+      colors: string[];
     };
     "room.new-update": {
       id: string;
@@ -27,6 +28,7 @@ export namespace SettlersWSServerPreMatch {
         value: number;
         values: number[];
       }[];
+      colors: string[];
     };
     "game.start": {
       currentRoundPlayer: SettlersCore.Player["name"];
@@ -38,6 +40,9 @@ export namespace SettlersWSServerPreMatch {
   };
 
   export type OutgoingMessages = {
+    "room.player-change-color": {
+      color: string;
+    };
     "room.update-param": {
       key: string;
       value: number;

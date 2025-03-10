@@ -15,6 +15,15 @@ func sendUpdateParamError(player *entities.GamePlayer, err error) error {
 	})
 }
 
+func sendPlayerChangeColorError(player *entities.GamePlayer, err error) error {
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
+		Type: "room.player-change-color.error",
+		Payload: map[string]interface{}{
+			"error": err.Error(),
+		},
+	})
+}
+
 func sendToggleReadyRequestError(player *entities.GamePlayer, err error) error {
 	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
 		Type: "room.toggle-ready.error",

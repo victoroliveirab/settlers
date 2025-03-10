@@ -30,6 +30,22 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 
 		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
 		return true, nil
+	case "room.player-change-color":
+		payload, err := parsePlayerChangeColorPayload(message.Payload)
+		if err != nil {
+			wsErr := sendPlayerChangeColorError(player, err)
+			return true, wsErr
+		}
+
+		room := player.Room
+		err = room.ChangePlayerColor(player.ID, payload.Color)
+		if err != nil {
+			wsErr := sendPlayerChangeColorError(player, err)
+			return true, wsErr
+		}
+
+		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		return true, nil
 	case "room.toggle-ready":
 		payload, err := parsePlayerReadyState(message.Payload)
 		if err != nil {

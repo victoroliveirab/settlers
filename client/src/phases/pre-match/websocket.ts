@@ -36,14 +36,16 @@ export default class PreMatchWebSocketHandler {
 
     switch (message.type) {
       case "room.connect.success": {
-        const { owner, params, participants } = message.payload;
+        const { colors, owner, params, participants } = message.payload;
+        this.state.setColors(colors);
         this.state.setParticipants(participants);
         this.state.setOwner(owner);
         this.state.setParams(params);
         break;
       }
       case "room.new-update": {
-        const { owner, params, participants } = message.payload;
+        const { colors, owner, params, participants } = message.payload;
+        this.state.setColors(colors);
         this.state.setParticipants(participants);
         this.state.setOwner(owner);
         this.state.setParams(params);
@@ -67,6 +69,13 @@ export default class PreMatchWebSocketHandler {
     this.sendMessage({
       type: "room.update-param",
       payload: { key, value },
+    });
+  }
+
+  sendColorUpdate(color: string) {
+    this.sendMessage({
+      type: "room.player-change-color",
+      payload: { color },
     });
   }
 

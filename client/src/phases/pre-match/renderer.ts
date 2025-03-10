@@ -8,13 +8,21 @@ type Param = {
   values: number[];
 };
 
+type Color = {
+  disabled: boolean;
+  label: string;
+  value: string;
+};
+
 export default class PreMatchRenderer {
   constructor(readonly root: HTMLElement) {}
 
   renderParticipantList(
     participants: SettlersCore.Participant[],
     userName: SettlersCore.Player["name"],
+    colors: Color[],
     onReadyChange: (state: boolean) => void,
+    onColorChange: (color: string) => void,
   ) {
     const container = this.root.querySelector<HTMLDivElement>("#player-list")!;
     container.innerHTML = "";
@@ -22,22 +30,59 @@ export default class PreMatchRenderer {
     playersContainer.classList.add("players");
     container.appendChild(playersContainer);
     for (const participant of participants) {
-      this.renderParticipant(participant, userName, playersContainer, onReadyChange);
+      this.renderParticipant(
+        participant,
+        userName,
+        colors,
+        playersContainer,
+        onReadyChange,
+        onColorChange,
+      );
     }
   }
 
   private renderParticipant(
     participant: SettlersCore.Participant,
     userName: SettlersCore.Player["name"],
+    colors: Color[],
     container: HTMLElement,
     onReadyChange: (state: boolean) => void,
+    onColorChange: (color: string) => void,
   ) {
     const element = document.createElement("div");
     element.classList.add("pre-game-spot");
     if (participant.player) {
       element.classList.add("pre-game-player");
       element.style.background = participant.player.color;
-      element.textContent = participant.player.name;
+
+      const playerName = document.createElement("h2");
+      playerName.textContent = participant.player.name;
+      element.appendChild(playerName);
+
+      const colorPicker = document.createElement("select");
+      colors.forEach((color) => {
+        const option = document.createElement("option");
+        option.value = color.value;
+        option.textContent = color.label;
+        option.disabled = color.disabled && participant.player?.color !== color.value;
+        colorPicker.appendChild(option);
+      });
+      colorPicker.value = participant.player.color;
+
+      if (participant.player.name !== userName) {
+        colorPicker.disabled = true;
+      } else {
+        colorPicker.addEventListener(
+          "change",
+          () => {
+            colorPicker.disabled = true;
+            onColorChange(colorPicker.value);
+          },
+          { once: true },
+        );
+      }
+
+      element.appendChild(colorPicker);
 
       const readyCheckbox = document.createElement("input");
       readyCheckbox.type = "checkbox";
