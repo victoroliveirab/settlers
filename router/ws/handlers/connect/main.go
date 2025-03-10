@@ -32,7 +32,7 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 			if err != nil {
 				return nil, err
 			}
-			room.EnqueueBroadcastMessage(buildPlayerReconnectedPreMatchBroadcast(player), []int64{player.ID}, nil)
+			room.EnqueueBroadcastMessage(prematch.BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
 			return player, nil
 		} else {
 			player, err := prematch.ConnectPlayer(room, user, conn, func(player *entities.GamePlayer) {
@@ -41,14 +41,15 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 			if err != nil {
 				return nil, err
 			}
-			room.EnqueueBroadcastMessage(buildPlayerConnectedPreMatchBroadcast(player), []int64{player.ID}, nil)
+			room.EnqueueBroadcastMessage(prematch.BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
 			return player, nil
 		}
 	}
 
 	if !alreadyPartOfRoom {
 		err := fmt.Errorf("Cannot connect to room %s right now: room at %s", room.ID, room.Status)
-		return nil, err
+		wsErr := sendReconnectPlayerError(conn, user.ID, err)
+		return nil, wsErr
 	}
 
 	if room.Status == "setup" {

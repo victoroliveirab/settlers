@@ -28,7 +28,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
 		return true, nil
 	case "room.toggle-ready":
 		payload, err := parsePlayerReadyState(message.Payload)
@@ -44,7 +44,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bo
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(buildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
 		return true, nil
 	case "room.start-game":
 		if player.Username != player.Room.Owner {
