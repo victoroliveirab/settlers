@@ -339,6 +339,7 @@ body {
 #resources > li,
 #dev > li,
 #discard-card-list > li {
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;

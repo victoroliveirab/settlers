@@ -1,3 +1,4 @@
+import { SettlersCore } from "../../core/types";
 import MatchStateManager from "./state";
 import type { SettlersWSServerMatch } from "./types";
 
@@ -85,6 +86,12 @@ export default class MatchWebSocketHandler {
         this.state.addLogs(logs);
         break;
       }
+      case "game.discard-cards.success": {
+        const { hand, resourceCount } = message.payload;
+        this.state.setHand(hand);
+        this.state.setResourcesCounts(resourceCount);
+        break;
+      }
       // General
       case "game.dice-roll.success": {
         const { dices, hand, logs, resourceCount, roundType } = message.payload;
@@ -93,6 +100,18 @@ export default class MatchWebSocketHandler {
         this.state.setResourcesCounts(resourceCount);
         this.state.addLogs(logs);
         this.state.setRoundType(roundType);
+        break;
+      }
+      case "game.discard-cards-request": {
+        const { quantityByPlayers } = message.payload;
+        this.state.setQuantitiesToDiscard(quantityByPlayers);
+        break;
+      }
+      case "game.discarded-cards": {
+        const { logs, quantityByPlayers, resourceCount } = message.payload;
+        this.state.setQuantitiesToDiscard(quantityByPlayers);
+        this.state.setResourcesCounts(resourceCount);
+        this.state.addLogs(logs);
         break;
       }
       // Match, opponent round related
@@ -157,6 +176,13 @@ export default class MatchWebSocketHandler {
     this.sendMessage({
       type: "game.move-robber",
       payload: { tile: tileID },
+    });
+  }
+
+  sendDiscardCards(resources: Record<SettlersCore.Resource, number>) {
+    this.sendMessage({
+      type: "game.discard-cards",
+      payload: { resources },
     });
   }
 

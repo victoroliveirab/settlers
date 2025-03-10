@@ -45,6 +45,7 @@ export namespace SettlersWSServerMatch {
     };
     "game.move-robber-request": {
       availableTiles: SettlersCore.Tile["id"][];
+      currentRoundPlayer: SettlersCore.Player["name"];
     };
     "game.new-road.success": {
       availableEdges: number[];
@@ -113,6 +114,9 @@ export namespace SettlersWSServerMatch {
     };
     "game.move-robber": {
       tile: number;
+    };
+    "game.discard-cards": {
+      resources: Record<SettlersCore.Resource, number>;
     };
     "game.end-round": {};
   };

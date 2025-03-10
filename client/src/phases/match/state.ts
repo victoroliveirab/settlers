@@ -205,7 +205,7 @@ export default class MatchStateManager {
                       resources[card]++;
                     }
                   });
-                  // this.service.onDiscardCardsSelected(resources);
+                  this.handler.sendDiscardCards(resources);
                 },
               );
             } else {
