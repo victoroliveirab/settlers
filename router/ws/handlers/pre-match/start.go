@@ -1,8 +1,11 @@
 package prematch
 
 import (
+	"fmt"
+
 	"github.com/victoroliveirab/settlers/core"
 	coreT "github.com/victoroliveirab/settlers/core/types"
+	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 )
@@ -17,25 +20,62 @@ func StartMatch(room *entities.Room) error {
 		}
 	}
 
-	// FIXME: params should come from room
-	err := gameState.New(players, room.MapName, 42, core.Params{
-		BankTradeAmount:      4,
-		MaxCards:             7,
-		MaxDevCardsPerRound:  1,
-		MaxSettlements:       5,
-		MaxCities:            4,
-		MaxRoads:             20,
-		TargetPoint:          10,
-		PointsPerSettlement:  1,
-		PointsPerCity:        2,
-		PointsForMostKnights: 2,
-		PointsForLongestRoad: 2,
-		MostKnightsMinimum:   3,
-		LongestRoadMinimum:   5,
-	})
+	// REFACTOR: think in a better way of making this more straight forward (if you care)
+	// May the lord forgive my soul for this code
+	roomParams := room.GetParams()
+	params := core.Params{}
+	for _, param := range roomParams {
+		switch param.Key {
+		case "bankTradeAmount":
+			params.BankTradeAmount = param.Value
+			break
+		case "maxCards":
+			params.MaxCards = param.Value
+			break
+		case "maxSettlements":
+			params.MaxSettlements = param.Value
+			break
+		case "maxCities":
+			params.MaxCities = param.Value
+			break
+		case "maxRoads":
+			params.MaxRoads = param.Value
+			break
+		case "maxDevCardsPerRound":
+			params.MaxDevCardsPerRound = param.Value
+			break
+		case "targetPoint":
+			params.TargetPoint = param.Value
+			break
+		case "pointsPerSettlement":
+			params.PointsPerSettlement = param.Value
+			break
+		case "pointsPerCity":
+			params.PointsPerCity = param.Value
+			break
+		case "pointsForMostKnights":
+			params.PointsForMostKnights = param.Value
+			break
+		case "pointsForLongestRoad":
+			params.PointsForLongestRoad = param.Value
+			break
+		case "longestRoadMinimum":
+			params.LongestRoadMinimum = param.Value
+			break
+		case "mostKnightsMinimum":
+			params.MostKnightsMinimum = param.Value
+			break
+		default:
+			fmt.Println("unknown key:", param.Key)
+		}
+	}
+
+	err := gameState.New(players, room.MapName, 42, params)
 	if err != nil {
 		return err
 	}
+
+	logger.LogSystemMessage("StartMatch", fmt.Sprintf("%s %s %v", room.ID, room.MapName, params))
 
 	room.Game = gameState
 	room.Status = "setup"
