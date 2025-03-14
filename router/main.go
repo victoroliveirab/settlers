@@ -10,9 +10,9 @@ import (
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+
+	// "github.com/victoroliveirab/settlers/router/ws/handlers/connect"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/connect"
-	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
-	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -73,7 +73,7 @@ func SetupRoutes(db *sql.DB) {
 			if err != nil {
 				return
 			}
-			go player.ListenIncomingMessages(func(msg *types.WebSocketMessage) {
+			go player.ListenIncomingMessages(func(msg *types.WebSocketClientRequest) {
 				room.EnqueueIncomingMessage(player, msg)
 			})
 		}),
@@ -165,11 +165,11 @@ func SetupRoutes(db *sql.DB) {
 			}
 
 			room.RegisterIncomingMessageHandler(prematch.TryHandle)
-			room.RegisterIncomingMessageHandler(matchsetup.TryHandle)
-			room.RegisterIncomingMessageHandler(match.TryHandle)
+			// room.RegisterIncomingMessageHandler(matchsetup.TryHandle)
+			// room.RegisterIncomingMessageHandler(match.TryHandle)
 
 			go room.ProcessIncomingMessages()
-			go room.ProcessBroadcastRequests()
+			go room.ProcessOutgoingMessages()
 			http.Redirect(w, r, fmt.Sprintf("/game/%s", id), http.StatusSeeOther)
 		}),
 		withSessionMiddleware(db),

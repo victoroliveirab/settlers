@@ -14,19 +14,20 @@ var availableColors []string = []string{"palegreen", "orange", "maroon", "lemonc
 
 func NewRoom(id, mapName string, capacity int, params RoomParams, onDestroy func(room *Room)) *Room {
 	return &Room{
-		ID:                id,
-		Capacity:          capacity,
-		MapName:           mapName,
-		Participants:      make([]RoomEntry, capacity),
-		Owner:             "",
-		params:            params,
-		Status:            "prematch",
-		incomingMsgQueue:  make(chan IncomingMessage, 32), // buffer incoming messages
-		broadcastMsgQueue: make(chan BroadcastMessage),    // process msg immediatly, one by one
-		handlers:          make([]RoomIncomingMessageHandler, 0),
-		onDestroy:         onDestroy,
-		Game:              nil,
-		Private:           true,
+		ID:               id,
+		Capacity:         capacity,
+		MapName:          mapName,
+		Participants:     make([]RoomEntry, capacity),
+		Owner:            "",
+		Colors:           availableColors,
+		params:           params,
+		Status:           "prematch",
+		incomingMsgQueue: make(chan IncomingMessage, 32), // buffer incoming messages
+		outgoingMsgQueue: make(chan OutgoingMessage),     // process msg immediatly, one by one
+		handlers:         make([]RoomIncomingMessageHandler, 0),
+		onDestroy:        onDestroy,
+		Game:             nil,
+		Private:          true,
 	}
 }
 
@@ -134,20 +135,20 @@ func (room *Room) RemovePlayer(playerID int64) error {
 					}
 				}
 				// REFACTOR: not ideal to have this message defined here and at handlers/pre-match/broadcast.go
-				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
-					Type:    "room.new-update",
-					Payload: room.ToMapInterface(),
-				}, []int64{}, nil)
+				// room.EnqueueBroadcastMessage(&types.WebSocketMessage{
+				// 	Type:    "room.new-update",
+				// 	Payload: room.ToMapInterface(),
+				// }, []int64{}, nil)
 			} else {
 				room.Participants[index].Player.Connection.Instance = nil
 				room.Participants[index].Bot = true
-				room.EnqueueBroadcastMessage(&types.WebSocketMessage{
-					Type: "game.player-left",
-					Payload: map[string]interface{}{
-						"player": room.Participants[index].Player.Username,
-						"bot":    true,
-					},
-				}, []int64{}, nil)
+				// room.EnqueueBroadcastMessage(&types.WebSocketMessage{
+				// 	Type: "game.player-left",
+				// 	Payload: map[string]interface{}{
+				// 		"player": room.Participants[index].Player.Username,
+				// 		"bot":    true,
+				// 	},
+				// }, []int64{}, nil)
 			}
 			return nil
 		}
@@ -185,11 +186,19 @@ func (room *Room) RegisterIncomingMessageHandler(f RoomIncomingMessageHandler) {
 	room.handlers = append(room.handlers, f)
 }
 
-func (room *Room) EnqueueIncomingMessage(player *GamePlayer, msg *types.WebSocketMessage) {
+func (room *Room) EnqueueIncomingMessage(player *GamePlayer, msg *types.WebSocketClientRequest) {
 	room.incomingMsgQueue <- IncomingMessage{
 		Room:    room,
 		Player:  player,
 		Message: msg,
+	}
+}
+
+func (room *Room) EnqueueOutgoingMessage(msg *types.WebSocketServerResponse, recipients []string, onSend func()) {
+	room.outgoingMsgQueue <- OutgoingMessage{
+		Callback:   onSend,
+		Message:    msg,
+		Recipients: recipients,
 	}
 }
 
@@ -215,38 +224,41 @@ func (room *Room) ProcessIncomingMessages() {
 	}
 }
 
-func (room *Room) EnqueueBroadcastMessage(msg *types.WebSocketMessage, excludedUserIDs []int64, onSend func()) {
-	room.broadcastMsgQueue <- BroadcastMessage{
-		ExcludedIDs: excludedUserIDs,
-		Message:     msg,
-		OnSend:      onSend,
-	}
-}
-
-func (room *Room) ProcessBroadcastRequests() {
+func (room *Room) ProcessOutgoingMessages() {
 	for {
-		item := <-room.broadcastMsgQueue
-		msg := item.Message
-		excludedUserIDs := item.ExcludedIDs
-		onSendCb := item.OnSend
+		item := <-room.outgoingMsgQueue
+		var recipients []RoomEntry
 
+		// Copy so if a participant disconnects mid broadcast and the room.Participants array changes, we don't panic
 		room.Lock()
 		for _, participant := range room.Participants {
-			player := participant.Player
-			if player == nil || player.Connection.Instance == nil || utils.SliceContains(excludedUserIDs, player.ID) {
+			if len(item.Recipients) == 0 {
+				recipients = append(recipients, participant)
 				continue
 			}
-
-			err := wsUtils.WriteJson(player.Connection, player.ID, msg)
-
-			if err != nil {
-				fmt.Println("error for player ", player.ID, err)
-				// TODO: handle error properly
+			for _, recipient := range item.Recipients {
+				if participant.Player.Username == recipient {
+					recipients = append(recipients, participant)
+				}
 			}
 		}
 		room.Unlock()
-		if onSendCb != nil {
-			go onSendCb()
+
+		for _, participant := range recipients {
+			player := participant.Player
+			if player == nil || player.Connection.Instance == nil {
+				continue
+			}
+			wsErr := wsUtils.WriteJson(player.Connection, player.ID, item.Message)
+			if wsErr != nil {
+				fmt.Println("error for player ", player.ID, wsErr)
+				// TODO: handle error here as well
+				continue
+			}
+		}
+
+		if item.Callback != nil {
+			go item.Callback()
 		}
 	}
 }
@@ -256,7 +268,7 @@ func (room *Room) Destroy(reason string) {
 	room.onDestroy(room)
 }
 
-func (room *Room) GetParams() []RoomParamsMetaEntry {
+func (room *Room) Params() []RoomParamsMetaEntry {
 	var entries []RoomParamsMetaEntry
 	for _, v := range room.params.Meta {
 		entries = append(entries, RoomParamsMetaEntry{
@@ -278,7 +290,12 @@ func (room *Room) GetParams() []RoomParamsMetaEntry {
 	return entries
 }
 
-func (room *Room) UpdateParam(key string, value int) error {
+func (room *Room) UpdateParam(player *GamePlayer, key string, value int) error {
+	if room.Owner != player.Username {
+		err := fmt.Errorf("cannot update param %s in room %s: not room owner", key, room.ID)
+		return err
+	}
+
 	_, exists := room.params.Values[key]
 	if !exists {
 		err := fmt.Errorf("unknown param: %s", key)
@@ -290,17 +307,4 @@ func (room *Room) UpdateParam(key string, value int) error {
 	}
 	room.params.Values[key] = value
 	return nil
-}
-
-func (room *Room) ToMapInterface() map[string]interface{} {
-	return map[string]interface{}{
-		"id":           room.ID,
-		"capacity":     room.Capacity,
-		"map":          room.MapName,
-		"participants": room.Participants,
-		"owner":        room.Owner,
-		"status":       room.Status,
-		"params":       room.GetParams(),
-		"colors":       availableColors,
-	}
 }

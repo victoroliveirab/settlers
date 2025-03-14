@@ -23,16 +23,16 @@ type RoomEntry struct {
 type IncomingMessage struct {
 	Room    *Room
 	Player  *GamePlayer
-	Message *types.WebSocketMessage
+	Message *types.WebSocketClientRequest
 }
 
-type BroadcastMessage struct {
-	ExcludedIDs []int64
-	Message     *types.WebSocketMessage
-	OnSend      func()
+type OutgoingMessage struct {
+	Callback   func()
+	Message    *types.WebSocketServerResponse
+	Recipients []string
 }
 
-type RoomIncomingMessageHandler func(player *GamePlayer, message *types.WebSocketMessage) (bool, error)
+type RoomIncomingMessageHandler func(player *GamePlayer, message *types.WebSocketClientRequest) (bool, error)
 
 type RoomParamsMetaEntry struct {
 	Description string `json:"description"`
@@ -49,19 +49,20 @@ type RoomParams struct {
 }
 
 type Room struct {
-	ID                string                       `json:"id"`
-	Capacity          int                          `json:"capacity"`
-	Game              *core.GameState              `json:"-"`
-	MapName           string                       `json:"map"`
-	params            RoomParams                   `json:"-"`
-	Participants      []RoomEntry                  `json:"participants"`
-	Private           bool                         `json:"private"`
-	Owner             string                       `json:"owner"`
-	Status            string                       `json:"status"`
-	incomingMsgQueue  chan IncomingMessage         `json:"-"`
-	broadcastMsgQueue chan BroadcastMessage        `json:"-"`
-	handlers          []RoomIncomingMessageHandler `json:"-"`
-	onDestroy         func(room *Room)             `json:"-"`
+	ID               string                       `json:"id"`
+	Capacity         int                          `json:"capacity"`
+	Game             *core.GameState              `json:"-"`
+	MapName          string                       `json:"map"`
+	params           RoomParams                   `json:"-"`
+	Participants     []RoomEntry                  `json:"participants"`
+	Private          bool                         `json:"private"`
+	Owner            string                       `json:"owner"`
+	Status           string                       `json:"status"`
+	Colors           []string                     `json:"colors"`
+	incomingMsgQueue chan IncomingMessage         `json:"-"`
+	outgoingMsgQueue chan OutgoingMessage         `json:"-"`
+	handlers         []RoomIncomingMessageHandler `json:"-"`
+	onDestroy        func(room *Room)             `json:"-"`
 	sync.Mutex
 }
 

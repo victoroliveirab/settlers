@@ -5,74 +5,68 @@ import (
 
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
+	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
+func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	switch message.Type {
 	case "room.update-param":
-		if player.Username != player.Room.Owner {
-			err := fmt.Errorf("Cannot update room param: not room owner")
-			wsErr := sendUpdateParamError(player, err)
-			return true, wsErr
-		}
-		payload, err := parseUpdateParamPayload(message.Payload)
+		requestPayload, err := utils.ParseJsonPayload[roomUpdateParamRequestPayload](message)
 		if err != nil {
-			wsErr := sendUpdateParamError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
 		room := player.Room
-		err = room.UpdateParam(payload.Key, payload.Value)
+		key := requestPayload.Key
+		value := requestPayload.Value
+		err = room.UpdateParam(player, key, value)
 		if err != nil {
-			wsErr := sendUpdateParamError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		room.EnqueueOutgoingMessage(BuildRoomMessage(room, fmt.Sprintf("%s.success", message.Type)), nil, nil)
 		return true, nil
 	case "room.player-change-color":
-		payload, err := parsePlayerChangeColorPayload(message.Payload)
+		requestPayload, err := utils.ParseJsonPayload[roomPlayerChangeColorRequestPayload](message)
 		if err != nil {
-			wsErr := sendPlayerChangeColorError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
 		room := player.Room
-		err = room.ChangePlayerColor(player.ID, payload.Color)
+		color := requestPayload.Color
+		err = room.ChangePlayerColor(player.ID, color)
 		if err != nil {
-			wsErr := sendPlayerChangeColorError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		room.EnqueueOutgoingMessage(BuildRoomMessage(room, fmt.Sprintf("%s.success", message.Type)), nil, nil)
 		return true, nil
 	case "room.toggle-ready":
-		payload, err := parsePlayerReadyState(message.Payload)
+		requestPayload, err := utils.ParseJsonPayload[roomPlayerReadyRequestPayload](message)
 		if err != nil {
-			wsErr := sendToggleReadyRequestError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
 		room := player.Room
-		err = room.TogglePlayerReadyState(player.ID, payload.Ready)
+		ready := requestPayload.Ready
+		err = room.TogglePlayerReadyState(player.ID, ready)
 		if err != nil {
-			wsErr := sendToggleReadyRequestError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
+		room.EnqueueOutgoingMessage(BuildRoomMessage(room, fmt.Sprintf("%s.success", message.Type)), nil, nil)
 		return true, nil
 	case "room.start-game":
-		if player.Username != player.Room.Owner {
-			err := fmt.Errorf("Cannot start game: not room owner")
-			wsErr := sendStartGameRequestError(player, err)
-			return true, wsErr
-		}
 		room := player.Room
-
-		err := StartMatch(room)
+		err := StartMatch(player, room)
 		if err != nil {
-			wsErr := sendStartGameRequestError(player, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 		return true, nil

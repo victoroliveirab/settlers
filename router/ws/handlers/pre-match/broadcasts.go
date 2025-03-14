@@ -5,13 +5,6 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
-func BuildRoomStateUpdateBroadcast(room *entities.Room) *types.WebSocketMessage {
-	return &types.WebSocketMessage{
-		Type:    "room.new-update",
-		Payload: room.ToMapInterface(),
-	}
-}
-
 func buildStartGameBroadcast(room *entities.Room, logs []string) *types.WebSocketMessage {
 	return &types.WebSocketMessage{
 		Type: "game.start",

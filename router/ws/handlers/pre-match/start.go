@@ -7,10 +7,15 @@ import (
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
-	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
+	// matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 )
 
-func StartMatch(room *entities.Room) error {
+func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
+	if room.Owner != player.Username {
+		err := fmt.Errorf("cannot start match on room %s: not room owner", room.ID)
+		return err
+	}
+
 	gameState := &core.GameState{}
 	players := make([]*coreT.Player, room.Capacity)
 	for i, entry := range room.Participants {
@@ -22,7 +27,7 @@ func StartMatch(room *entities.Room) error {
 
 	// REFACTOR: think in a better way of making this more straight forward (if you care)
 	// May the lord forgive my soul for this code
-	roomParams := room.GetParams()
+	roomParams := room.Params()
 	params := core.Params{}
 	for _, param := range roomParams {
 		switch param.Key {
@@ -80,15 +85,15 @@ func StartMatch(room *entities.Room) error {
 	room.Game = gameState
 	room.Status = "setup"
 
-	room.EnqueueBroadcastMessage(buildStartGameBroadcast(room, []string{"Setup phase starting."}), []int64{}, func() {
-		var firstPlayer *entities.GamePlayer
-		for _, participant := range room.Participants {
-			if participant.Player.Username == room.Owner {
-				firstPlayer = participant.Player
-				break
-			}
-		}
-		matchsetup.SendBuildSetupSettlementRequest(firstPlayer)
-	})
+	// room.EnqueueBroadcastMessage(buildStartGameBroadcast(room, []string{"Setup phase starting."}), []int64{}, func() {
+	// 	var firstPlayer *entities.GamePlayer
+	// 	for _, participant := range room.Participants {
+	// 		if participant.Player.Username == room.Owner {
+	// 			firstPlayer = participant.Player
+	// 			break
+	// 		}
+	// 	}
+	// 	matchsetup.SendBuildSetupSettlementRequest(firstPlayer)
+	// })
 	return nil
 }
