@@ -10,6 +10,33 @@ import (
 	// matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 )
 
+func metaEntriesToParams(entries []entities.RoomParamsMetaEntry) *core.Params {
+	params := core.Params{}
+	valueMap := map[string]*int{
+		"BankTradeAmount":      &params.BankTradeAmount,
+		"MaxCards":             &params.MaxCards,
+		"MaxDevCardsPerRound":  &params.MaxDevCardsPerRound,
+		"MaxSettlements":       &params.MaxSettlements,
+		"MaxCities":            &params.MaxCities,
+		"MaxRoads":             &params.MaxRoads,
+		"TargetPoint":          &params.TargetPoint,
+		"PointsPerSettlement":  &params.PointsPerSettlement,
+		"PointsPerCity":        &params.PointsPerCity,
+		"PointsForMostKnights": &params.PointsForMostKnights,
+		"PointsForLongestRoad": &params.PointsForLongestRoad,
+		"MostKnightsMinimum":   &params.MostKnightsMinimum,
+		"LongestRoadMinimum":   &params.LongestRoadMinimum,
+	}
+
+	for _, entry := range entries {
+		if ptr, ok := valueMap[entry.Key]; ok {
+			*ptr = entry.Value
+		}
+	}
+
+	return &params
+}
+
 func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 	if room.Owner != player.Username {
 		err := fmt.Errorf("cannot start match on room %s: not room owner", room.ID)
@@ -25,57 +52,8 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 		}
 	}
 
-	// REFACTOR: think in a better way of making this more straight forward (if you care)
-	// May the lord forgive my soul for this code
-	roomParams := room.Params()
-	params := core.Params{}
-	for _, param := range roomParams {
-		switch param.Key {
-		case "bankTradeAmount":
-			params.BankTradeAmount = param.Value
-			break
-		case "maxCards":
-			params.MaxCards = param.Value
-			break
-		case "maxSettlements":
-			params.MaxSettlements = param.Value
-			break
-		case "maxCities":
-			params.MaxCities = param.Value
-			break
-		case "maxRoads":
-			params.MaxRoads = param.Value
-			break
-		case "maxDevCardsPerRound":
-			params.MaxDevCardsPerRound = param.Value
-			break
-		case "targetPoint":
-			params.TargetPoint = param.Value
-			break
-		case "pointsPerSettlement":
-			params.PointsPerSettlement = param.Value
-			break
-		case "pointsPerCity":
-			params.PointsPerCity = param.Value
-			break
-		case "pointsForMostKnights":
-			params.PointsForMostKnights = param.Value
-			break
-		case "pointsForLongestRoad":
-			params.PointsForLongestRoad = param.Value
-			break
-		case "longestRoadMinimum":
-			params.LongestRoadMinimum = param.Value
-			break
-		case "mostKnightsMinimum":
-			params.MostKnightsMinimum = param.Value
-			break
-		default:
-			fmt.Println("unknown key:", param.Key)
-		}
-	}
-
-	err := gameState.New(players, room.MapName, 42, params)
+	params := metaEntriesToParams(room.Params())
+	err := gameState.New(players, room.MapName, 42, *params)
 	if err != nil {
 		return err
 	}
@@ -84,16 +62,5 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 
 	room.Game = gameState
 	room.Status = "setup"
-
-	// room.EnqueueBroadcastMessage(buildStartGameBroadcast(room, []string{"Setup phase starting."}), []int64{}, func() {
-	// 	var firstPlayer *entities.GamePlayer
-	// 	for _, participant := range room.Participants {
-	// 		if participant.Player.Username == room.Owner {
-	// 			firstPlayer = participant.Player
-	// 			break
-	// 		}
-	// 	}
-	// 	matchsetup.SendBuildSetupSettlementRequest(firstPlayer)
-	// })
 	return nil
 }

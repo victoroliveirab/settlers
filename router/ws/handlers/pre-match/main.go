@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
@@ -69,6 +70,15 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
+
+		room.EnqueueOutgoingMessage(buildStartMatch(room), nil, func() {
+			room.EnqueueBulkUpdate(
+				matchsetup.UpdateCurrentRoundPlayerState,
+				matchsetup.UpdateVertexState,
+				matchsetup.UpdateEdgeState,
+				matchsetup.UpdateLogs([]string{"Setup phase starting."}),
+			)
+		})
 		return true, nil
 	default:
 		return false, nil

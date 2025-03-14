@@ -21,7 +21,6 @@ type RoomEntry struct {
 }
 
 type IncomingMessage struct {
-	Room    *Room
 	Player  *GamePlayer
 	Message *types.WebSocketClientRequest
 }

@@ -9,7 +9,7 @@ import (
 func sendHydratePlayer(player *entities.GamePlayer) error {
 	game := player.Room.Game
 	currentRoundPlayer := game.CurrentRoundPlayer()
-	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketMessage{
+	return utils.WriteJson(player.Connection, player.ID, &types.WebSocketServerResponse{
 		Type: "setup.hydrate",
 		Payload: map[string]interface{}{
 			"state": map[string]interface{}{

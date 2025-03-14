@@ -188,9 +188,39 @@ func (room *Room) RegisterIncomingMessageHandler(f RoomIncomingMessageHandler) {
 
 func (room *Room) EnqueueIncomingMessage(player *GamePlayer, msg *types.WebSocketClientRequest) {
 	room.incomingMsgQueue <- IncomingMessage{
-		Room:    room,
 		Player:  player,
 		Message: msg,
+	}
+}
+
+func (room *Room) EnqueueBulkUpdate(updaters ...func(room *Room, username string) *types.WebSocketServerResponse) {
+	messages := make([]OutgoingMessage, room.Capacity)
+	messageType := fmt.Sprintf("%s.bulk-update", room.Status)
+	for i, participant := range room.Participants {
+		if participant.Player != nil {
+			messages[i] = OutgoingMessage{
+				Message: &types.WebSocketServerResponse{
+					Type:    types.ResponseType(messageType),
+					Payload: []types.WebSocketServerResponse{},
+				},
+				Recipients: []string{participant.Player.Username},
+			}
+		}
+	}
+
+	for _, updater := range updaters {
+		for index, participant := range room.Participants {
+			if participant.Player != nil {
+				update := updater(room, participant.Player.Username)
+				if msg, ok := messages[index].Message.Payload.([]types.WebSocketServerResponse); ok {
+					messages[index].Message.Payload = append(msg, *update)
+				}
+			}
+		}
+	}
+
+	for _, message := range messages {
+		room.outgoingMsgQueue <- message
 	}
 }
 
