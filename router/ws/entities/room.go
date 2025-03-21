@@ -167,6 +167,10 @@ func (room *Room) ProgressStatus() error {
 		room.Status = "match"
 		return nil
 	}
+	if room.Status == "match" {
+		room.Status = "over"
+		return nil
+	}
 	err := fmt.Errorf("Cannot proceed status %s", room.Status)
 	return err
 }

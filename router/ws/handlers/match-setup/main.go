@@ -7,74 +7,73 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
+	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func TryHandle(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
+func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	switch message.Type {
 	case "setup.new-settlement":
-		payload, err := parseSettlementBuildPayload(message.Payload)
+		requestPayload, err := utils.ParseJsonPayload[newSettlementRequestPayload](message)
 		if err != nil {
-			wsErr := sendSettlementSetupBuildError(player.Connection, player.ID, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		vertexID := payload.vertexID
+		vertexID := requestPayload.VertexID
 		room := player.Room
 		game := room.Game
+
 		err = game.BuildSettlement(player.Username, vertexID)
 		if err != nil {
-			wsErr := sendSettlementSetupBuildError(player.Connection, player.ID, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(buildSettlementSetupBuildSuccessBroadcast(player.Username, vertexID, []string{fmt.Sprintf("%s just built a settlement.", player.Username)}), []int64{}, func() {
-			err := SendBuildSetupRoadRequest(player)
-			if err != nil {
-				// TODO: handle player disconnect
-				fmt.Println(err)
-			}
-		})
+		room.EnqueueBulkUpdate(
+			match.UpdateMapState,
+			match.UpdateEdgeState,
+			match.UpdateLogs([]string{fmt.Sprintf("%s has built a new settlement.", player.Username)}),
+		)
 		return true, nil
 	case "setup.new-road":
-		payload, err := parseRoadBuildPayload(message.Payload)
+		requestPayload, err := utils.ParseJsonPayload[newRoadRequestPayload](message)
 		if err != nil {
-			wsErr := sendRoadSetupBuildError(player.Connection, player.ID, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		edgeID := payload.edgeID
+		edgeID := requestPayload.EdgeID
 		room := player.Room
 		game := room.Game
+
 		err = game.BuildRoad(player.Username, edgeID)
 		if err != nil {
-			wsErr := sendRoadSetupBuildError(player.Connection, player.ID, err)
+			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 			return true, wsErr
 		}
 
-		room.EnqueueBroadcastMessage(buildRoadSetupBuildSuccessBroadcast(player.Username, edgeID, []string{fmt.Sprintf("%s just built a road.", player.Username)}), []int64{}, func() {
-			if game.RoundType() == core.FirstRound {
-				room.EnqueueBroadcastMessage(buildSetupPhaseOverBroadcast(room), []int64{}, func() {
-					roundPlayer := room.Participants[game.CurrentRoundPlayerIndex()].Player
-					match.SendPlayerRound(room, roundPlayer)
-					room.EnqueueBroadcastMessage(match.BuildPlayerRoundOpponentsBroadcast(room), []int64{roundPlayer.ID}, nil)
-				})
-				return
-			}
-			room.EnqueueBroadcastMessage(buildSetupPlayerRoundChangedBroadcast(room), []int64{}, func() {
-				nextRoundPlayer := game.CurrentRoundPlayer()
-				for _, participant := range room.Participants {
-					if participant.Player != nil && participant.Player.Username == nextRoundPlayer.ID {
-						err := SendBuildSetupSettlementRequest(participant.Player)
-						if err != nil {
-							// TODO handle this err properly
-							fmt.Println("err")
-							fmt.Println(err)
-						}
-						break
-					}
-				}
-			})
-		})
+		logs := []string{fmt.Sprintf("%s has built a new road.", player.Username)}
+
+		if game.RoundType() == core.FirstRound {
+			room.ProgressStatus()
+			logs = append(logs, "Setup phase is over.", "Match starting. Good luck to everyone!")
+			room.EnqueueBulkUpdate(
+				match.UpdateMapState,
+				match.UpdateCurrentRoundPlayerState,
+				match.UpdateVertexState,
+				match.UpdateEdgeState,
+				match.UpdateDiceState,
+				match.UpdateLogs(logs),
+			)
+		} else {
+			room.EnqueueBulkUpdate(
+				match.UpdateMapState,
+				match.UpdateCurrentRoundPlayerState,
+				match.UpdateVertexState,
+				match.UpdateLogs(logs),
+			)
+		}
+
 		return true, nil
 	default:
 		return false, nil

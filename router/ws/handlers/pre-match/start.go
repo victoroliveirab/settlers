@@ -7,25 +7,24 @@ import (
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
-	// matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 )
 
 func metaEntriesToParams(entries []entities.RoomParamsMetaEntry) *core.Params {
 	params := core.Params{}
 	valueMap := map[string]*int{
-		"BankTradeAmount":      &params.BankTradeAmount,
-		"MaxCards":             &params.MaxCards,
-		"MaxDevCardsPerRound":  &params.MaxDevCardsPerRound,
-		"MaxSettlements":       &params.MaxSettlements,
-		"MaxCities":            &params.MaxCities,
-		"MaxRoads":             &params.MaxRoads,
-		"TargetPoint":          &params.TargetPoint,
-		"PointsPerSettlement":  &params.PointsPerSettlement,
-		"PointsPerCity":        &params.PointsPerCity,
-		"PointsForMostKnights": &params.PointsForMostKnights,
-		"PointsForLongestRoad": &params.PointsForLongestRoad,
-		"MostKnightsMinimum":   &params.MostKnightsMinimum,
-		"LongestRoadMinimum":   &params.LongestRoadMinimum,
+		"bankTradeAmount":      &params.BankTradeAmount,
+		"maxCards":             &params.MaxCards,
+		"maxDevCardsPerRound":  &params.MaxDevCardsPerRound,
+		"maxSettlements":       &params.MaxSettlements,
+		"maxCities":            &params.MaxCities,
+		"maxRoads":             &params.MaxRoads,
+		"targetPoint":          &params.TargetPoint,
+		"pointsPerSettlement":  &params.PointsPerSettlement,
+		"pointsPerCity":        &params.PointsPerCity,
+		"pointsForMostKnights": &params.PointsForMostKnights,
+		"pointsForLongestRoad": &params.PointsForLongestRoad,
+		"mostKnightsMinimum":   &params.MostKnightsMinimum,
+		"longestRoadMinimum":   &params.LongestRoadMinimum,
 	}
 
 	for _, entry := range entries {

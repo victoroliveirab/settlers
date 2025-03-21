@@ -100,6 +100,16 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 	return nil
 }
 
+func (state *GameState) BlockedTiles() []int {
+	tileIDs := make([]int, 0)
+	for _, tile := range state.tiles {
+		if tile.Blocked {
+			tileIDs = append(tileIDs, tile.ID)
+		}
+	}
+	return tileIDs
+}
+
 func (state *GameState) UnblockedTiles() []int {
 	tileIDs := make([]int, 0)
 	for _, tile := range state.tiles {
