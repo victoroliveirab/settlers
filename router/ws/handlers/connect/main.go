@@ -5,8 +5,7 @@ import (
 
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
-	// "github.com/victoroliveirab/settlers/router/ws/handlers/match"
-	// matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
+	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -46,21 +45,20 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 		}
 	}
 
-	// if !alreadyPartOfRoom {
-	// 	err := fmt.Errorf("Cannot connect to room %s right now: room at %s", room.ID, room.Status)
-	// 	wsErr := sendReconnectPlayerError(conn, user.ID, err)
-	// 	return nil, wsErr
-	// }
-	//
-	// if room.Status == "setup" {
-	// 	player, err := matchsetup.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
-	// 		room.RemovePlayer(playerID)
-	// 	})
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	return player, nil
-	// }
+	if !alreadyPartOfRoom || room.Status == "over" {
+		err := fmt.Errorf("Cannot connect to room %s right now: room at %s", room.ID, room.Status)
+		return nil, err
+	}
+
+	if room.Status == "setup" {
+		player, err := matchsetup.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
+			room.RemovePlayer(playerID)
+		})
+		if err != nil {
+			return nil, err
+		}
+		return player, nil
+	}
 	//
 	// if room.Status == "match" {
 	// 	player, err := match.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
