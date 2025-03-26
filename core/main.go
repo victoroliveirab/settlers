@@ -278,6 +278,10 @@ func (state *GameState) Map() []*coreT.MapBlock {
 	return state.tiles
 }
 
+func (state *GameState) Ports() map[int]string {
+	return state.ports
+}
+
 func (state *GameState) Players() []coreT.Player {
 	// REFACTOR: return a copy
 	return state.players
@@ -390,6 +394,14 @@ func (state *GameState) DiscardAmountByPlayer(playerID string) int {
 		return 0
 	}
 	return state.discardAmountByPlayer(playerID)
+}
+
+func (state *GameState) DiscardAmounts() map[string]int {
+	amounts := map[string]int{}
+	for _, player := range state.players {
+		amounts[player.ID] = state.DiscardAmountByPlayer(player.ID)
+	}
+	return amounts
 }
 
 func (state *GameState) ActiveTradeOffers() []Trade {

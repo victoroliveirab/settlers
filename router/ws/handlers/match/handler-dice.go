@@ -11,7 +11,7 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
+func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	room := player.Room
 	game := room.Game
 
@@ -22,12 +22,8 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketMessage
 
 	err := game.RollDice(player.Username)
 	if err != nil {
-		logger.LogError(player.ID, "engine.state.RollDices", -1, err)
-		wsErr := sendDiceRollError(player.Connection, player.ID, err)
-		if wsErr != nil {
-			return true, wsErr
-		}
-		return true, nil
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
 	}
 
 	dices := game.Dice()
@@ -40,27 +36,43 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketMessage
 	for _, player := range game.Players() {
 		diff, err := diffResourceHands(prevResourceHands[player.ID], game.ResourceHandByPlayer(player.ID))
 		if err != nil {
-			return true, err
+			logger.LogError(-1, "handleDiceRoll.diffResourceHands", -1, err)
+			continue
 		}
 		if hasDiff(diff) {
 			logs = append(logs, fmt.Sprintf("%s got %s", player.ID, serializeHandDiff(diff)))
 		}
 	}
 
-	for _, participant := range room.Participants {
-		// TODO: handle error properly
-		diceRollMessage := buildDiceRollSuccess(room, participant.Player, logs)
-		// TODO: this probably blocks the main thread, so we should spin up go routines later
-		utils.WriteJson(participant.Player.Connection, participant.Player.ID, diceRollMessage)
-	}
-
 	if game.RoundType() == core.MoveRobberDue7 {
 		logs := []string{fmt.Sprintf("%s moving robber", player.Username)}
-		// NOTE: should this be a broadcast? Let's rethink this
-		room.EnqueueBroadcastMessage(buildMoveRobberBroadcast(room, logs), []int64{}, nil)
+		room.EnqueueBulkUpdate(
+			UpdateDiceState,
+			UpdateRobberMovement,
+			UpdatePass,
+			UpdateTrade,
+			UpdateLogs(logs),
+		)
 	} else if game.RoundType() == core.DiscardPhase {
-		room.EnqueueBroadcastMessage(buildDiscardCardsBroadcast(room), []int64{}, nil)
+		logs := []string{fmt.Sprintf("some players have to discard")}
+		room.EnqueueBulkUpdate(
+			UpdateDiceState,
+			UpdateDiscardPhase,
+			UpdatePass,
+			UpdateTrade,
+			UpdateLogs(logs),
+		)
+	} else {
+		room.EnqueueBulkUpdate(
+			UpdateDiceState,
+			UpdatePlayerHand,
+			UpdateResourceCount,
+			UpdatePass,
+			UpdateTrade,
+			UpdateVertexState,
+			UpdateEdgeState,
+			UpdateLogs(logs),
+		)
 	}
-
 	return true, nil
 }

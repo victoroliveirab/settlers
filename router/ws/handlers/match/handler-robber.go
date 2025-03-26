@@ -3,7 +3,6 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -27,8 +26,9 @@ func parseMoveRobberPayload(payload map[string]interface{}) (*moveRobberPayload,
 func handleMoveRobber(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
 	payload, err := parseMoveRobberPayload(message.Payload)
 	if err != nil {
-		wsErr := sendMoveRobberError(player.Connection, player.ID, err)
-		return true, wsErr
+		// wsErr := sendMoveRobberError(player.Connection, player.ID, err)
+		// return true, wsErr
+		return true, err
 	}
 
 	tileID := payload.tileID
@@ -36,8 +36,9 @@ func handleMoveRobber(player *entities.GamePlayer, message *types.WebSocketMessa
 	game := room.Game
 	err = game.MoveRobber(player.Username, tileID)
 	if err != nil {
-		wsErr := sendMoveRobberError(player.Connection, player.ID, err)
-		return true, wsErr
+		// wsErr := sendMoveRobberError(player.Connection, player.ID, err)
+		// return true, wsErr
+		return true, err
 	}
 
 	logs := []string{fmt.Sprintf("%s moved the robber", player.Username)}
@@ -45,7 +46,7 @@ func handleMoveRobber(player *entities.GamePlayer, message *types.WebSocketMessa
 	robbablePlayers, _ := game.RobbablePlayers(player.Username)
 	if len(robbablePlayers) == 0 {
 		logs = append(logs, fmt.Sprintf("No player to rob"))
-		room.EnqueueBroadcastMessage(buildRobberMovedBroadcast(tileID, logs), []int64{}, nil)
+		// room.EnqueueBroadcastMessage(buildRobberMovedBroadcast(tileID, logs), []int64{}, nil)
 		return true, nil
 	} else if len(robbablePlayers) == 1 {
 		err := game.RobPlayer(player.Username, robbablePlayers[0])

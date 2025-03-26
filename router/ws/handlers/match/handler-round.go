@@ -1,24 +1,28 @@
 package match
 
 import (
+	"fmt"
+
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
+	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func handleEndRound(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
+func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	room := player.Room
 	game := room.Game
 	err := game.EndRound(player.Username)
 	if err != nil {
-		wsErr := sendEndRoundError(player.Connection, player.ID, err)
-		if wsErr != nil {
-			return true, wsErr
-		}
-		return true, nil
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
 	}
 
-	nextPlayer := room.Participants[game.CurrentRoundPlayerIndex()].Player
-	err = SendPlayerRound(room, nextPlayer)
-	room.EnqueueBroadcastMessage(BuildPlayerRoundOpponentsBroadcast(room), []int64{nextPlayer.ID}, nil)
+	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
+		UpdateDiceState,
+		UpdatePass,
+		UpdateTrade,
+		UpdateLogs([]string{fmt.Sprintf("%s finished their round.", player.Username)}),
+	)
 	return true, err
 }

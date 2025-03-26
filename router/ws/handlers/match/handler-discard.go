@@ -3,10 +3,10 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	// "github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
+	// "github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
 type discardCardsPayload struct {
@@ -36,33 +36,35 @@ func parseDiscardCardsPayload(payload map[string]interface{}) (*discardCardsPayl
 func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketMessage) (bool, error) {
 	payload, err := parseDiscardCardsPayload(message.Payload)
 	if err != nil {
-		wsErr := sendDiscardCardsError(player.Connection, player.ID, err)
-		return true, wsErr
+		// wsErr := sendDiscardCardsError(player.Connection, player.ID, err)
+		// return true, wsErr
+		return true, err
 	}
 
 	room := player.Room
 	game := room.Game
 	err = game.DiscardPlayerCards(player.Username, payload.resources)
 	if err != nil {
-		wsErr := sendDiscardCardsError(player.Connection, player.ID, err)
-		return true, wsErr
+		// wsErr := sendDiscardCardsError(player.Connection, player.ID, err)
+		// return true, wsErr
+		return true, err
 	}
 
-	formattedResources := utils.FormatResources(payload.resources)
-	logs := []string{fmt.Sprintf("%s discarded %s", player.Username, formattedResources)}
+	// formattedResources := utils.FormatResources(payload.resources)
+	// logs := []string{fmt.Sprintf("%s discarded %s", player.Username, formattedResources)}
 
-	err = sendDiscardCardsSuccess(room, player)
+	// err = sendDiscardCardsSuccess(room, player)
 	if err != nil {
 		return true, err
 	}
 
-	room.EnqueueBroadcastMessage(buildDiscardedCardsBroadcast(room, logs), []int64{}, func() {
-		if game.RoundType() == core.MoveRobberDue7 {
-			currentRoundPlayer := game.CurrentRoundPlayer().ID
-			logs := []string{"All players have discarded.", fmt.Sprintf("%s moving robber", currentRoundPlayer)}
-			room.EnqueueBroadcastMessage(buildMoveRobberBroadcast(room, logs), []int64{}, nil)
-		}
-	})
+	// room.EnqueueBroadcastMessage(buildDiscardedCardsBroadcast(room, logs), []int64{}, func() {
+	// 	if game.RoundType() == core.MoveRobberDue7 {
+	// 		currentRoundPlayer := game.CurrentRoundPlayer().ID
+	// 		logs := []string{"All players have discarded.", fmt.Sprintf("%s moving robber", currentRoundPlayer)}
+	// 		room.EnqueueBroadcastMessage(buildMoveRobberBroadcast(room, logs), []int64{}, nil)
+	// 	}
+	// })
 	return true, nil
 
 }

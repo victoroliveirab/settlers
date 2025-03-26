@@ -11,9 +11,8 @@ import (
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 
-	// "github.com/victoroliveirab/settlers/router/ws/handlers/connect"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/connect"
-	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
+	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -160,14 +159,14 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
+			// room, err := l.CreateRoom(id, "base4", 4)
 			room, err := l.CreateRoom(id, "base4", 2)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}
 
 			room.RegisterIncomingMessageHandler(prematch.TryHandle)
-			room.RegisterIncomingMessageHandler(matchsetup.TryHandle)
-			// room.RegisterIncomingMessageHandler(match.TryHandle)
+			room.RegisterIncomingMessageHandler(match.TryHandle)
 
 			go room.ProcessIncomingMessages()
 			go room.ProcessOutgoingMessages()
