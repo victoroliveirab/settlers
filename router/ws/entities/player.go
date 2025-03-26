@@ -17,7 +17,7 @@ func NewPlayer(connection *types.WebSocketConnection, user *models.User, room *R
 	}
 }
 
-func (player *GamePlayer) ListenIncomingMessages(enqueueMessage func(msg *types.WebSocketMessage)) {
+func (player *GamePlayer) ListenIncomingMessages(enqueueMessage func(msg *types.WebSocketClientRequest)) {
 	defer player.OnDisconnect(player)
 	for {
 		parsedMessage, err := utils.ReadJson(player.Connection, player.ID)

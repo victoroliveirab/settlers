@@ -6,7 +6,6 @@ import (
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
-	matchsetup "github.com/victoroliveirab/settlers/router/ws/handlers/match-setup"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -32,7 +31,7 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 			if err != nil {
 				return nil, err
 			}
-			room.EnqueueBroadcastMessage(prematch.BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
+			room.EnqueueOutgoingMessage(prematch.BuildRoomMessage(room, "room.new-update"), nil, nil)
 			return player, nil
 		} else {
 			player, err := prematch.ConnectPlayer(room, user, conn, func(player *entities.GamePlayer) {
@@ -41,28 +40,17 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 			if err != nil {
 				return nil, err
 			}
-			room.EnqueueBroadcastMessage(prematch.BuildRoomStateUpdateBroadcast(room), []int64{}, nil)
+			room.EnqueueOutgoingMessage(prematch.BuildRoomMessage(room, "room.new-update"), nil, nil)
 			return player, nil
 		}
 	}
 
-	if !alreadyPartOfRoom {
+	if !alreadyPartOfRoom || room.Status == "over" {
 		err := fmt.Errorf("Cannot connect to room %s right now: room at %s", room.ID, room.Status)
-		wsErr := sendReconnectPlayerError(conn, user.ID, err)
-		return nil, wsErr
+		return nil, err
 	}
 
-	if room.Status == "setup" {
-		player, err := matchsetup.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
-			room.RemovePlayer(playerID)
-		})
-		if err != nil {
-			return nil, err
-		}
-		return player, nil
-	}
-
-	if room.Status == "match" {
+	if room.Status == "setup" || room.Status == "match" {
 		player, err := match.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
 			room.RemovePlayer(playerID)
 		})
