@@ -26,7 +26,7 @@ var upgrader = websocket.Upgrader{}
 
 func SetupRoutes(db *sql.DB) {
 	l := entities.NewLobby()
-	fs := http.FileServer(http.Dir("client"))
+	fs := http.FileServer(http.Dir("client/dist"))
 
 	http.Handle("/static/", http.StripPrefix("/static", fs))
 	http.Handle("/favicon.ico", http.StripPrefix("/", fs))
@@ -180,23 +180,23 @@ func SetupRoutes(db *sql.DB) {
 	// Client
 
 	http.HandleFunc("GET /login", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "client/login.html")
+		http.ServeFile(w, r, "client/dist/login.html")
 	})
 
 	http.HandleFunc("GET /signup", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "client/signup.html")
+		http.ServeFile(w, r, "client/dist/signup.html")
 	})
 
 	http.Handle("GET /lobby", chainMiddleware(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "client/lobby.html")
+			http.ServeFile(w, r, "client/dist/lobby.html")
 		}),
 		withSessionMiddleware(db),
 	))
 
 	http.Handle("GET /game/{id}", chainMiddleware(
 		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			http.ServeFile(w, r, "client/game.html")
+			http.ServeFile(w, r, "client/dist/game.html")
 		}),
 		withSessionMiddleware(db),
 	))
@@ -207,6 +207,6 @@ func SetupRoutes(db *sql.DB) {
 			w.Write([]byte("Resource not found"))
 			return
 		}
-		http.ServeFile(w, r, "client/index.html")
+		http.ServeFile(w, r, "client/dist/index.html")
 	})
 }

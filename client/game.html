@@ -1,59 +1,13 @@
 <!doctype html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Settlers</title>
-  <link rel="stylesheet" href="/static/styles.css" />
-</head>
-
-<body>
-  <div id="wrapper-pregame">
-    <div id="player-list"></div>
-    <div id="params"></div>
-    <div>
-      <button id="start-game">Start Match</button>
-    </div>
-  </div>
-  <div id="wrapper" style="display: none">
-    <div class="container" id="not-sure-yet">&nbsp;</div>
-    <div class="container" id="players">&nbsp;</div>
-    <div class="container" id="sidebar">
-      <div id="logs"></div>
-      <div id="info">
-        <ul id="resources-left"></ul>
-        <div id="timer">00:00</div>
-      </div>
-    </div>
-    <div class="container">
-      <svg id="map" viewBox="-60 -60 120 120" version="1.1" xmlns="http://www.w3.org/2000/svg"></svg>
-    </div>
-    <div class="container" id="round">
-      <div id="actions">
-        <button id="action-pass" disabled>Pass</button>
-        <button id="action-trade" disabled>Trade</button>
-      </div>
-      <div id="dice">
-        <div id="dice1"></div>
-        <div id="dice2"></div>
-      </div>
-    </div>
-    <div class="container" id="hud">
-      <ul id="resources"></ul>
-      <ul id="dev"></ul>
-    </div>
-    <div id="discard">
-      <div>
-        <h3>You have too many cards!</h3>
-        <h4></h4>
-        <h5></h5>
-      </div>
-      <ul id="discard-card-list"></ul>
-      <button id="action-discard" disabled>Discard</button>
-    </div>
-    <script type="module" src="/static/app.js"></script>
-</body>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
