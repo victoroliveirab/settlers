@@ -308,6 +308,7 @@ func (room *Room) Params() []RoomParamsMetaEntry {
 		entries = append(entries, RoomParamsMetaEntry{
 			Key:         v.Key,
 			Description: v.Description,
+			Label:       v.Label,
 			Priority:    v.Priority,
 			Value:       room.params.Values[v.Key],
 			Values:      v.Values,

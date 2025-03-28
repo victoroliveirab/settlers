@@ -42,6 +42,7 @@ func (lobby *Lobby) CreateRoom(id, mapName string, capacity int) (*Room, error) 
 		paramsMeta[key] = RoomParamsMetaEntry{
 			Key:         key,
 			Description: meta.Params[key].Description,
+			Label:       meta.Params[key].Label,
 			Priority:    meta.Params[key].Priority,
 			Value:       meta.Params[key].Default,
 			Values:      meta.Params[key].Values,

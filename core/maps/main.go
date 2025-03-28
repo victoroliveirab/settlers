@@ -43,6 +43,7 @@ type meta struct {
 	Params map[string]struct {
 		Default     int
 		Description string
+		Label       string
 		Priority    int
 		Values      []int
 	}

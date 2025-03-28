@@ -36,6 +36,7 @@ type RoomIncomingMessageHandler func(player *GamePlayer, message *types.WebSocke
 type RoomParamsMetaEntry struct {
 	Description string `json:"description"`
 	Key         string `json:"key"`
+	Label       string `json:"label"`
 	Priority    int    `json:"-"`
 	Value       int    `json:"value"`
 	Values      []int  `json:"values"`
