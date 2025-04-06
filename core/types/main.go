@@ -22,9 +22,14 @@ type MapBlock struct {
 	Blocked     bool          `json:"blocked"`
 }
 
+type PlayerColor struct {
+	Background string `json:"background"`
+	Foreground string `json:"foreground"`
+}
+
 type Player struct {
-	ID    string `json:"name"`
-	Color string `json:"color"`
+	ID    string      `json:"name"`
+	Color PlayerColor `json:"color"`
 }
 
 type DevelopmentCard struct {

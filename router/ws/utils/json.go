@@ -49,7 +49,7 @@ func WriteJsonError(conn *types.WebSocketConnection, userID int64, requestType t
 	message := &types.WebSocketServerResponse{
 		Type: types.ResponseType(fmt.Sprintf("%s.error", requestType)),
 		Payload: map[string]interface{}{
-			"error": err,
+			"error": err.Error(),
 		},
 	}
 	return WriteJson(conn, userID, message)

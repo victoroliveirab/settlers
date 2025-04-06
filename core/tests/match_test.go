@@ -320,7 +320,7 @@ func TestFullGame(t *testing.T) {
 		counterTradeID, _ := game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Ore": 1})
 		game.RejectTradeOffer("2", tradeID)
 		game.AcceptTradeOffer("3", counterTradeID)
-		err = game.FinalizeCounterTrade("4", "1", counterTradeID)
+		err = game.FinalizeTrade("4", "1", counterTradeID)
 		if err != nil {
 			t.Error(err)
 			return
@@ -995,7 +995,7 @@ func TestFullGame(t *testing.T) {
 		game.RobPlayer("4", "2")
 		tradeID, _ = game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 2})
-		game.FinalizeCounterTrade("4", "3", counterTradeID)
+		game.FinalizeTrade("4", "3", counterTradeID)
 		game.MakeBankTrade("4", "Grain", "Ore")
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
@@ -1052,7 +1052,7 @@ func TestFullGame(t *testing.T) {
 		game.RollDice("3") // 10
 		tradeID, _ = game.MakeTradeOffer("3", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Lumber": 1})
-		err = game.FinalizeCounterTrade("3", "1", counterTradeID)
+		err = game.FinalizeTrade("3", "1", counterTradeID)
 		game.BuildSettlement("3", 14)
 		game.EndRound("3")
 		expectedHand(map[string]string{
@@ -1123,7 +1123,7 @@ func TestFullGame(t *testing.T) {
 		game.RollDice("2") // 5
 		tradeID, _ = game.MakeTradeOffer("2", map[string]int{"Grain": 1, "Ore": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Ore": 1, "Brick": 1})
-		game.FinalizeCounterTrade("2", "3", counterTradeID)
+		game.FinalizeTrade("2", "3", counterTradeID)
 		game.BuildSettlement("2", 39)
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -1148,7 +1148,7 @@ func TestFullGame(t *testing.T) {
 		game.RollDice("3") // 6
 		tradeID, _ = game.MakeTradeOffer("3", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("2", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Brick": 1})
-		game.FinalizeCounterTrade("3", "2", counterTradeID)
+		game.FinalizeTrade("3", "2", counterTradeID)
 		game.BuyDevelopmentCard("3")
 		game.EndRound("3")
 		expectedHand(map[string]string{
@@ -1167,7 +1167,7 @@ func TestFullGame(t *testing.T) {
 		game.RollDice("4") // 6
 		tradeID, _ = game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("2", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 2})
-		game.FinalizeCounterTrade("4", "2", counterTradeID)
+		game.FinalizeTrade("4", "2", counterTradeID)
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
 		expectedHand(map[string]string{

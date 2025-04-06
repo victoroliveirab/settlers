@@ -21,6 +21,7 @@ func buildStartMatch(room *entities.Room) *types.WebSocketServerResponse {
 	game := room.Game
 	responsePayload := roomStartMatchPayload{
 		Map:           game.Map(),
+		MapName:       "base4",
 		Players:       game.Players(),
 		ResourceCount: game.NumberOfResourcesByPlayer(),
 		Logs:          []string{},

@@ -1,0 +1,19 @@
+import { useEffect, useRef } from "react";
+
+import { useMatchStore } from "@/state/match";
+
+export const Logs = () => {
+  const ref = useRef<HTMLElement>(null);
+  const logs = useMatchStore((state) => state.logs);
+
+  useEffect(() => {
+    logs.forEach((log) => {
+      const element = document.createElement("p");
+      element.textContent = log;
+      ref.current?.appendChild(element);
+    });
+    ref.current?.scrollTo(0, ref.current.scrollHeight);
+  }, [logs]);
+
+  return <section ref={ref} className="bg-red-50" />;
+};

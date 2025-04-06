@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import { createRoot } from "react-dom/client";
+import { StrictMode } from "react";
+import App from "./App";
+import { WebSocketProvider } from "./context";
+import "./index.css";
 
-createRoot(document.getElementById('root')!).render(
+// Render the Root component
+createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <WebSocketProvider>
+      <App />
+    </WebSocketProvider>
   </StrictMode>,
-)
+);

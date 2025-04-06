@@ -34,6 +34,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 			Payload: hydrateSetupMatchResponsePayload{
 				EdgeUpdate:        edgeState,
 				Map:               game.Map(),
+				MapName:           game.MapName(),
 				MapUpdate:         mapState,
 				Players:           game.Players(),
 				Ports:             game.Ports(),
@@ -60,6 +61,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 	discardPhaseState := UpdateDiscardPhase(room, player.Username)
 	passState := UpdatePass(room, player.Username)
 	tradeState := UpdateTrade(room, player.Username)
+	tradeOffersState := UpdateTradeOffers(room, player.Username)
 	robberMovementState := UpdateRobberMovement(room, player.Username)
 
 	hydrateMsg := &types.WebSocketServerResponse{
@@ -70,14 +72,16 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 			EdgeUpdate:        edgeState,
 			HandUpdate:        handState,
 			Map:               game.Map(),
+			MapName:           game.MapName(),
 			MapUpdate:         mapState,
-			PassUpdate:        passState,
+			PassActionState:   passState,
 			Players:           game.Players(),
 			Ports:             game.Ports(),
 			ResourceCount:     game.NumberOfResourcesByPlayer(),
 			RobberUpdate:      robberMovementState,
 			RoundPlayerUpdate: currentRoundState,
-			TradeUpdate:       tradeState,
+			TradeActionState:  tradeState,
+			TradeOffersUpdate: tradeOffersState,
 			VertexUpdate:      vertexState,
 		},
 	}

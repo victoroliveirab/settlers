@@ -11,7 +11,7 @@ func NewPlayer(connection *types.WebSocketConnection, user *models.User, room *R
 		ID:           user.ID,
 		Username:     user.Username,
 		Connection:   connection,
-		Color:        "",
+		Color:        nil,
 		Room:         room,
 		OnDisconnect: onDisconnect,
 	}

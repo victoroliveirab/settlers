@@ -168,6 +168,17 @@ func UpdateRobbablePlayers(room *entities.Room, username string) *types.WebSocke
 	}
 }
 
+func UpdateTradeOffers(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-trade-offers", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: updateActiveTradeOffersStateUpdate{
+			Offers: game.ActiveTradeOffers(),
+		},
+	}
+}
+
 func UpdateLogs(logs []string) func(room *entities.Room, username string) *types.WebSocketServerResponse {
 	return func(room *entities.Room, username string) *types.WebSocketServerResponse {
 		messageType := fmt.Sprintf("%s.update-logs", room.Status)

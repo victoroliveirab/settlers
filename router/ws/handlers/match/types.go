@@ -67,9 +67,14 @@ type pickRobbedStateUpdate struct {
 	Options []string `json:"options"`
 }
 
+type updateActiveTradeOffersStateUpdate struct {
+	Offers []core.Trade `json:"offers"`
+}
+
 type hydrateSetupMatchResponsePayload struct {
 	EdgeUpdate        *types.WebSocketServerResponse `json:"edgeUpdate"`
 	Map               []*coreT.MapBlock              `json:"map"`
+	MapName           string                         `json:"mapName"`
 	MapUpdate         *types.WebSocketServerResponse `json:"mapUpdate"`
 	Players           []coreT.Player                 `json:"players"`
 	Ports             map[int]string                 `json:"ports"`
@@ -84,13 +89,15 @@ type hydrateOngoingMatchResponsePayload struct {
 	EdgeUpdate        *types.WebSocketServerResponse `json:"edgeUpdate"`
 	HandUpdate        *types.WebSocketServerResponse `json:"handUpdate"`
 	Map               []*coreT.MapBlock              `json:"map"`
+	MapName           string                         `json:"mapName"`
 	MapUpdate         *types.WebSocketServerResponse `json:"mapUpdate"`
-	PassUpdate        *types.WebSocketServerResponse `json:"passUpdate"`
+	PassActionState   *types.WebSocketServerResponse `json:"passActionState"`
 	Players           []coreT.Player                 `json:"players"`
 	Ports             map[int]string                 `json:"ports"`
 	ResourceCount     map[string]int                 `json:"resourceCount"`
 	RobberUpdate      *types.WebSocketServerResponse `json:"robberMovementUpdate"`
 	RoundPlayerUpdate *types.WebSocketServerResponse `json:"roundPlayerUpdate"`
-	TradeUpdate       *types.WebSocketServerResponse `json:"tradeUpdate"`
+	TradeActionState  *types.WebSocketServerResponse `json:"tradeActionState"`
+	TradeOffersUpdate *types.WebSocketServerResponse `json:"tradeOffersUpdate"`
 	VertexUpdate      *types.WebSocketServerResponse `json:"vertexUpdate"`
 }

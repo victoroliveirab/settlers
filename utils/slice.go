@@ -20,6 +20,15 @@ func SliceContains[T comparable](slice []T, val T) bool {
 	return false
 }
 
+func SliceFindIndex[T comparable](slice []T, callback func(val T) bool) int {
+	for i, v := range slice {
+		if callback(v) {
+			return i
+		}
+	}
+	return -1
+}
+
 func SliceLast[T any](slice []T) T {
 	return slice[len(slice)-1]
 }

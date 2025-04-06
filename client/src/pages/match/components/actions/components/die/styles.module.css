@@ -1,0 +1,89 @@
+.die-1 > span:nth-of-type(1),
+.die-3 > span:nth-of-type(2),
+.die-5 > span:nth-of-type(3) {
+  top: 50%;
+  left: 50%;
+}
+
+.die-2 > span:nth-of-type(1),
+.die-3 > span:nth-of-type(1),
+.die-4 > span:nth-of-type(1),
+.die-5 > span:nth-of-type(1),
+.die-6 > span:nth-of-type(1) {
+  top: 16px;
+  left: calc(100% - 16px);
+}
+
+.die-2 > span:nth-of-type(2),
+.die-3 > span:nth-of-type(3),
+.die-4 > span:nth-of-type(3),
+.die-5 > span:nth-of-type(4),
+.die-6 > span:nth-of-type(5) {
+  top: calc(100% - 16px);
+  left: 16px;
+}
+
+.die-4 > span:nth-of-type(2),
+.die-5 > span:nth-of-type(2),
+.die-6 > span:nth-of-type(2) {
+  top: 16px;
+  left: 16px;
+}
+
+.die-4 > span:nth-of-type(4),
+.die-5 > span:nth-of-type(5),
+.die-6 > span:nth-of-type(6) {
+  top: calc(100% - 16px);
+  left: calc(100% - 16px);
+}
+
+.die-6 > span:nth-of-type(3) {
+  top: 50%;
+  left: calc(100% - 16px);
+}
+
+.die-6 > span:nth-of-type(4) {
+  top: 50%;
+  left: 16px;
+}
+
+.die-0 > span {
+  display: none;
+}
+
+.die-1 > span:nth-of-type(n + 2) {
+  display: none;
+}
+
+.die-2 > span:nth-of-type(n + 3) {
+  display: none;
+}
+
+.die-3 > span:nth-of-type(n + 4) {
+  display: none;
+}
+
+.die-4 > span:nth-of-type(n + 5) {
+  display: none;
+}
+
+.die-5 > span:nth-of-type(n + 6) {
+  display: none;
+}
+
+.die.animate {
+  animation-name: pulse;
+  animation-duration: 0.75s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes pulse {
+  0% {
+    scale: 1;
+  }
+  100% {
+    scale: 1.05;
+  }
+}

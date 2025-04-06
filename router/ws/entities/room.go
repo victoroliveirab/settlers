@@ -4,13 +4,51 @@ import (
 	"fmt"
 	"sort"
 
+	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
-var availableColors []string = []string{"palegreen", "orange", "maroon", "lemonchiffon", "blue", "crimson", "orangered", "white", "aliceblue", "lightslategray"}
+var availableColors []coreT.PlayerColor = []coreT.PlayerColor{
+	coreT.PlayerColor{
+		Background: "palegreen",
+		Foreground: "black",
+	},
+	coreT.PlayerColor{
+		Background: "orange",
+		Foreground: "black",
+	},
+	coreT.PlayerColor{
+		Background: "maroon",
+		Foreground: "white",
+	},
+	coreT.PlayerColor{
+		Background: "lemonchiffon",
+		Foreground: "black",
+	},
+	coreT.PlayerColor{
+		Background: "blue",
+		Foreground: "white",
+	},
+	coreT.PlayerColor{
+		Background: "crimson",
+		Foreground: "white",
+	},
+	coreT.PlayerColor{
+		Background: "orangered",
+		Foreground: "black",
+	},
+	coreT.PlayerColor{
+		Background: "aliceblue",
+		Foreground: "black",
+	},
+	coreT.PlayerColor{
+		Background: "lightslategray",
+		Foreground: "black",
+	},
+}
 
 func NewRoom(id, mapName string, capacity int, params RoomParams, onDestroy func(room *Room)) *Room {
 	return &Room{
@@ -44,7 +82,7 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 	}
 	for i, spot := range room.Participants {
 		if spot.Player == nil {
-			player.Color = availableColors[i]
+			player.Color = &availableColors[i]
 			room.Participants[i] = RoomEntry{
 				Player: player,
 				Ready:  false,
@@ -95,20 +133,20 @@ func (room *Room) ChangePlayerColor(playerID int64, color string) error {
 	room.Lock()
 	defer room.Unlock()
 
-	if !utils.SliceContains(availableColors, color) {
+	if colorIndex := utils.SliceFindIndex(availableColors, func(val coreT.PlayerColor) bool { return val.Background == color }); colorIndex == -1 {
 		err := fmt.Errorf("Cannot use color %s: unknown color", color)
 		return err
 	}
 
 	for _, participant := range room.Participants {
-		if participant.Player != nil && participant.Player.Color == color {
+		if participant.Player != nil && participant.Player.Color.Background == color {
 			err := fmt.Errorf("Cannot use color %s: color taken", color)
 			return err
 		}
 	}
 	for index, participant := range room.Participants {
 		if participant.Player != nil && participant.Player.ID == playerID {
-			room.Participants[index].Player.Color = color
+			room.Participants[index].Player.Color = &availableColors[index]
 			return nil
 		}
 	}
