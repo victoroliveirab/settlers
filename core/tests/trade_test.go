@@ -643,10 +643,10 @@ func TestCreateCounterTradeOfferWithAvailableResources(t *testing.T) {
 		}
 
 		_, err = game.MakeCounterTradeOffer("2", tradeID, map[string]int{
-			"Ore": 1,
-		}, map[string]int{
 			"Lumber": 2,
 			"Brick":  1,
+		}, map[string]int{
+			"Ore": 1,
 		})
 		if err != nil {
 			t.Errorf("expected to make counter trade offer just fine, but actually got error %s", err.Error())
@@ -702,10 +702,10 @@ func TestCreateCounterTradeOfferOfCounterTradeOffer(t *testing.T) {
 		}
 
 		counterTradeID, err := game.MakeCounterTradeOffer("2", tradeID, map[string]int{
-			"Ore": 1,
-		}, map[string]int{
 			"Lumber": 2,
 			"Brick":  1,
+		}, map[string]int{
+			"Ore": 1,
 		})
 		if err != nil {
 			t.Errorf("expected to make counter offer just fine, but actually got error %s", err.Error())
@@ -982,10 +982,9 @@ func TestCreateCounterTradeOfferByRound(t *testing.T) {
 				[]string{})
 			_, err := game.MakeCounterTradeOffer("2", tradeID,
 				map[string]int{
-					"Ore": 1,
-				},
-				map[string]int{
 					"Lumber": 2,
+				}, map[string]int{
+					"Ore": 1,
 				},
 			)
 			hasErr := err != nil
@@ -2002,11 +2001,11 @@ func TestFinalizeCounterOfferWithAvailableResources(t *testing.T) {
 		}
 
 		counterOfferID, err := game.MakeCounterTradeOffer("2", tradeID, map[string]int{
-			"Ore": 1,
-		}, map[string]int{
 			"Lumber": 1,
 			"Brick":  1,
 			"Sheep":  1,
+		}, map[string]int{
+			"Ore": 1,
 		})
 		if err != nil {
 			t.Errorf("expected to make counter trade offer just fine, but actually got error %s", err.Error())

@@ -162,7 +162,15 @@ func (state *GameState) MakeCounterTradeOffer(playerID string, tradeID int, give
 		return -1, err
 	}
 
-	for resource, quantity := range givenResources {
+	var offeredResources map[string]int
+
+	if playerID == parentTrade.Requester {
+		offeredResources = givenResources
+	} else {
+		offeredResources = requestedResources
+	}
+
+	for resource, quantity := range offeredResources {
 		totalFromOfferedResource := state.playerResourceHandMap[playerID][resource]
 		if totalFromOfferedResource < quantity {
 			err := fmt.Errorf("Cannot make such counter offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
@@ -194,8 +202,8 @@ func (state *GameState) MakeCounterTradeOffer(playerID string, tradeID int, give
 		Requester: parentTrade.Requester,
 		Creator:   playerID,
 		Responses: responses,
-		Offer:     requestedResources,
-		Request:   givenResources,
+		Offer:     givenResources,
+		Request:   requestedResources,
 		Status:    TradeOpen,
 		ParentID:  tradeID,
 		Finalized: false,
