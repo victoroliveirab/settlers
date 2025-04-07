@@ -172,7 +172,7 @@ export namespace SettlersMatch {
       tradeID: number;
     };
     "match.finalize-trade-offer": {
-      player: string;
+      accepter: string;
       tradeID: number;
     };
     "match.end-round": {};

@@ -22,7 +22,10 @@ export const OpponentsStatus = ({ data, disabled, tradeID }: IOpponentsStatusPro
     if (disabled) return;
     const [playerName, info] = entries[index];
     if (info.status === "Accepted") {
-      sendMessage({ type: "match.finalize-trade-offer", payload: { player: playerName, tradeID } });
+      sendMessage({
+        type: "match.finalize-trade-offer",
+        payload: { accepter: playerName, tradeID },
+      });
     }
   };
 

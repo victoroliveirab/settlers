@@ -10,15 +10,15 @@ export const MainArea = () => {
         <Players />
       </div>
       <hr className="w-full h-px bg-border" />
-      <div className="flex-1">
+      <div className="flex-1 relative">
         <SettlersMap />
+        <div className="absolute top-0 right-0 bottom-0 w-80 flex flex-col gap-1">
+          <ActiveTrades />
+        </div>
       </div>
       <hr className="w-full h-px bg-border" />
       <div className="h-20">
         <Hand />
-      </div>
-      <div className="absolute top-0 right-0 w-80 flex flex-col gap-1">
-        <ActiveTrades />
       </div>
     </section>
   );

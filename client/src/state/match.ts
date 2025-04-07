@@ -6,17 +6,17 @@ type MatchState = {
     trade: boolean;
   };
   activeTradeOffers: {
-    counters: number[];
+    creator: SettlersCore.Player["name"];
     finalized: boolean;
     id: number;
     offer: Record<SettlersCore.Resource, number>;
-    opponents: Record<
+    parent: number;
+    request: Record<SettlersCore.Resource, number>;
+    requester: SettlersCore.Player["name"];
+    responses: Record<
       SettlersCore.Player["name"],
       { status: "Open" | "Accepted" | "Declined"; blocked: boolean }
     >;
-    parent: number;
-    player: SettlersCore.Player["name"];
-    request: Record<SettlersCore.Resource, number>;
     status: "Open" | "Closed";
     timestamp: number;
   }[];

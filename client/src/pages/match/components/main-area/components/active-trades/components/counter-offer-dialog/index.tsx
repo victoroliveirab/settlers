@@ -18,12 +18,14 @@ import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMatchStore } from "@/state/match";
 
 interface ICounterOfferDialogProps {
+  isTradeRequester: boolean;
   offeredResources: SettlersCore.ResourceCollection;
   requestedResources: SettlersCore.ResourceCollection;
   tradeID: number;
 }
 
 export const CounterOfferDialog = ({
+  isTradeRequester,
   offeredResources,
   requestedResources,
   tradeID,
@@ -54,8 +56,8 @@ export const CounterOfferDialog = ({
           <DialogDescription>
             <Trade
               givenResourcesAvailable={hand}
-              initialStateGiven={requestedResources}
-              initialStateRequested={offeredResources}
+              initialStateGiven={isTradeRequester ? offeredResources : requestedResources}
+              initialStateRequested={isTradeRequester ? requestedResources : offeredResources}
             >
               {({ dirty, given, requested, totalGiven, totalRequested }) => {
                 return (
@@ -76,7 +78,9 @@ export const CounterOfferDialog = ({
                             requested,
                           })
                         }
-                        onClick={() => onSubmit(given, requested)}
+                        onClick={() =>
+                          isTradeRequester ? onSubmit(given, requested) : onSubmit(requested, given)
+                        }
                       >
                         Submit
                       </Button>
