@@ -129,19 +129,22 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 
 		resourceName = definitions.Resources[resourceIndex].Name
 		token := definitions.Tokens[i+desertShift]
-		instance = append(instance, &coreT.MapBlock{
+		block := &coreT.MapBlock{
 			Resource: resourceName,
 			Token:    token,
 			Blocked:  false,
-		})
+		}
 
 		if resourceName == "Desert" {
+			block.Token = 0
 			desertShift--
 			if !alreadyBlocked {
-				instance[i].Blocked = true
+				block.Blocked = true
 				alreadyBlocked = true
 			}
 		}
+
+		instance = append(instance, block)
 	}
 	utils.SliceShuffle(instance, rand)
 
