@@ -94,6 +94,9 @@ export namespace SettlersMatch {
       roads: SettlersCore.Roads;
       settlements: SettlersCore.Settlements;
     };
+    "match.update-ports": {
+      ports: SettlersCore.PortType[];
+    };
     "match.update-resource-count": {
       resourceCount: Record<SettlersCore.Player["name"], number>;
     };
@@ -155,6 +158,21 @@ export namespace SettlersMatch {
         timestamp: number;
       }[];
     };
+    "match.update-points": {
+      points: Record<SettlersCore.Player["name"], number>;
+    };
+    "match.update-longest-road-size": {
+      longestRoadSizeByPlayer: Record<SettlersCore.Player["name"], number>;
+    };
+    "match.update-knight-usage": {
+      knightUsesByPlayer: Record<SettlersCore.Player["name"], number>;
+    };
+    "match.update-year-of-plenty": {
+      enabled: boolean;
+    };
+    "match.update-monopoly": {
+      enabled: boolean;
+    };
   };
 
   export type OutgoingMessages = {
@@ -174,6 +192,25 @@ export namespace SettlersMatch {
     };
     "match.discard-cards": {
       resources: SettlersCore.ResourceCollection;
+    };
+    "match.make-bank-trade": {
+      given: SettlersCore.Resource;
+      requested: SettlersCore.Resource;
+    };
+    "match.make-bank-trade-v2": {
+      // Not used, but someday...
+      given: SettlersCore.ResourceCollection;
+      requested: SettlersCore.ResourceCollection;
+    };
+    "match.make-port-trade": {
+      given: SettlersCore.Resource;
+      requested: SettlersCore.Resource;
+      vertex: number;
+    };
+    "match.make-port-trade-v2": {
+      // Not used, but someday...
+      given: SettlersCore.ResourceCollection;
+      requested: SettlersCore.ResourceCollection;
     };
     "match.create-trade-offer": {
       given: SettlersCore.ResourceCollection;
@@ -201,6 +238,13 @@ export namespace SettlersMatch {
       player: string;
     };
     "match.buy-dev-card": {};
+    "match.year-of-plenty": {
+      resource1: SettlersCore.Resource;
+      resource2: SettlersCore.Resource;
+    };
+    "match.monopoly": {
+      resource: SettlersCore.Resource;
+    };
     "match.end-round": {};
   };
 
@@ -234,12 +278,16 @@ export namespace SettlersMatch {
       discardUpdate: SingleIncomingMessage<"match.update-discard-phase">;
       edgeUpdate: SingleIncomingMessage<"match.update-edges">;
       handUpdate: SingleIncomingMessage<"match.update-hand">;
+      knightsUsageUpdate: SingleIncomingMessage<"match.update-knight-usage">;
+      longestRoadUpdate: SingleIncomingMessage<"match.update-longest-road-size">;
       map: SettlersCore.Map;
       mapName: string;
       mapUpdate: SingleIncomingMessage<"match.update-map">;
       passActionState: SingleIncomingMessage<"match.update-pass">;
       players: SettlersCore.Player[];
+      pointsUpdate: SingleIncomingMessage<"match.update-points">;
       ports: SettlersCore.Ports;
+      portsUpdate: SingleIncomingMessage<"match.update-ports">;
       resourceCount: Record<SettlersCore.Player["name"], number>;
       robbablePlayersUpdate: SingleIncomingMessage<"match.update-pick-robbed">;
       robberMovementUpdate: SingleIncomingMessage<"match.update-robber-movement">;
@@ -247,6 +295,7 @@ export namespace SettlersMatch {
       tradeActionState: SingleIncomingMessage<"match.update-trade">;
       tradeOffersUpdate: SingleIncomingMessage<"match.update-trade-offers">;
       vertexUpdate: SingleIncomingMessage<"match.update-vertices">;
+      yearOfPlentyUpdate: SingleIncomingMessage<"match.update-year-of-plenty">;
     };
   };
 

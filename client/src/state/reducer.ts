@@ -10,11 +10,16 @@ import {
   setDiscard,
   setEdges,
   setHand,
+  setKnightUsages,
   setLogs,
+  setLongestRoadSizes,
   setMap,
   setMapName,
+  setMonopoly,
   setPassAction,
+  setPlayerPorts,
   setPlayers,
+  setPoints,
   setPorts,
   setResourceCount,
   setRoads,
@@ -23,6 +28,7 @@ import {
   setSettlements,
   setTradeAction,
   setVertices,
+  setYearOfPlenty,
 } from "./match";
 import type { SettlersIncomingMessage } from "./messages";
 import { setRoom, setRoomParams, setRoomStatus } from "./room";
@@ -111,6 +117,22 @@ export function reducer(message: SettlersIncomingMessage) {
       setResourceCount(message.payload.resourceCount);
       break;
     }
+    case "match.update-points": {
+      setPoints(message.payload.points);
+      break;
+    }
+    case "match.update-longest-road-size": {
+      setLongestRoadSizes(message.payload.longestRoadSizeByPlayer);
+      break;
+    }
+    case "match.update-knight-usage": {
+      setKnightUsages(message.payload.knightUsesByPlayer);
+      break;
+    }
+    case "match.update-ports": {
+      setPlayerPorts(message.payload.ports);
+      break;
+    }
     case "match.update-pass": {
       setPassAction(message.payload.enabled);
       break;
@@ -144,6 +166,14 @@ export function reducer(message: SettlersIncomingMessage) {
     }
     case "match.update-pick-robbed": {
       setRobbablePlayers(message.payload);
+      break;
+    }
+    case "match.update-monopoly": {
+      setMonopoly(message.payload.enabled);
+      break;
+    }
+    case "match.update-year-of-plenty": {
+      setYearOfPlenty(message.payload.enabled);
       break;
     }
     case "setup.hydrate": {
@@ -191,13 +221,13 @@ export function reducer(message: SettlersIncomingMessage) {
       setMapName(message.payload.mapName);
       setMap(message.payload.map);
       setPlayers(message.payload.players);
-      setResourceCount(message.payload.resourceCount);
       setPorts(message.payload.ports);
 
       setCities(message.payload.mapUpdate.payload.cities);
       setRoads(message.payload.mapUpdate.payload.roads);
       setSettlements(message.payload.mapUpdate.payload.settlements);
       setBlockedTiles(message.payload.mapUpdate.payload.blockedTiles);
+      setPlayerPorts(message.payload.portsUpdate.payload.ports);
 
       setHand(message.payload.handUpdate.payload.hand);
       setDevHand(message.payload.devHandUpdate.payload.devHand);
@@ -218,10 +248,17 @@ export function reducer(message: SettlersIncomingMessage) {
       setBuyDevCardAction(message.payload.buyDevCardUpdate.payload.enabled);
       setRobber(message.payload.robberMovementUpdate.payload);
 
+      setResourceCount(message.payload.resourceCount);
+      setPoints(message.payload.pointsUpdate.payload.points);
+      setLongestRoadSizes(message.payload.longestRoadUpdate.payload.longestRoadSizeByPlayer);
+      setKnightUsages(message.payload.knightsUsageUpdate.payload.knightUsesByPlayer);
+
+      setYearOfPlenty(message.payload.yearOfPlentyUpdate.payload.enabled);
+
       break;
     }
     default: {
-      console.warn("Unknown websocket message type:", message.type);
+      console.warn("Unknown websocket message type:", (message as any).type);
     }
   }
 }

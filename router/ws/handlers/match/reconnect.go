@@ -58,6 +58,10 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 	currentRoundState := UpdateCurrentRoundPlayerState(room, player.Username)
 	diceState := UpdateDiceState(room, player.Username)
 	handState := UpdatePlayerHand(room, player.Username)
+	pointsState := UpdatePoints(room, player.Username)
+	portsState := UpdatePortsState(room, player.Username)
+	knightsUsageState := UpdateKnightUsage(room, player.Username)
+	longestRoadState := UpdateLongestRoadSize(room, player.Username)
 	devHandState := UpdatePlayerDevHand(room, player.Username)
 	devHandPermissionsState := UpdatePlayerDevHandPermissions(room, player.Username)
 	discardPhaseState := UpdateDiscardPhase(room, player.Username)
@@ -67,6 +71,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 	robberMovementState := UpdateRobberMovement(room, player.Username)
 	robbablePlayersState := UpdateRobbablePlayers(room, player.Username)
 	buyDevCardState := UpdateBuyDevelopmentCard(room, player.Username)
+	yearOfPlentyState := UpdateYOP(room, player.Username)
 
 	hydrateMsg := &types.WebSocketServerResponse{
 		Type: "match.hydrate",
@@ -78,12 +83,16 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 			DiscardUpdate:            discardPhaseState,
 			EdgeUpdate:               edgeState,
 			HandUpdate:               handState,
+			KnightsUsageUpdate:       knightsUsageState,
+			LongestRoadUpdate:        longestRoadState,
 			Map:                      game.Map(),
 			MapName:                  game.MapName(),
 			MapUpdate:                mapState,
 			PassActionState:          passState,
 			Players:                  game.Players(),
+			PointsUpdate:             pointsState,
 			Ports:                    game.Ports(),
+			PortsUpdate:              portsState,
 			ResourceCount:            game.NumberOfResourcesByPlayer(),
 			RobbablePlayersUpdate:    robbablePlayersState,
 			RobberUpdate:             robberMovementState,
@@ -91,6 +100,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 			TradeActionState:         tradeState,
 			TradeOffersUpdate:        tradeOffersState,
 			VertexUpdate:             vertexState,
+			YearOfPlentyUpdate:       yearOfPlentyState,
 		},
 	}
 

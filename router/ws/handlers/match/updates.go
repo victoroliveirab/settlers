@@ -22,12 +22,18 @@ func UpdateCurrentRoundPlayerState(room *entities.Room, username string) *types.
 func UpdateVertexState(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-vertices", room.Status)
-	availableVertices, err := game.AvailableVertices(username)
+	availableSettlementVertices, err := game.AvailableVertices(username)
+	var availableCityVertices []int
+	if err == nil {
+		availableCityVertices = game.SettlementsByPlayer(username)
+	} else {
+		availableCityVertices = []int{}
+	}
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: verticesStateUpdateResponsePayload{
-			AvailableCityVertices:       game.SettlementsByPlayer(username),
-			AvailableSettlementVertices: availableVertices,
+			AvailableCityVertices:       availableCityVertices,
+			AvailableSettlementVertices: availableSettlementVertices,
 			Enabled:                     err == nil,
 			Highlight:                   room.Status == "setup",
 		},
@@ -74,6 +80,17 @@ func UpdateMapState(room *entities.Room, username string) *types.WebSocketServer
 			Cities:       game.AllCities(),
 			Roads:        game.AllRoads(),
 			Settlements:  game.AllSettlements(),
+		},
+	}
+}
+
+func UpdatePortsState(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-ports", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: portStateUpdateResponsePayload{
+			Ports: game.PortsByPlayer(username),
 		},
 	}
 }
@@ -221,6 +238,61 @@ func UpdateTradeOffers(room *entities.Room, username string) *types.WebSocketSer
 		Type: types.ResponseType(messageType),
 		Payload: updateActiveTradeOffersStateUpdate{
 			Offers: game.ActiveTradeOffers(),
+		},
+	}
+}
+
+func UpdatePoints(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-points", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: pointsStateUpdate{
+			Points: game.Points(),
+		},
+	}
+}
+
+func UpdateLongestRoadSize(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-longest-road-size", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: longestRoadStateUpdate{
+			LongestRoadSizeByPlayer: game.LongestRoadLengths(),
+		},
+	}
+}
+
+func UpdateKnightUsage(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-knight-usage", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: knightUsageStateUpdate{
+			KnightUsesByPlayer: game.KnightUses(),
+		},
+	}
+}
+
+func UpdateMonopoly(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-monopoly", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: monopolyStateUpdate{
+			Enabled: game.CurrentRoundPlayer().ID == username && game.RoundType() == core.MonopolyPickResource,
+		},
+	}
+}
+
+func UpdateYOP(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-year-of-plenty", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: yearOfPlentyStateUpdate{
+			Enabled: game.CurrentRoundPlayer().ID == username && game.RoundType() == core.YearOfPlentyPickResources,
 		},
 	}
 }

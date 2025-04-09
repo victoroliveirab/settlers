@@ -16,8 +16,9 @@ declare namespace SettlersCore {
     vertices: number[];
     coordinates: { q: number; r: number; s: number };
   };
+  export type PortType = Resource | "General";
   export type Port = {
-    type: string;
+    type: PortType;
     vertices: [number, number];
   };
   export type Map = Tile[];

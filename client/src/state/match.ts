@@ -1,5 +1,7 @@
 import { create } from "zustand";
 
+type QuantityByPlayer = Record<SettlersCore.Player["name"], number>;
+
 type MatchState = {
   actions: {
     buyDevCard: boolean;
@@ -40,12 +42,19 @@ type MatchState = {
     highlight: boolean;
   };
   hand: SettlersCore.Hand;
+  knightUsages: QuantityByPlayer;
+  longestRoadSize: QuantityByPlayer;
   logs: string[];
   map: SettlersCore.Map;
   mapName: string;
+  monopoly: {
+    enabled: boolean;
+  };
+  ownedPorts: SettlersCore.PortType[];
+  points: QuantityByPlayer;
   ports: SettlersCore.Ports;
   players: SettlersCore.Player[];
-  resourceCount: Record<SettlersCore.Player["name"], number>;
+  resourceCount: QuantityByPlayer;
   roads: SettlersCore.Roads;
   robbablePlayers: {
     enabled: boolean;
@@ -62,6 +71,9 @@ type MatchState = {
     availableForSettlement: number[];
     enabled: boolean;
     highlight: boolean;
+  };
+  yearOfPlenty: {
+    enabled: boolean;
   };
 };
 
@@ -109,9 +121,16 @@ export const useMatchStore = create<MatchState>(() => ({
     Grain: 0,
     Ore: 0,
   },
+  knightUsages: {},
+  longestRoadSize: {},
   logs: [],
   map: [],
   mapName: "",
+  monopoly: {
+    enabled: false,
+  },
+  ownedPorts: [],
+  points: {},
   roads: {},
   robber: {
     availableTiles: [],
@@ -131,6 +150,9 @@ export const useMatchStore = create<MatchState>(() => ({
     availableForSettlement: [],
     enabled: false,
     highlight: false,
+  },
+  yearOfPlenty: {
+    enabled: false,
   },
 }));
 
@@ -239,6 +261,22 @@ export const setResourceCount = (value: Record<string, number>) => {
   return useMatchStore.setState({ resourceCount: value });
 };
 
+export const setPoints = (value: Record<string, number>) => {
+  return useMatchStore.setState({ points: value });
+};
+
+export const setLongestRoadSizes = (value: Record<string, number>) => {
+  return useMatchStore.setState({ longestRoadSize: value });
+};
+
+export const setKnightUsages = (value: Record<string, number>) => {
+  return useMatchStore.setState({ knightUsages: value });
+};
+
+export const setPlayerPorts = (value: SettlersCore.PortType[]) => {
+  return useMatchStore.setState({ ownedPorts: value });
+};
+
 export const setVertices = (
   availableForSettlement: number[],
   availableForCity: number[],
@@ -274,4 +312,12 @@ export const setRobbablePlayers = (value: MatchState["robbablePlayers"]) => {
   return useMatchStore.setState({
     robbablePlayers: value,
   });
+};
+
+export const setMonopoly = (value: boolean) => {
+  return useMatchStore.setState({ monopoly: { enabled: value } });
+};
+
+export const setYearOfPlenty = (value: boolean) => {
+  return useMatchStore.setState({ yearOfPlenty: { enabled: value } });
 };

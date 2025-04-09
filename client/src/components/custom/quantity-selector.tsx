@@ -3,6 +3,7 @@ import { Minus, Plus } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface IQuantitySelectorProps {
+  disabled?: boolean;
   onValueChange: (value: number) => void;
   max?: number;
   min?: number;
@@ -11,6 +12,7 @@ interface IQuantitySelectorProps {
 }
 
 export const QuantitySelector = ({
+  disabled = false,
   max = Infinity,
   min = 0,
   onValueChange,
@@ -23,7 +25,7 @@ export const QuantitySelector = ({
         size="xs"
         variant="ghost"
         onClick={() => onValueChange(Math.max(min, value - step))}
-        // disabled={value <= min}
+        disabled={disabled || value - step < min}
       >
         <Minus />
       </Button>
@@ -32,7 +34,7 @@ export const QuantitySelector = ({
         size="xs"
         variant="ghost"
         onClick={() => onValueChange(Math.min(max, value + step))}
-        disabled={value >= max}
+        disabled={disabled || value + step > max}
       >
         <Plus />
       </Button>

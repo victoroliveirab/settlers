@@ -12,6 +12,7 @@ export const DevHand = () => {
   const devHandPermissions = useMatchStore((state) => state.devHandPermissions);
 
   const onDevCardClick = (kind: SettlersCore.DevelopmentCard) => {
+    if (!devHandPermissions[kind]) return;
     sendMessage({ type: "match.dev-card-click", payload: { kind } });
   };
 

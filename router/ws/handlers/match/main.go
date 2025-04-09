@@ -17,6 +17,8 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		return handleTileClick(player, message)
 	case "match.pass-click":
 		return handleEndRound(player, message)
+	case "match.make-bank-trade":
+		return handleMakeBankTrade(player, message)
 	case "match.create-trade-offer":
 		return handleCreateTradeOffer(player, message)
 	case "match.create-counter-trade-offer":
@@ -37,6 +39,10 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		return handlePickRobbedPlayer(player, message)
 	case "match.discard-cards":
 		return handleDiscardCards(player, message)
+	case "match.monopoly":
+		return handleMonopolyResource(player, message)
+	case "match.year-of-plenty":
+		return handlePickYearOfPlentyResources(player, message)
 	case "match.end-round":
 		return handleEndRound(player, message)
 	default:

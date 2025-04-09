@@ -18,6 +18,8 @@ export default abstract class BaseMapRenderer {
   protected outerPadding: number;
   protected spacingProportion: number;
 
+  private darkenTilesTimeoutRef: NodeJS.Timeout | null = null;
+
   constructor(
     protected readonly root: HTMLElement,
     protected readonly colorByPlayer: Record<
@@ -473,6 +475,32 @@ export default abstract class BaseMapRenderer {
       const robber = this.drawRobber(center);
       tile.after(robber);
     }
+  }
+
+  darkenTiles(tilesIDs: number[]) {
+    if (tilesIDs.length === 0) return;
+    const tileGroup = this.root.querySelector<SVGPolygonElement>(`#${this.tilesGroupID}`);
+    if (!tileGroup) {
+      console.error("SVG Tile Group not found");
+      return;
+    }
+    if (tileGroup.classList.contains("pulse")) {
+      console.warn("Already blinking tiles");
+      return;
+    }
+    if (this.darkenTilesTimeoutRef) {
+      clearTimeout(this.darkenTilesTimeoutRef);
+    }
+    const tiles = Array.from<SVGPolygonElement>(this.root.querySelectorAll("[data-type='tile']"));
+    for (const tile of tiles) {
+      if (!tilesIDs.includes(Number(tile.dataset.id))) continue;
+      tile.classList.add("darken");
+    }
+    this.darkenTilesTimeoutRef = setTimeout(() => {
+      for (const tile of tiles) {
+        tile.classList.remove("darken");
+      }
+    }, 1000);
   }
 
   abstract render(map: SettlersCore.Map, ports: SettlersCore.Ports): void;

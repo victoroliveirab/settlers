@@ -17,6 +17,7 @@ import "./map.css";
 import { useUpdateCities } from "./updaters/useUpdateCities";
 import { useUpdateRobbers } from "./updaters/useUpdateRobbers";
 import { useUpdateBlockedTiles } from "./updaters/useUpdateBlockedTiles";
+import { useDarkenTilesAfterDiceRoll } from "./updaters/useDarkenTilesAfterDiceRoll";
 
 export const SettlersMap = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -58,6 +59,8 @@ export const SettlersMap = () => {
   useUpdateVertices(instance);
   useUpdateRobbers(instance); // TODO: change name to useUpdateTiles
   useUpdateBlockedTiles(instance);
+
+  useDarkenTilesAfterDiceRoll(instance);
 
   return <div ref={ref} className="h-full w-full flex items-center justify-center" />;
 };

@@ -8,6 +8,14 @@ import { resourcesOrder } from "@/core/constants";
 
 import { isDirty } from "./utils";
 
+const defaultInitialState: SettlersCore.ResourceCollection = {
+  Lumber: 0,
+  Brick: 0,
+  Sheep: 0,
+  Grain: 0,
+  Ore: 0,
+};
+
 interface ITradeProps {
   className?: string;
   children: (props: {
@@ -18,16 +26,22 @@ interface ITradeProps {
     totalRequested: number;
   }) => ReactNode;
   givenResourcesAvailable: SettlersCore.ResourceCollection;
-  initialStateGiven: SettlersCore.ResourceCollection;
-  initialStateRequested: SettlersCore.ResourceCollection;
+  givenResourceIsDisabledGetter?: (resource: SettlersCore.Resource) => boolean;
+  givenStep?: number;
+  givenStepGetter?: (resource: SettlersCore.Resource) => number;
+  initialStateGiven?: SettlersCore.ResourceCollection;
+  initialStateRequested?: SettlersCore.ResourceCollection;
 }
 
 export const Trade = ({
   className,
   children,
   givenResourcesAvailable,
-  initialStateGiven,
-  initialStateRequested,
+  givenResourceIsDisabledGetter,
+  givenStep,
+  givenStepGetter,
+  initialStateGiven = defaultInitialState,
+  initialStateRequested = defaultInitialState,
 }: ITradeProps) => {
   const [given, setGiven] = useState(initialStateGiven);
   const [requested, setRequested] = useState(initialStateRequested);
@@ -41,9 +55,10 @@ export const Trade = ({
         <h3>You give:</h3>
         <ul className="flex justify-center gap-6">
           {resourcesOrder.map((resource) => (
-            <li className="flex flex-col gap-2 text-center">
+            <li key={resource} className="flex flex-col gap-2 text-center">
               <GameCard className="h-16" value={resource} />
               <QuantitySelector
+                disabled={givenResourceIsDisabledGetter?.(resource) ?? false}
                 min={0}
                 max={givenResourcesAvailable[resource]}
                 onValueChange={(value) => {
@@ -52,6 +67,7 @@ export const Trade = ({
                     [resource]: value,
                   });
                 }}
+                step={givenStepGetter ? givenStepGetter(resource) ?? 1 : givenStep ?? 1}
                 value={given[resource]}
               />
             </li>
@@ -62,7 +78,7 @@ export const Trade = ({
         <h3>You receive:</h3>
         <ul className="flex justify-center gap-6">
           {resourcesOrder.map((resource) => (
-            <li className="flex flex-col gap-3 text-center">
+            <li key={resource} className="flex flex-col gap-3 text-center">
               <GameCard className="h-16" value={resource} />
               <QuantitySelector
                 onValueChange={(value) => {

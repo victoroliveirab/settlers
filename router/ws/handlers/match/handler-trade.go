@@ -8,6 +8,11 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
+type makeBankTradeRequestPayload struct {
+	Given     string `json:"given"`
+	Requested string `json:"requested"`
+}
+
 type createTradeOfferRequestPayload struct {
 	Given     map[string]int `json:"given"`
 	Requested map[string]int `json:"requested"`
@@ -34,6 +39,34 @@ type finalizeTradeOfferRequestPayload struct {
 
 type cancelTradeOfferRequestPayload struct {
 	TradeID int `json:"tradeID"`
+}
+
+func handleMakeBankTrade(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
+	payload, err := utils.ParseJsonPayload[makeBankTradeRequestPayload](message)
+	if err != nil {
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
+	}
+
+	resourceGiven := payload.Given
+	resourceRequested := payload.Requested
+	room := player.Room
+	game := room.Game
+
+	err = game.MakeBankTrade(player.Username, resourceGiven, resourceRequested)
+	if err != nil {
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
+	}
+
+	logs := []string{fmt.Sprintf("%s traded [res q=4]%s[/res] for [res]%s[/res] with the bank", player.Username, resourceGiven, resourceRequested)}
+	room.EnqueueBulkUpdate(
+		UpdateResourceCount,
+		UpdatePlayerHand,
+		UpdateLogs(logs),
+	)
+
+	return true, nil
 }
 
 func handleCreateTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {

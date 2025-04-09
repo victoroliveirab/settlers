@@ -36,6 +36,7 @@ func handlePickRobbedPlayer(player *entities.GamePlayer, message *types.WebSocke
 		UpdatePass,
 		UpdateTrade,
 		UpdateRobbablePlayers,
+		UpdatePlayerDevHandPermissions,
 		UpdateLogs(logs),
 	)
 

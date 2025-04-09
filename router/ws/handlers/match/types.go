@@ -30,6 +30,10 @@ type mapStateUpdateResponsePayload struct {
 	Settlements  map[int]core.Building `json:"settlements"`
 }
 
+type portStateUpdateResponsePayload struct {
+	Ports []string `json:"ports"`
+}
+
 type diceStateUpdateResponsePayload struct {
 	Dice    [2]int `json:"dice"`
 	Enabled bool   `json:"enabled"`
@@ -83,6 +87,26 @@ type updateActiveTradeOffersStateUpdate struct {
 	Offers []core.Trade `json:"offers"`
 }
 
+type pointsStateUpdate struct {
+	Points map[string]int `json:"points"`
+}
+
+type longestRoadStateUpdate struct {
+	LongestRoadSizeByPlayer map[string]int `json:"longestRoadSizeByPlayer"`
+}
+
+type knightUsageStateUpdate struct {
+	KnightUsesByPlayer map[string]int `json:"knightUsesByPlayer"`
+}
+
+type monopolyStateUpdate struct {
+	Enabled bool `json:"enabled"`
+}
+
+type yearOfPlentyStateUpdate struct {
+	Enabled bool `json:"enabled"`
+}
+
 type hydrateSetupMatchResponsePayload struct {
 	EdgeUpdate        *types.WebSocketServerResponse `json:"edgeUpdate"`
 	Map               []*coreT.MapBlock              `json:"map"`
@@ -103,12 +127,17 @@ type hydrateOngoingMatchResponsePayload struct {
 	DiscardUpdate            *types.WebSocketServerResponse `json:"discardUpdate"`
 	EdgeUpdate               *types.WebSocketServerResponse `json:"edgeUpdate"`
 	HandUpdate               *types.WebSocketServerResponse `json:"handUpdate"`
+	KnightsUsageUpdate       *types.WebSocketServerResponse `json:"knightsUsageUpdate"`
+	LongestRoadUpdate        *types.WebSocketServerResponse `json:"longestRoadUpdate"`
 	Map                      []*coreT.MapBlock              `json:"map"`
 	MapName                  string                         `json:"mapName"`
 	MapUpdate                *types.WebSocketServerResponse `json:"mapUpdate"`
+	MonopolyUpdate           *types.WebSocketServerResponse `json:"monopolyUpdate"`
 	PassActionState          *types.WebSocketServerResponse `json:"passActionState"`
 	Players                  []coreT.Player                 `json:"players"`
+	PointsUpdate             *types.WebSocketServerResponse `json:"pointsUpdate"`
 	Ports                    map[int]string                 `json:"ports"`
+	PortsUpdate              *types.WebSocketServerResponse `json:"portsUpdate"`
 	ResourceCount            map[string]int                 `json:"resourceCount"`
 	RobbablePlayersUpdate    *types.WebSocketServerResponse `json:"robbablePlayersUpdate"`
 	RobberUpdate             *types.WebSocketServerResponse `json:"robberMovementUpdate"`
@@ -116,4 +145,5 @@ type hydrateOngoingMatchResponsePayload struct {
 	TradeActionState         *types.WebSocketServerResponse `json:"tradeActionState"`
 	TradeOffersUpdate        *types.WebSocketServerResponse `json:"tradeOffersUpdate"`
 	VertexUpdate             *types.WebSocketServerResponse `json:"vertexUpdate"`
+	YearOfPlentyUpdate       *types.WebSocketServerResponse `json:"yearOfPlentyUpdate"`
 }

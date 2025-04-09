@@ -43,6 +43,10 @@
   opacity: 1 !important;
 }
 
+#map-tiles > [data-type="tile"].darken {
+  filter: saturate(25%);
+}
+
 @keyframes pulse {
   0% {
     opacity: 0;
