@@ -23,9 +23,6 @@ function generateHexagonGrid() {
   return grid;
 }
 
-const OUTER_PADDING = 20;
-const HEXAGON_SIZE = 64;
-
 export default class Base4MapRenderer extends BaseMapRenderer {
   private readonly grid: HexCoordinate[];
   constructor(
@@ -39,10 +36,10 @@ export default class Base4MapRenderer extends BaseMapRenderer {
   }
 
   render(map: SettlersCore.Map, ports: { vertices: [number, number]; type: string }[]): void {
-    const hexSize = HEXAGON_SIZE;
-    const spacing = hexSize / 8;
+    const hexSize = this.hexSize;
+    const spacing = hexSize * this.spacingProportion;
 
-    const [min, max] = this.getRectBounds(this.grid, hexSize, spacing, OUTER_PADDING);
+    const [min, max] = this.getRectBounds(this.grid, hexSize, spacing, this.outerPadding);
     const svgWidth = max.x - min.x;
     const svgHeight = max.y - min.y;
 
@@ -52,25 +49,38 @@ export default class Base4MapRenderer extends BaseMapRenderer {
     svg.setAttribute("width", String(svgWidth));
     svg.setAttribute("height", String(svgHeight));
     svg.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+    this.root.appendChild(svg);
 
-    const hexagons = document.createElementNS(this.ns, "g");
-    const tokens = document.createElementNS(this.ns, "g");
+    const tilesLayer = document.createElementNS(this.ns, "g");
+    tilesLayer.id = this.tilesGroupID;
+    tilesLayer.addEventListener("click", (e) => {
+      const element = e.target as SVGPolygonElement;
+      if (element.dataset.disabled !== "false" || !element.dataset.id) return;
+      this.eventHandlers.onTileClick(Number(element.dataset.id));
+    });
 
-    const edges = document.createElementNS(this.ns, "g");
-    edges.id = this.edgesGroupID;
-    edges.addEventListener("click", (e) => {
+    const numberTokensLayer = document.createElementNS(this.ns, "g");
+
+    const edgesLayer = document.createElementNS(this.ns, "g");
+    edgesLayer.id = this.edgesGroupID;
+    edgesLayer.addEventListener("click", (e) => {
       const element = e.target as SVGPolygonElement;
       if (element.dataset.disabled !== "false" || !element.dataset.id) return;
       this.eventHandlers.onEdgeClick(Number(element.dataset.id));
     });
 
-    const vertices = document.createElementNS(this.ns, "g");
-    vertices.id = this.verticesGroupID;
-    vertices.addEventListener("click", (e) => {
+    const verticesLayer = document.createElementNS(this.ns, "g");
+    verticesLayer.id = this.verticesGroupID;
+    verticesLayer.addEventListener("click", (e) => {
       const element = e.target as SVGCircleElement;
       if (element.dataset.disabled !== "false" || !element.dataset.id) return;
       this.eventHandlers.onVertexClick(Number(element.dataset.id));
     });
+
+    svg.appendChild(tilesLayer);
+    svg.appendChild(numberTokensLayer);
+    svg.appendChild(edgesLayer);
+    svg.appendChild(verticesLayer);
 
     const createdEdges = new Set<number>();
     const createdVertices = new Set<number>();
@@ -83,12 +93,11 @@ export default class Base4MapRenderer extends BaseMapRenderer {
         y: point.y - min.y,
       };
       const hexagon = this.drawHexagon(center, hexSize, tile.id, tile.resource);
-      hexagon.id = String(tile.id);
       if (tile.resource !== "Desert") {
         const token = this.drawNumberToken(center, tile.token);
-        tokens.append(token);
+        numberTokensLayer.append(token);
       }
-      hexagons.appendChild(hexagon);
+      tilesLayer.appendChild(hexagon);
 
       const edgesCoordinates = this.getEdgesCoordinatesAroundHexagon(center, hexSize, spacing, 0);
       edgesCoordinates.forEach((edge, i) => {
@@ -100,7 +109,7 @@ export default class Base4MapRenderer extends BaseMapRenderer {
           false,
           this.colorByPlayer[this.username].background,
         );
-        edges.appendChild(element);
+        edgesLayer.appendChild(element);
         createdEdges.add(edgeID);
       });
 
@@ -117,29 +126,13 @@ export default class Base4MapRenderer extends BaseMapRenderer {
           this.colorByPlayer[this.username].background,
         );
         createdVertices.add(vertexID);
-        vertices.appendChild(circle);
+        verticesLayer.appendChild(circle);
       });
-    });
 
-    svg.appendChild(hexagons);
-    svg.appendChild(tokens);
-    svg.appendChild(edges);
-    svg.appendChild(vertices);
-
-    this.root.appendChild(svg);
-  }
-
-  drawRobbers(tilesIDs: number[]) {
-    const robbers = this.root.querySelectorAll("rect[data-robber='true']");
-    robbers.forEach((robber) => {
-      robber.remove();
-    });
-
-    tilesIDs.forEach((tileID) => {
-      const robber = this.generateRobber();
-      const hexagon = this.root.querySelector(`polygon[data-id="${tileID}"]`)!;
-      const group = hexagon.parentElement!;
-      group.appendChild(robber);
+      if (tile.blocked) {
+        const robber = this.drawRobber(center);
+        tilesLayer.appendChild(robber);
+      }
     });
   }
 }

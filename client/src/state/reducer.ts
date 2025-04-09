@@ -1,8 +1,13 @@
 import {
   setActiveTradeOffers,
+  setBlockedTiles,
+  setBuyDevCardAction,
   setCities,
   setCurrentRoundPlayer,
+  setDevHand,
+  setDevHandPermissions,
   setDice,
+  setDiscard,
   setEdges,
   setHand,
   setLogs,
@@ -13,6 +18,8 @@ import {
   setPorts,
   setResourceCount,
   setRoads,
+  setRobbablePlayers,
+  setRobber,
   setSettlements,
   setTradeAction,
   setVertices,
@@ -66,6 +73,7 @@ export function reducer(message: SettlersIncomingMessage) {
       setCities(message.payload.cities);
       setRoads(message.payload.roads);
       setSettlements(message.payload.settlements);
+      setBlockedTiles(message.payload.blockedTiles);
       break;
     }
     case "setup.update-edges":
@@ -115,6 +123,29 @@ export function reducer(message: SettlersIncomingMessage) {
       setActiveTradeOffers(message.payload.offers);
       break;
     }
+    case "match.update-buy-dev-card": {
+      setBuyDevCardAction(message.payload.enabled);
+      break;
+    }
+    case "match.update-dev-hand": {
+      setDevHand(message.payload.devHand);
+      break;
+    }
+    case "match.update-dev-hand-permissions": {
+      setDevHandPermissions(message.payload.devHandPermissions);
+      break;
+    }
+    case "match.update-discard-phase": {
+      break;
+    }
+    case "match.update-robber-movement": {
+      setRobber(message.payload);
+      break;
+    }
+    case "match.update-pick-robbed": {
+      setRobbablePlayers(message.payload);
+      break;
+    }
     case "setup.hydrate": {
       setRoomStatus("setup"); // This should come from the API
 
@@ -139,6 +170,7 @@ export function reducer(message: SettlersIncomingMessage) {
 
       setRoads(message.payload.mapUpdate.payload.roads);
       setSettlements(message.payload.mapUpdate.payload.settlements);
+      setBlockedTiles(message.payload.mapUpdate.payload.blockedTiles);
       break;
     }
     case "match.hydrate": {
@@ -165,8 +197,11 @@ export function reducer(message: SettlersIncomingMessage) {
       setCities(message.payload.mapUpdate.payload.cities);
       setRoads(message.payload.mapUpdate.payload.roads);
       setSettlements(message.payload.mapUpdate.payload.settlements);
+      setBlockedTiles(message.payload.mapUpdate.payload.blockedTiles);
 
       setHand(message.payload.handUpdate.payload.hand);
+      setDevHand(message.payload.devHandUpdate.payload.devHand);
+      setDevHandPermissions(message.payload.devHandPermissionsUpdate.payload.devHandPermissions);
       setDice({
         enabled: message.payload.diceUpdate.payload.enabled,
         value: message.payload.diceUpdate.payload.dice,
@@ -174,8 +209,14 @@ export function reducer(message: SettlersIncomingMessage) {
       setPassAction(message.payload.passActionState.payload.enabled);
       setTradeAction(message.payload.tradeActionState.payload.enabled);
       setActiveTradeOffers(message.payload.tradeOffersUpdate.payload.offers);
-      // TODO: set discard state
-      // TODO: set robber movement state
+      setDiscard(
+        message.payload.discardUpdate.payload.discardAmounts,
+        message.payload.discardUpdate.payload.enabled,
+      );
+      setRobber(message.payload.robberMovementUpdate.payload);
+      setRobbablePlayers(message.payload.robbablePlayersUpdate.payload);
+      setBuyDevCardAction(message.payload.buyDevCardUpdate.payload.enabled);
+      setRobber(message.payload.robberMovementUpdate.payload);
 
       break;
     }

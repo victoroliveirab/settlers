@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 
+import { Die } from "@/components/custom/die";
 import { cn } from "@/lib/utils";
+
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMatchStore } from "@/state/match";
 
-import { Die } from "./components/die";
 import { Pass } from "./components/pass";
 import { Trade } from "./components/trade";
+import { BuyDevelopmentCardButton } from "./components/development-card";
 
 export const Actions = () => {
   const { sendMessage } = useWebSocket();
@@ -27,6 +29,7 @@ export const Actions = () => {
 
   return (
     <section className="h-fit flex flex-col justify-between gap-2">
+      <BuyDevelopmentCardButton />
       <ul className="flex gap-1">
         <li className="flex-1">
           <Pass />

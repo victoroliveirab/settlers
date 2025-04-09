@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 type MatchState = {
   actions: {
+    buyDevCard: boolean;
     pass: boolean;
     trade: boolean;
   };
@@ -20,12 +21,18 @@ type MatchState = {
     status: "Open" | "Closed";
     timestamp: number;
   }[];
+  blockedTiles: number[];
   cities: SettlersCore.Cities;
   currentRoundPlayer: string;
   devHand: SettlersCore.DevHand;
+  devHandPermissions: Record<SettlersCore.DevelopmentCard, boolean>;
   dice: {
     enabled: boolean;
     value: [number, number];
+  };
+  discard: {
+    discardAmounts: Record<SettlersCore.Player["name"], number>;
+    enabled: boolean;
   };
   edges: {
     available: number[];
@@ -40,6 +47,15 @@ type MatchState = {
   players: SettlersCore.Player[];
   resourceCount: Record<SettlersCore.Player["name"], number>;
   roads: SettlersCore.Roads;
+  robbablePlayers: {
+    enabled: boolean;
+    options: SettlersCore.Player["name"][];
+  };
+  robber: {
+    availableTiles: number[];
+    enabled: boolean;
+    highlight: boolean;
+  };
   settlements: SettlersCore.Settlements;
   vertices: {
     availableForCity: number[];
@@ -51,10 +67,12 @@ type MatchState = {
 
 export const useMatchStore = create<MatchState>(() => ({
   actions: {
+    buyDevCard: false,
     pass: false,
     trade: false,
   },
   activeTradeOffers: [],
+  blockedTiles: [],
   cities: {},
   currentRoundPlayer: "",
   devHand: {
@@ -64,9 +82,20 @@ export const useMatchStore = create<MatchState>(() => ({
     "Victory Point": 0,
     "Year of Plenty": 0,
   },
+  devHandPermissions: {
+    Knight: false,
+    Monopoly: false,
+    "Road Building": false,
+    "Victory Point": false,
+    "Year of Plenty": false,
+  },
   dice: {
     enabled: false,
     value: [0, 0],
+  },
+  discard: {
+    discardAmounts: {},
+    enabled: false,
   },
   edges: {
     available: [],
@@ -84,6 +113,15 @@ export const useMatchStore = create<MatchState>(() => ({
   map: [],
   mapName: "",
   roads: {},
+  robber: {
+    availableTiles: [],
+    enabled: false,
+    highlight: false,
+  },
+  robbablePlayers: {
+    enabled: false,
+    options: [],
+  },
   settlements: {},
   ports: [],
   players: [],
@@ -95,6 +133,16 @@ export const useMatchStore = create<MatchState>(() => ({
     highlight: false,
   },
 }));
+
+export const setBuyDevCardAction = (state: boolean) => {
+  const { actions } = useMatchStore.getState();
+  return useMatchStore.setState({
+    actions: {
+      ...actions,
+      buyDevCard: state,
+    },
+  });
+};
 
 export const setPassAction = (state: boolean) => {
   const { actions } = useMatchStore.getState();
@@ -132,6 +180,10 @@ export const setDevHand = (value: SettlersCore.DevHand) => {
   return useMatchStore.setState({ devHand: value });
 };
 
+export const setDevHandPermissions = (value: Record<SettlersCore.DevelopmentCard, boolean>) => {
+  return useMatchStore.setState({ devHandPermissions: value });
+};
+
 export const setDice = (value: { enabled: boolean; value: [number, number] }) => {
   return useMatchStore.setState({ dice: value });
 };
@@ -152,6 +204,10 @@ export const setHand = (value: SettlersCore.Hand) => {
 
 export const setMap = (value: SettlersCore.Map) => {
   return useMatchStore.setState({ map: value });
+};
+
+export const setBlockedTiles = (value: number[]) => {
+  return useMatchStore.setState({ blockedTiles: value });
 };
 
 export const setMapName = (mapName: string) => {
@@ -196,5 +252,26 @@ export const setVertices = (
       enabled,
       highlight,
     },
+  });
+};
+
+export const setDiscard = (amounts: Record<string, number>, enabled: boolean) => {
+  return useMatchStore.setState({
+    discard: {
+      discardAmounts: amounts,
+      enabled,
+    },
+  });
+};
+
+export const setRobber = (value: MatchState["robber"]) => {
+  return useMatchStore.setState({
+    robber: value,
+  });
+};
+
+export const setRobbablePlayers = (value: MatchState["robbablePlayers"]) => {
+  return useMatchStore.setState({
+    robbablePlayers: value,
   });
 };

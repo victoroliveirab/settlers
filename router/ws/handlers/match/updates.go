@@ -38,6 +38,7 @@ func UpdateEdgeState(room *entities.Room, username string) *types.WebSocketServe
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-edges", room.Status)
 	availableEdges, err := game.AvailableEdges(username)
+	// TODO: perhaps highlight during road building phases as well
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: edgesStateUpdateResponsePayload{
@@ -88,6 +89,37 @@ func UpdatePlayerHand(room *entities.Room, username string) *types.WebSocketServ
 	}
 }
 
+func UpdatePlayerDevHand(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-dev-hand", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: devHandStateUpdateResponsePayload{
+			DevHand: game.DevelopmentHandByPlayer(username),
+		},
+	}
+}
+
+func UpdatePlayerDevHandPermissions(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-dev-hand-permissions", room.Status)
+	devHand := game.DevelopmentHandByPlayer(username)
+	permissions := make(map[string]bool)
+	for devHandKind, quantity := range devHand {
+		if quantity == 0 {
+			permissions[devHandKind] = false
+		} else {
+			permissions[devHandKind] = game.IsDevCardPlayable(username, devHandKind) == nil
+		}
+	}
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: devHandPermissionsStateUpdateResponsePayload{
+			DevHandPermissions: permissions,
+		},
+	}
+}
+
 func UpdateResourceCount(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-resource-count", room.Status)
@@ -132,10 +164,11 @@ func UpdatePass(room *entities.Room, username string) *types.WebSocketServerResp
 	dice := game.Dice()
 	diceHasValue := dice[0] > 0 && dice[1] > 0
 	isPlayerRound := game.CurrentRoundPlayer().ID == username
+	isRoundStateToEnable := game.RoundType() == core.Regular
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: passStateUpdateResponsePayload{
-			Enabled: diceHasValue && isPlayerRound,
+			Enabled: diceHasValue && isPlayerRound && isRoundStateToEnable,
 		},
 	}
 }
@@ -146,10 +179,23 @@ func UpdateTrade(room *entities.Room, username string) *types.WebSocketServerRes
 	dice := game.Dice()
 	diceHasValue := dice[0] > 0 && dice[1] > 0
 	isPlayerRound := game.CurrentRoundPlayer().ID == username
+	isRoundStateToEnable := game.RoundType() == core.Regular
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: startTradeStateUpdateResponsePayload{
-			Enabled: diceHasValue && isPlayerRound,
+			Enabled: diceHasValue && isPlayerRound && isRoundStateToEnable,
+		},
+	}
+}
+
+func UpdateBuyDevelopmentCard(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-buy-dev-card", room.Status)
+	enabled := game.IsBuyDevelopmentCardAvailable(username) == nil
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: buyDevCardStateUpdateResponsePayload{
+			Enabled: enabled,
 		},
 	}
 }

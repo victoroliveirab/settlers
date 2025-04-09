@@ -159,6 +159,7 @@ func handleFinalizeTradeOffer(player *entities.GamePlayer, message *types.WebSoc
 		UpdatePlayerHand,
 		UpdateResourceCount,
 		UpdateTradeOffers,
+		UpdateBuyDevelopmentCard,
 	)
 
 	return true, nil

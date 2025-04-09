@@ -31,6 +31,8 @@ func handleTileClick(player *entities.GamePlayer, message *types.WebSocketClient
 			logs = append(logs, fmt.Sprintf("No player to rob."))
 			room.EnqueueBulkUpdate(
 				UpdateMapState,
+				UpdatePass,
+				UpdateTrade,
 				UpdateLogs(logs),
 			)
 			return true, nil
@@ -45,14 +47,20 @@ func handleTileClick(player *entities.GamePlayer, message *types.WebSocketClient
 			room.EnqueueBulkUpdate(
 				UpdateMapState,
 				UpdatePlayerHand,
+				UpdateRobberMovement,
 				UpdateResourceCount,
+				UpdatePass,
+				UpdateTrade,
 				UpdateLogs(logs),
 			)
 		} else {
-			logs = append(logs, fmt.Sprintf("%s choosing who to rob."))
+			logs = append(logs, fmt.Sprintf("%s choosing who to rob.", player.Username))
 			room.EnqueueBulkUpdate(
 				UpdateMapState,
+				UpdateRobberMovement,
 				UpdateRobbablePlayers,
+				UpdatePass,
+				UpdateTrade,
 				UpdateLogs(logs),
 			)
 		}

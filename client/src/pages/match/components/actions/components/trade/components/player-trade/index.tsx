@@ -47,20 +47,22 @@ export const PlayerTrade = () => {
                 </DialogClose>
               </li>
               <li>
-                <Button
-                  disabled={
-                    !dirty ||
-                    totalGiven === 0 ||
-                    totalRequested === 0 ||
-                    hasSameResourceInOfferAndRequest({
-                      given,
-                      requested,
-                    })
-                  }
-                  onClick={() => submitTrade(given, requested)}
-                >
-                  Submit
-                </Button>
+                <DialogClose asChild>
+                  <Button
+                    disabled={
+                      !dirty ||
+                      totalGiven === 0 ||
+                      totalRequested === 0 ||
+                      hasSameResourceInOfferAndRequest({
+                        given,
+                        requested,
+                      })
+                    }
+                    onClick={() => submitTrade(given, requested)}
+                  >
+                    Submit
+                  </Button>
+                </DialogClose>
               </li>
             </ul>
           );

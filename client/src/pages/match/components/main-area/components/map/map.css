@@ -15,8 +15,8 @@
   opacity: 1;
 }
 
-#map [data-type="vertex"][data-owned="true"],
-#map [data-type="edge"][data-owned="true"] {
+#map [data-type="vertex"][data-disabled="true"],
+#map [data-type="edge"][data-disabled="true"] {
   cursor: not-allowed;
 }
 
@@ -24,6 +24,15 @@
 #map-edges.pulse > [data-type="edge"][data-disabled="false"] {
   animation-name: pulse;
   animation-duration: 0.75s;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+#map-tiles.pulse > [data-type="tile"][data-disabled="false"] {
+  cursor: pointer;
+  animation-name: pulse-tiles;
+  animation-duration: 0.45s;
   animation-timing-function: ease-out;
   animation-iteration-count: infinite;
   animation-direction: alternate;
@@ -41,5 +50,15 @@
 
   100% {
     opacity: 0.8;
+  }
+}
+
+@keyframes pulse-tiles {
+  0% {
+    filter: brightness(100%);
+  }
+
+  100% {
+    filter: brightness(125%);
   }
 }

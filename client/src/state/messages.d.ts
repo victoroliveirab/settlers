@@ -105,15 +105,29 @@ export namespace SettlersMatch {
     "match.update-hand": {
       hand: SettlersCore.Hand;
     };
+    "match.update-dev-hand": {
+      devHand: SettlersCore.DevHand;
+    };
+    "match.update-dev-hand-permissions": {
+      devHandPermissions: Record<SettlersCore.DevelopmentCard, boolean>;
+    };
     "match.update-pass": {
       enabled: boolean;
     };
     "match.update-trade": {
       enabled: boolean;
     };
+    "match.update-buy-dev-card": {
+      enabled: boolean;
+    };
     "match.update-robber-movement": {
       availableTiles: number[];
       enabled: boolean;
+      highlight: boolean;
+    };
+    "match.update-pick-robbed": {
+      enabled: boolean;
+      options: SettlersCore.Player["name"][];
     };
     "match.update-discard-phase": {
       discardAmounts: Record<SettlersCore.Player["name"], number>;
@@ -121,7 +135,7 @@ export namespace SettlersMatch {
     };
     "match.update-trade-offers": {
       offers: {
-        counters: number[];
+        creator: SettlersCore.Player["name"];
         finalized: boolean;
         id: number;
         offer: Record<SettlersCore.Resource, number>;
@@ -132,6 +146,11 @@ export namespace SettlersMatch {
         parent: number;
         player: SettlersCore.Player["name"];
         request: Record<SettlersCore.Resource, number>;
+        requester: SettlersCore.Player["name"];
+        responses: Record<
+          SettlersCore.Player["name"],
+          { status: "Open" | "Accepted" | "Declined"; blocked: boolean }
+        >;
         status: "Open" | "Closed";
         timestamp: number;
       }[];
@@ -150,6 +169,9 @@ export namespace SettlersMatch {
       tile: number;
     };
     "match.pass-click": {};
+    "match.dev-card-click": {
+      kind: SettlersCore.DevelopmentCard;
+    };
     "match.discard-cards": {
       resources: SettlersCore.ResourceCollection;
     };
@@ -175,6 +197,10 @@ export namespace SettlersMatch {
       accepter: string;
       tradeID: number;
     };
+    "match.rob-player": {
+      player: string;
+    };
+    "match.buy-dev-card": {};
     "match.end-round": {};
   };
 
@@ -201,7 +227,11 @@ export namespace SettlersMatch {
   export type MatchHydrateMessage = {
     type: "match.hydrate";
     payload: {
+      buyDevCardUpdate: SingleIncomingMessage<"match.update-buy-dev-card">;
+      devHandUpdate: SingleIncomingMessage<"match.update-dev-hand">;
+      devHandPermissionsUpdate: SingleIncomingMessage<"match.update-dev-hand-permissions">;
       diceUpdate: SingleIncomingMessage<"match.update-dice">;
+      discardUpdate: SingleIncomingMessage<"match.update-discard-phase">;
       edgeUpdate: SingleIncomingMessage<"match.update-edges">;
       handUpdate: SingleIncomingMessage<"match.update-hand">;
       map: SettlersCore.Map;
@@ -211,6 +241,7 @@ export namespace SettlersMatch {
       players: SettlersCore.Player[];
       ports: SettlersCore.Ports;
       resourceCount: Record<SettlersCore.Player["name"], number>;
+      robbablePlayersUpdate: SingleIncomingMessage<"match.update-pick-robbed">;
       robberMovementUpdate: SingleIncomingMessage<"match.update-robber-movement">;
       roundPlayerUpdate: SingleIncomingMessage<"match.update-round-player">;
       tradeActionState: SingleIncomingMessage<"match.update-trade">;

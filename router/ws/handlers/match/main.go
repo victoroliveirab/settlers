@@ -13,6 +13,8 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		return handleVertexClick(player, message)
 	case "match.edge-click":
 		return handleEdgeClick(player, message)
+	case "match.tile-click":
+		return handleTileClick(player, message)
 	case "match.pass-click":
 		return handleEndRound(player, message)
 	case "match.create-trade-offer":
@@ -27,10 +29,14 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		return handleCancelTradeOffer(player, message)
 	case "match.finalize-trade-offer":
 		return handleFinalizeTradeOffer(player, message)
-	// case "game.discard-cards":
-	// 	return handleDiscardCards(player, message)
-	// case "game.move-robber":
-	// 	return handleMoveRobber(player, message)
+	case "match.buy-dev-card":
+		return handleBuyDevCard(player, message)
+	case "match.dev-card-click":
+		return handleDevCardClick(player, message)
+	case "match.rob-player":
+		return handlePickRobbedPlayer(player, message)
+	case "match.discard-cards":
+		return handleDiscardCards(player, message)
 	case "match.end-round":
 		return handleEndRound(player, message)
 	default:

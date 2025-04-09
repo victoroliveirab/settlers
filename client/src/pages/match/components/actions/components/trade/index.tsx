@@ -29,7 +29,7 @@ export const Trade = () => {
         <DialogHeader className="h-fit">
           <DialogTitle>Trade menu</DialogTitle>
           <DialogDescription>
-            <Tabs defaultValue="account" className="w-full">
+            <Tabs defaultValue="player" className="w-full">
               <TabsList className="w-full">
                 <TabsTrigger className="cursor-pointer" value="bank">
                   Bank

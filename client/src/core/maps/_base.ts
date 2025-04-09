@@ -2,15 +2,21 @@ import type { HexagonDef, HexCoordinate, Point } from "./types";
 import { resourceColors } from "../constants";
 
 export type EventHandlers = {
-  onVertexClick: (vertexID: number) => void;
   onEdgeClick: (edgeID: number) => void;
+  onTileClick: (tileID: number) => void;
+  onVertexClick: (vertexID: number) => void;
 };
 
 export default abstract class BaseMapRenderer {
   protected readonly ns = "http://www.w3.org/2000/svg";
 
   protected readonly edgesGroupID = "map-edges";
+  protected readonly tilesGroupID = "map-tiles";
   protected readonly verticesGroupID = "map-vertices";
+
+  protected hexSize: number;
+  protected outerPadding: number;
+  protected spacingProportion: number;
 
   constructor(
     protected readonly root: HTMLElement,
@@ -20,7 +26,12 @@ export default abstract class BaseMapRenderer {
     >,
     protected readonly username: string,
     protected readonly eventHandlers: EventHandlers,
-  ) {}
+  ) {
+    // REFACTOR: workaround, make this responsible someday
+    this.hexSize = 64;
+    this.outerPadding = 20;
+    this.spacingProportion = 1 / 8;
+  }
 
   protected hexCoordinateToPoint(coordinate: HexCoordinate, hexSize: number, spacing: number) {
     const spacingFactor = 1 + spacing / (Math.sqrt(3) * hexSize);
@@ -82,6 +93,7 @@ export default abstract class BaseMapRenderer {
     const points = this.getHexagonPoints(center, size);
     const polygon = document.createElementNS(this.ns, "polygon");
     polygon.dataset.id = String(id);
+    polygon.dataset.type = "tile";
     polygon.setAttribute("points", points.map(({ x, y }) => `${x},${y}`).join(" "));
     polygon.setAttribute("fill", tileType ? resourceColors[tileType] : "transparent");
     polygon.setAttribute("stroke", tileType ? "#333" : "transparent");
@@ -274,6 +286,25 @@ export default abstract class BaseMapRenderer {
     return edge;
   }
 
+  protected drawRobber(center: Point) {
+    const side = this.hexSize / 2;
+    const x = center.x;
+    const y = center.y - this.hexSize / 2 - 2;
+    const height = (Math.sqrt(3) / 2) * side;
+    const robber = document.createElementNS(this.ns, "polygon");
+    robber.dataset.type = "robber";
+    const points = [
+      { x: x, y: y - (2 * height) / 3 },
+      { x: x - side / 2, y: y + height / 3 },
+      { x: x + side / 2, y: y + height / 3 },
+    ];
+    robber.setAttribute("points", points.map(({ x, y }) => `${x},${y}`).join(" "));
+    robber.setAttribute("fill", "white");
+    robber.setAttribute("stroke", "black");
+    robber.setAttribute("stroke-width", "4");
+    return robber;
+  }
+
   updateEdges(availableEdges: number[], enabled: boolean, highlight: boolean) {
     const edgeGroup = this.root.querySelector<SVGGElement>(`#${this.edgesGroupID}`);
     if (!edgeGroup) {
@@ -339,7 +370,8 @@ export default abstract class BaseMapRenderer {
     }
     vertices.forEach((vertex) => {
       const vertexID = Number(vertex.dataset.id);
-      const enabled = availableSettlementVertices.includes(vertexID);
+      const enabled =
+        availableSettlementVertices.includes(vertexID) || availableCityVertices.includes(vertexID);
       const disabled = !enabled;
       vertex.dataset.disabled = String(disabled);
     });
@@ -365,17 +397,83 @@ export default abstract class BaseMapRenderer {
     }
   }
 
-  abstract render(map: SettlersCore.Map, ports: SettlersCore.Ports): void;
-  abstract drawRobbers(tilesIDs: number[]): void;
-
-  protected generateRobber() {
-    const robber = document.createElementNS(this.ns, "rect");
-    robber.setAttribute("transform", "rotate(45)");
-    robber.setAttribute("x", "-3");
-    robber.setAttribute("y", "-3");
-    robber.setAttribute("width", "3");
-    robber.setAttribute("height", "3");
-    robber.setAttribute("fill", "black");
-    return robber;
+  updateCities(cities: SettlersCore.Cities) {
+    const spacing = this.hexSize * this.spacingProportion;
+    for (const city of Object.values(cities)) {
+      const vertex = this.root.querySelector<SVGCircleElement>(
+        `[data-type='vertex'][data-id='${city.id}']`,
+      );
+      if (!vertex) {
+        console.error(`vertex#${city.id} not found`);
+        continue;
+      }
+      vertex.dataset.disabled = "false";
+      vertex.dataset.owned = "true";
+      vertex.setAttribute("fill", this.colorByPlayer[city.owner].background);
+      vertex.setAttribute("r", String(spacing * 1.6));
+      vertex.setAttribute("stroke-width", "2");
+      vertex.setAttribute("stroke", this.colorByPlayer[city.owner].foreground);
+    }
   }
+
+  updateTiles(availableTiles: number[], enabled: boolean, highlight: boolean) {
+    const tileGroup = this.root.querySelector<SVGPolygonElement>(`#${this.tilesGroupID}`);
+    if (!tileGroup) {
+      console.error("SVG Tile Group not found");
+      return;
+    }
+    const tiles = Array.from<SVGPolygonElement>(this.root.querySelectorAll("[data-type='tile']"));
+    if (!enabled) {
+      tiles.forEach((tile) => {
+        tile.dataset.disabled = "true";
+      });
+      tileGroup.classList.remove("pulse");
+      return;
+    }
+    tiles.forEach((tile) => {
+      const tileID = Number(tile.dataset.id);
+      const enabled = availableTiles.includes(tileID);
+      const disabled = !enabled;
+      tile.dataset.disabled = String(disabled);
+    });
+    if (highlight) {
+      tileGroup.classList.add("pulse");
+    } else {
+      tileGroup.classList.remove("pulse");
+    }
+  }
+
+  updateRobbers(blockedTiles: number[]) {
+    const robbers = Array.from(
+      this.root.querySelectorAll<SVGPolygonElement>("[data-type='robber']"),
+    );
+    robbers.forEach((robber) => {
+      robber.remove();
+    });
+    for (let i = 0; i < blockedTiles.length; ++i) {
+      const tileID = blockedTiles[i];
+      const tile = this.root.querySelector<SVGPolygonElement>(
+        `[data-type='tile'][data-id='${tileID}']`,
+      );
+      if (!tile) {
+        console.error(`tile${tileID} not found`);
+        continue;
+      }
+      const points = Array.from(tile.points);
+      let xSum = 0,
+        ySum = 0;
+      for (const point of points) {
+        xSum += point.x;
+        ySum += point.y;
+      }
+      const center = {
+        x: xSum / points.length,
+        y: ySum / points.length,
+      };
+      const robber = this.drawRobber(center);
+      tile.after(robber);
+    }
+  }
+
+  abstract render(map: SettlersCore.Map, ports: SettlersCore.Ports): void;
 }

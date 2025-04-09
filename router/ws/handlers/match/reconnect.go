@@ -58,31 +58,39 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 	currentRoundState := UpdateCurrentRoundPlayerState(room, player.Username)
 	diceState := UpdateDiceState(room, player.Username)
 	handState := UpdatePlayerHand(room, player.Username)
+	devHandState := UpdatePlayerDevHand(room, player.Username)
+	devHandPermissionsState := UpdatePlayerDevHandPermissions(room, player.Username)
 	discardPhaseState := UpdateDiscardPhase(room, player.Username)
 	passState := UpdatePass(room, player.Username)
 	tradeState := UpdateTrade(room, player.Username)
 	tradeOffersState := UpdateTradeOffers(room, player.Username)
 	robberMovementState := UpdateRobberMovement(room, player.Username)
+	robbablePlayersState := UpdateRobbablePlayers(room, player.Username)
+	buyDevCardState := UpdateBuyDevelopmentCard(room, player.Username)
 
 	hydrateMsg := &types.WebSocketServerResponse{
 		Type: "match.hydrate",
 		Payload: hydrateOngoingMatchResponsePayload{
-			DiceUpdate:        diceState,
-			DiscardUpdate:     discardPhaseState,
-			EdgeUpdate:        edgeState,
-			HandUpdate:        handState,
-			Map:               game.Map(),
-			MapName:           game.MapName(),
-			MapUpdate:         mapState,
-			PassActionState:   passState,
-			Players:           game.Players(),
-			Ports:             game.Ports(),
-			ResourceCount:     game.NumberOfResourcesByPlayer(),
-			RobberUpdate:      robberMovementState,
-			RoundPlayerUpdate: currentRoundState,
-			TradeActionState:  tradeState,
-			TradeOffersUpdate: tradeOffersState,
-			VertexUpdate:      vertexState,
+			BuyDevCardUpdate:         buyDevCardState,
+			DevHandUpdate:            devHandState,
+			DevHandPermissionsUpdate: devHandPermissionsState,
+			DiceUpdate:               diceState,
+			DiscardUpdate:            discardPhaseState,
+			EdgeUpdate:               edgeState,
+			HandUpdate:               handState,
+			Map:                      game.Map(),
+			MapName:                  game.MapName(),
+			MapUpdate:                mapState,
+			PassActionState:          passState,
+			Players:                  game.Players(),
+			Ports:                    game.Ports(),
+			ResourceCount:            game.NumberOfResourcesByPlayer(),
+			RobbablePlayersUpdate:    robbablePlayersState,
+			RobberUpdate:             robberMovementState,
+			RoundPlayerUpdate:        currentRoundState,
+			TradeActionState:         tradeState,
+			TradeOffersUpdate:        tradeOffersState,
+			VertexUpdate:             vertexState,
 		},
 	}
 

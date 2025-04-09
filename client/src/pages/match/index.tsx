@@ -5,6 +5,7 @@ import { Actions } from "./components/actions";
 import { Logs } from "./components/logs";
 import { MainArea } from "./components/main-area";
 import { CardCounts } from "./components/card-counts";
+import { Modals } from "./components/modals";
 
 export const Match = () => {
   return (
@@ -23,6 +24,7 @@ export const Match = () => {
           <MainArea />
         </CardContent>
       </Card>
+      <Modals />
     </main>
   );
 };

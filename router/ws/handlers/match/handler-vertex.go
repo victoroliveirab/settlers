@@ -46,6 +46,7 @@ func handleVertexClick(player *entities.GamePlayer, message *types.WebSocketClie
 		UpdateEdgeState,
 		UpdateVertexState,
 		UpdatePlayerHand,
+		UpdateBuyDevelopmentCard,
 		UpdateLogs(logs),
 	)
 	return true, nil

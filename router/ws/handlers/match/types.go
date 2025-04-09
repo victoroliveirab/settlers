@@ -39,6 +39,14 @@ type handStateUpdateResponsePayload struct {
 	Hand map[string]int `json:"hand"`
 }
 
+type devHandStateUpdateResponsePayload struct {
+	DevHand map[string]int `json:"devHand"`
+}
+
+type devHandPermissionsStateUpdateResponsePayload struct {
+	DevHandPermissions map[string]bool `json:"devHandPermissions"`
+}
+
 type resourceCountStateUpdateResponsePayload struct {
 	ResourceCount map[string]int `json:"resourceCount"`
 }
@@ -59,6 +67,10 @@ type passStateUpdateResponsePayload struct {
 }
 
 type startTradeStateUpdateResponsePayload struct {
+	Enabled bool `json:"enabled"`
+}
+
+type buyDevCardStateUpdateResponsePayload struct {
 	Enabled bool `json:"enabled"`
 }
 
@@ -84,20 +96,24 @@ type hydrateSetupMatchResponsePayload struct {
 }
 
 type hydrateOngoingMatchResponsePayload struct {
-	DiceUpdate        *types.WebSocketServerResponse `json:"diceUpdate"`
-	DiscardUpdate     *types.WebSocketServerResponse `json:"discardUpdate"`
-	EdgeUpdate        *types.WebSocketServerResponse `json:"edgeUpdate"`
-	HandUpdate        *types.WebSocketServerResponse `json:"handUpdate"`
-	Map               []*coreT.MapBlock              `json:"map"`
-	MapName           string                         `json:"mapName"`
-	MapUpdate         *types.WebSocketServerResponse `json:"mapUpdate"`
-	PassActionState   *types.WebSocketServerResponse `json:"passActionState"`
-	Players           []coreT.Player                 `json:"players"`
-	Ports             map[int]string                 `json:"ports"`
-	ResourceCount     map[string]int                 `json:"resourceCount"`
-	RobberUpdate      *types.WebSocketServerResponse `json:"robberMovementUpdate"`
-	RoundPlayerUpdate *types.WebSocketServerResponse `json:"roundPlayerUpdate"`
-	TradeActionState  *types.WebSocketServerResponse `json:"tradeActionState"`
-	TradeOffersUpdate *types.WebSocketServerResponse `json:"tradeOffersUpdate"`
-	VertexUpdate      *types.WebSocketServerResponse `json:"vertexUpdate"`
+	BuyDevCardUpdate         *types.WebSocketServerResponse `json:"buyDevCardUpdate"`
+	DevHandUpdate            *types.WebSocketServerResponse `json:"devHandUpdate"`
+	DevHandPermissionsUpdate *types.WebSocketServerResponse `json:"devHandPermissionsUpdate"`
+	DiceUpdate               *types.WebSocketServerResponse `json:"diceUpdate"`
+	DiscardUpdate            *types.WebSocketServerResponse `json:"discardUpdate"`
+	EdgeUpdate               *types.WebSocketServerResponse `json:"edgeUpdate"`
+	HandUpdate               *types.WebSocketServerResponse `json:"handUpdate"`
+	Map                      []*coreT.MapBlock              `json:"map"`
+	MapName                  string                         `json:"mapName"`
+	MapUpdate                *types.WebSocketServerResponse `json:"mapUpdate"`
+	PassActionState          *types.WebSocketServerResponse `json:"passActionState"`
+	Players                  []coreT.Player                 `json:"players"`
+	Ports                    map[int]string                 `json:"ports"`
+	ResourceCount            map[string]int                 `json:"resourceCount"`
+	RobbablePlayersUpdate    *types.WebSocketServerResponse `json:"robbablePlayersUpdate"`
+	RobberUpdate             *types.WebSocketServerResponse `json:"robberMovementUpdate"`
+	RoundPlayerUpdate        *types.WebSocketServerResponse `json:"roundPlayerUpdate"`
+	TradeActionState         *types.WebSocketServerResponse `json:"tradeActionState"`
+	TradeOffersUpdate        *types.WebSocketServerResponse `json:"tradeOffersUpdate"`
+	VertexUpdate             *types.WebSocketServerResponse `json:"vertexUpdate"`
 }
