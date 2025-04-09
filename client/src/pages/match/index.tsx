@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { Actions } from "./components/actions";
 import { Logs } from "./components/logs";
@@ -13,9 +12,7 @@ export const Match = () => {
       <Card className="w-6xl mx-auto bg-neutral-800 h-full">
         <CardContent className="flex gap-4 h-full relative">
           <div className="h-full flex flex-col gap-4 w-1/5 min-w-44">
-            <ScrollArea>
-              <Logs />
-            </ScrollArea>
+            <Logs />
             <hr className="w-full h-px bg-border" />
             <CardCounts />
             <Actions />

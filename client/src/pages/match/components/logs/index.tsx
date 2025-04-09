@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 
+import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { useMatchStore } from "@/state/match";
 
 export const Logs = () => {
-  const ref = useRef<HTMLElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const logs = useMatchStore((state) => state.logs);
 
   useEffect(() => {
@@ -15,5 +17,9 @@ export const Logs = () => {
     ref.current?.scrollTo(0, ref.current.scrollHeight);
   }, [logs]);
 
-  return <section ref={ref} className="bg-red-50" />;
+  return (
+    <ScrollArea ref={ref}>
+      <section className="bg-red-50" />
+    </ScrollArea>
+  );
 };
