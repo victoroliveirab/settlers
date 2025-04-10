@@ -29,7 +29,7 @@ export const QuantitySelector = ({
       >
         <Minus />
       </Button>
-      <span>{value}</span>
+      <span className="w-6 select-none">{value}</span>
       <Button
         size="xs"
         variant="ghost"

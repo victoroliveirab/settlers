@@ -5,6 +5,7 @@ import { QuantitySelector } from "@/components/custom/quantity-selector";
 import { cn } from "@/lib/utils";
 
 import { resourcesOrder } from "@/core/constants";
+import { sumOfResources } from "@/core/utils";
 
 import { isDirty } from "./utils";
 
@@ -46,8 +47,8 @@ export const Trade = ({
   const [given, setGiven] = useState(initialStateGiven);
   const [requested, setRequested] = useState(initialStateRequested);
 
-  const totalGiven = Object.values(given).reduce((acc, value) => acc + value, 0);
-  const totalRequested = Object.values(requested).reduce((acc, value) => acc + value, 0);
+  const totalGiven = sumOfResources(given);
+  const totalRequested = sumOfResources(requested);
 
   return (
     <div className={cn("flex flex-col gap-4", className)}>

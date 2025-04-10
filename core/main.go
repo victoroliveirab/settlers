@@ -308,6 +308,20 @@ func (state *GameState) Ports() map[int]string {
 	return state.ports
 }
 
+func (state *GameState) PortsByPlayer(playerID string) []string {
+	ports := make([]string, 0)
+	for vertexID, kind := range state.ports {
+		settlement, okSettlement := state.settlementMap[vertexID]
+		city, okCity := state.cityMap[vertexID]
+		if okSettlement && settlement.Owner == playerID {
+			ports = append(ports, kind)
+		} else if okCity && city.Owner == playerID {
+			ports = append(ports, kind)
+		}
+	}
+	return ports
+}
+
 func (state *GameState) Players() []coreT.Player {
 	// REFACTOR: return a copy
 	return state.players
@@ -374,8 +388,24 @@ func (state *GameState) AllRoads() map[int]Building {
 	return maps.Clone(state.roadMap)
 }
 
+func (state *GameState) LongestRoadLengths() map[string]int {
+	longestRoadByPlayer := make(map[string]int)
+	for _, player := range state.players {
+		longestRoadByPlayer[player.ID] = state.LongestRoadLengthByPlayer(player.ID)
+	}
+	return longestRoadByPlayer
+}
+
 func (state *GameState) LongestRoadLengthByPlayer(playerID string) int {
 	return len(state.playerLongestRoad[playerID])
+}
+
+func (state *GameState) KnightUses() map[string]int {
+	knightUses := make(map[string]int)
+	for playerID, uses := range state.playerDevelopmentCardUsedMap {
+		knightUses[playerID] = uses["Knight"]
+	}
+	return knightUses
 }
 
 func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {

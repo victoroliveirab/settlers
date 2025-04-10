@@ -4,6 +4,7 @@ import { Player } from "./components/player";
 
 export const Players = () => {
   const currentRoundPlayer = useMatchStore((state) => state.currentRoundPlayer);
+  const discardAmountByPlayer = useMatchStore((state) => state.discard.discardAmounts);
   const knightsUsedByPlayer = useMatchStore((state) => state.knightUsages);
   const longestRoadByPlayer = useMatchStore((state) => state.longestRoadSize);
   const players = useMatchStore((state) => state.players);
@@ -18,7 +19,7 @@ export const Players = () => {
           isPlayerRound={currentRoundPlayer === player.name}
           knightsUsed={knightsUsedByPlayer[player.name]}
           longestRoad={longestRoadByPlayer[player.name]}
-          numberOfCardsToDiscard={0}
+          numberOfCardsToDiscard={discardAmountByPlayer[player.name]}
           numberOfDevCards={0}
           numberOfResources={resourceCountByPlayer[player.name]}
           points={pointsByPlayer[player.name]}

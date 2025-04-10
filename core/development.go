@@ -229,9 +229,17 @@ func (state *GameState) IsDevCardPlayable(playerID, devCardType string) error {
 		return err
 	}
 
-	if state.roundType != FirstRound && state.roundType != Regular && state.roundType != BetweenTurns {
-		err := fmt.Errorf("Cannot use knight card during %s", RoundTypeTranslation[state.roundType])
-		return err
+	switch devCardType {
+	case "Knight":
+		if state.roundType != FirstRound && state.roundType != Regular && state.roundType != BetweenTurns {
+			err := fmt.Errorf("Cannot use knight card during %s", RoundTypeTranslation[state.roundType])
+			return err
+		}
+	default:
+		if state.roundType != Regular {
+			err := fmt.Errorf("Cannot use %s card during %s", devCardType, RoundTypeTranslation[state.roundType])
+			return err
+		}
 	}
 
 	if len(state.playerDevelopmentHandMap[playerID][devCardType]) == 0 {

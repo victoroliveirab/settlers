@@ -158,6 +158,7 @@ export function reducer(message: SettlersIncomingMessage) {
       break;
     }
     case "match.update-discard-phase": {
+      setDiscard(message.payload.discardAmounts, message.payload.enabled);
       break;
     }
     case "match.update-robber-movement": {
