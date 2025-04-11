@@ -12,12 +12,12 @@ import { useUpdateEdges } from "./updaters/useUpdateEdges";
 import { useUpdateRoads } from "./updaters/useUpdateRoads";
 import { useUpdateSettlements } from "./updaters/useUpdateSettlements";
 import { useUpdateVertices } from "./updaters/useUpdateVertices";
-
-import "./map.css";
 import { useUpdateCities } from "./updaters/useUpdateCities";
 import { useUpdateRobbers } from "./updaters/useUpdateRobbers";
 import { useUpdateBlockedTiles } from "./updaters/useUpdateBlockedTiles";
 import { useDarkenTilesAfterDiceRoll } from "./updaters/useDarkenTilesAfterDiceRoll";
+
+import "./map.css";
 
 export const SettlersMap = () => {
   const ref = useRef<HTMLDivElement>(null);
