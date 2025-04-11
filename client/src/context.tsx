@@ -16,11 +16,12 @@ export const WebSocketContext = createContext(
 );
 
 const roomID = window.location.pathname.split("/").at(-1);
-const wsURL = `http://localhost:8080/ws?room=${roomID}`;
+const wsURL = import.meta.env.VITE_WS_URL;
+const wsEndpoint = `${wsURL}?room=${roomID}`;
 
 export const WebSocketProvider = (props: React.PropsWithChildren) => {
   const [state, setState] = useState<WebSocketStates>("connecting");
-  const [ws] = useState(() => new WebSocket(wsURL));
+  const [ws] = useState(() => new WebSocket(wsEndpoint));
 
   useEffect(() => {
     ws.addEventListener("open", (e) => {

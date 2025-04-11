@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npm run build:tw-public && vite build --watch",
-    "build": "tsc -b && vite build",
+    "dev": "npm run build:tw-public && vite build --watch --mode development",
+    "build": "vite build --mode production",
     "build:tw-public": "postcss tw.css -o public/styles.css",
     "lint": "eslint .",
     "preview": "vite preview"

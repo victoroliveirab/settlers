@@ -417,6 +417,9 @@
   .w-14 {
     width: calc(var(--spacing) * 14);
   }
+  .w-20 {
+    width: calc(var(--spacing) * 20);
+  }
   .w-24 {
     width: calc(var(--spacing) * 24);
   }
@@ -958,6 +961,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-neutral-600);
+      }
+    }
+  }
+  .hover\:text-neutral-800 {
+    &:hover {
+      @media (hover: hover) {
+        color: var(--color-neutral-800);
       }
     }
   }
