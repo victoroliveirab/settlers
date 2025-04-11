@@ -18,7 +18,7 @@ export const StartButton = () => {
   };
 
   return (
-    <Button disabled={!isEnabled} onClick={onClick}>
+    <Button className="w-20" disabled={!isEnabled} onClick={onClick}>
       Start
     </Button>
   );

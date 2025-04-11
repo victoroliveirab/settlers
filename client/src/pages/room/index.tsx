@@ -22,7 +22,7 @@ export const Room = () => {
       <Card className="w-full max-h-[80vh] overflow-hidden">
         <CardHeader>
           <CardTitle>Room #{room.id}</CardTitle>
-          <CardDescription>Card Description</CardDescription>
+          <CardDescription>4-player game, base map</CardDescription>
         </CardHeader>
         <CardContent className="flex gap-4 justify-center h-[50vh]">
           <div className="w-48">

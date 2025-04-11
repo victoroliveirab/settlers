@@ -12,7 +12,7 @@ export function ToggleReady() {
 
   return (
     <Toggle
-      className="bg-green-700 text-primary-foreground hover:bg-green-500"
+      className="bg-green-700 text-primary-foreground hover:bg-green-500 hover:text-neutral-800 w-20"
       onPressedChange={onReadyChange}
     >
       Ready

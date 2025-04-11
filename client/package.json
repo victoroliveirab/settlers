@@ -4,8 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite build --watch",
+    "dev": "npm run build:tw-public && vite build --watch",
     "build": "tsc -b && vite build",
+    "build:tw-public": "postcss tw.css -o public/styles.css",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -22,7 +23,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.484.0",
-    "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-resizable-panels": "^2.1.7",
@@ -41,6 +41,8 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
