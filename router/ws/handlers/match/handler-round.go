@@ -22,6 +22,8 @@ func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientR
 		UpdateDiceState,
 		UpdatePass,
 		UpdateTrade,
+		UpdateBuyDevelopmentCard,
+		UpdatePlayerDevHandPermissions,
 		UpdateLogs([]string{fmt.Sprintf("%s finished their round.", player.Username)}),
 	)
 	return true, err

@@ -26,3 +26,7 @@ logs.json
 
 # sessions
 sessions.csv
+
+# client
+client/node_modules
+client/dist

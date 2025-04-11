@@ -43,6 +43,8 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 			UpdatePlayerHand,
 			UpdateResourceCount,
 			UpdateDiceState,
+			UpdateBuyDevelopmentCard,
+			UpdateLongestRoadSize,
 			UpdateLogs(logs),
 		)
 	} else {
@@ -52,6 +54,9 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 			UpdateVertexState,
 			UpdateEdgeState,
 			UpdatePlayerHand,
+			UpdateBuyDevelopmentCard,
+			UpdateLongestRoadSize,
+			UpdatePoints,
 			UpdateLogs(logs),
 		)
 	}

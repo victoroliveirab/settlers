@@ -47,7 +47,7 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 	for i, entry := range room.Participants {
 		players[i] = &coreT.Player{
 			ID:    entry.Player.Username,
-			Color: entry.Player.Color,
+			Color: *entry.Player.Color,
 		}
 	}
 

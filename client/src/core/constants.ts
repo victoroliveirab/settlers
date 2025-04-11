@@ -1,21 +1,3 @@
-import { SettlersCore } from "./types";
-
-export const roomParamsLabels: Record<string, string> = {
-  bankTradeAmount: "Bank Trade Amount",
-  maxCards: "Max Allowed Resources",
-  maxSettlements: "Max Number of Settlements / player",
-  maxCities: "Max Number of Cities / player",
-  maxRoads: "Max Number of Roads / player",
-  maxDevCardsPerRound: "Max Development Cards Played / round",
-  targetPoint: "Target Score",
-  pointsPerSettlement: "Points Awarded / settlement",
-  pointsPerCity: "Points Awarded / city",
-  pointsForMostKnights: "Points Awarded for Most Knights",
-  pointsForLongestRoad: "Points Awarded for Longest Road",
-  longestRoadMinimum: "Minimum Road Size for Longest Road Award",
-  mostKnightsMinimum: "Minimum Knights Used for Most Knights Award",
-};
-
 export const roundTypes = [
   "SettlementSetup#1",
   "RoadSetup#1",
@@ -55,6 +37,22 @@ export const roundTypesByName = {
 };
 
 export const resourcesOrder: SettlersCore.Resource[] = ["Lumber", "Brick", "Sheep", "Grain", "Ore"];
+export const developmentOrder: SettlersCore.DevelopmentCard[] = [
+  "Knight",
+  "Year of Plenty",
+  "Road Building",
+  "Monopoly",
+  "Victory Point",
+];
+
+export const resourceColors = Object.freeze({
+  Brick: "#D2691E",
+  Lumber: "#228B22",
+  Grain: "#FFD700",
+  Ore: "#A9A9A9",
+  Sheep: "#98FB98",
+  Desert: "#878878",
+} as Record<SettlersCore.TileType, string>);
 
 export const emojis = Object.freeze({
   devCards: {

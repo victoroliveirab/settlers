@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"github.com/victoroliveirab/settlers/core"
+	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
@@ -36,6 +37,7 @@ type RoomIncomingMessageHandler func(player *GamePlayer, message *types.WebSocke
 type RoomParamsMetaEntry struct {
 	Description string `json:"description"`
 	Key         string `json:"key"`
+	Label       string `json:"label"`
 	Priority    int    `json:"-"`
 	Value       int    `json:"value"`
 	Values      []int  `json:"values"`
@@ -57,7 +59,7 @@ type Room struct {
 	Private          bool                         `json:"private"`
 	Owner            string                       `json:"owner"`
 	Status           string                       `json:"status"`
-	Colors           []string                     `json:"colors"`
+	Colors           []coreT.PlayerColor                `json:"colors"`
 	incomingMsgQueue chan IncomingMessage         `json:"-"`
 	outgoingMsgQueue chan OutgoingMessage         `json:"-"`
 	handlers         []RoomIncomingMessageHandler `json:"-"`
@@ -69,7 +71,7 @@ type GamePlayer struct {
 	ID           int64                      `json:"-"`
 	Username     string                     `json:"name"`
 	Connection   *types.WebSocketConnection `json:"-"`
-	Color        string                     `json:"color"`
+	Color        *coreT.PlayerColor               `json:"color"`
 	Room         *Room                      `json:"-"`
 	OnDisconnect func(player *GamePlayer)   `json:"-"`
 }

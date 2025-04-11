@@ -41,8 +41,11 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 	players := make([]*coreT.Player, 4)
 	for i := 0; i < 4; i++ {
 		players[i] = &coreT.Player{
-			ID:    strconv.FormatInt(int64(i+1), 10),
-			Color: "color",
+			ID: strconv.FormatInt(int64(i+1), 10),
+			Color: coreT.PlayerColor{
+				Background: "bg",
+				Foreground: "fg",
+			},
 		}
 	}
 

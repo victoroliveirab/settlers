@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/victoroliveirab/settlers/db/models"
+	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
@@ -31,6 +32,7 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 			if err != nil {
 				return nil, err
 			}
+			logger.LogMessage(playerID, "prematch.ReconnectPlayer", fmt.Sprintf("Player %d reconnected to room#%s", playerID, room.ID))
 			room.EnqueueOutgoingMessage(prematch.BuildRoomMessage(room, "room.new-update"), nil, nil)
 			return player, nil
 		} else {
@@ -40,6 +42,7 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 			if err != nil {
 				return nil, err
 			}
+			logger.LogMessage(playerID, "prematch.ConnectPlayer", fmt.Sprintf("Player %d connected to room#%s", playerID, room.ID))
 			room.EnqueueOutgoingMessage(prematch.BuildRoomMessage(room, "room.new-update"), nil, nil)
 			return player, nil
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"math/rand"
+	"sort"
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
 	coreT "github.com/victoroliveirab/settlers/core/types"
@@ -68,26 +69,44 @@ type MostKnights struct {
 	Quantity int
 }
 
+type ResponseStatus string
+
+const (
+	NoResponse ResponseStatus = "Open"
+	Accepted   ResponseStatus = "Accepted"
+	Declined   ResponseStatus = "Declined"
+	Countered  ResponseStatus = "Countered"
+)
+
 type TradePlayerEntry struct {
-	Status  string // "Open" | "Accepted" | "Declined"
-	Blocked bool
+	Status  ResponseStatus `json:"status"`
+	Blocked bool           `json:"blocked"`
 }
 
+type TradeStatus string
+
+const (
+	TradeOpen      TradeStatus = "Open"
+	TradeClosed    TradeStatus = "Closed"
+	TradeFinalized TradeStatus = "Finalized"
+)
+
 type Trade struct {
-	ID        int
-	PlayerID  string
-	Opponents map[string]*TradePlayerEntry
-	Offer     map[string]int
-	Request   map[string]int
-	Status    string // "Open" | "Closed"
-	Counters  []int
-	ParentID  int
-	Finalized bool
-	Timestamp int64
+	ID        int                          `json:"id"`
+	Requester string                       `json:"requester"`
+	Creator   string                       `json:"creator"`
+	Responses map[string]*TradePlayerEntry `json:"responses"`
+	Offer     map[string]int               `json:"offer"`
+	Request   map[string]int               `json:"request"`
+	Status    TradeStatus                  `json:"status"`
+	ParentID  int                          `json:"parent"`
+	Finalized bool                         `json:"finalized"`
+	Timestamp int64                        `json:"timestamp"`
 }
 
 type GameState struct {
 	definition          coreMaps.MapDefinition
+	mapName             string
 	tiles               []*coreT.MapBlock
 	ports               map[int]string
 	rand                *rand.Rand
@@ -139,11 +158,12 @@ type GameState struct {
 	playerLongestRoad   map[string][]int
 
 	// book keeping
-	cityMap       map[int]Building
-	roadMap       map[int]Building
-	settlementMap map[int]Building
-	playersTrades map[int]*Trade
-	playerTradeId int
+	cityMap            map[int]Building
+	roadMap            map[int]Building
+	settlementMap      map[int]Building
+	playersTrades      map[int]*Trade
+	tradeParentToChild map[int][]int
+	playerTradeId      int
 }
 
 type Params struct {
@@ -170,6 +190,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	}
 
 	state.definition = data.Definition
+	state.mapName = mapName
 	state.tiles = data.Tiles
 	state.ports = data.Ports
 	state.developmentCards = data.DevelopmentCards
@@ -222,6 +243,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.settlementMap = make(map[int]Building)
 
 	state.playersTrades = make(map[int]*Trade)
+	state.tradeParentToChild = make(map[int][]int)
 	state.playerTradeId = 0
 
 	for _, player := range players {
@@ -278,8 +300,26 @@ func (state *GameState) Map() []*coreT.MapBlock {
 	return state.tiles
 }
 
+func (state *GameState) MapName() string {
+	return state.mapName
+}
+
 func (state *GameState) Ports() map[int]string {
 	return state.ports
+}
+
+func (state *GameState) PortsByPlayer(playerID string) []string {
+	ports := make([]string, 0)
+	for vertexID, kind := range state.ports {
+		settlement, okSettlement := state.settlementMap[vertexID]
+		city, okCity := state.cityMap[vertexID]
+		if okSettlement && settlement.Owner == playerID {
+			ports = append(ports, kind)
+		} else if okCity && city.Owner == playerID {
+			ports = append(ports, kind)
+		}
+	}
+	return ports
 }
 
 func (state *GameState) Players() []coreT.Player {
@@ -348,8 +388,24 @@ func (state *GameState) AllRoads() map[int]Building {
 	return maps.Clone(state.roadMap)
 }
 
+func (state *GameState) LongestRoadLengths() map[string]int {
+	longestRoadByPlayer := make(map[string]int)
+	for _, player := range state.players {
+		longestRoadByPlayer[player.ID] = state.LongestRoadLengthByPlayer(player.ID)
+	}
+	return longestRoadByPlayer
+}
+
 func (state *GameState) LongestRoadLengthByPlayer(playerID string) int {
 	return len(state.playerLongestRoad[playerID])
+}
+
+func (state *GameState) KnightUses() map[string]int {
+	knightUses := make(map[string]int)
+	for playerID, uses := range state.playerDevelopmentCardUsedMap {
+		knightUses[playerID] = uses["Knight"]
+	}
+	return knightUses
 }
 
 func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
@@ -404,13 +460,31 @@ func (state *GameState) DiscardAmounts() map[string]int {
 	return amounts
 }
 
+func (state *GameState) Trades() []Trade {
+	trades := make([]Trade, 0)
+	for _, trade := range state.playersTrades {
+		trades = append(trades, *trade)
+	}
+
+	sort.Slice(trades, func(i, j int) bool {
+		return trades[i].ID < trades[j].ID
+	})
+
+	return trades
+}
+
 func (state *GameState) ActiveTradeOffers() []Trade {
 	activeTrades := make([]Trade, 0)
 	for _, trade := range state.playersTrades {
-		if !trade.Finalized {
+		if trade.Status == TradeOpen {
 			activeTrades = append(activeTrades, *trade)
 		}
 	}
+
+	sort.Slice(activeTrades, func(i, j int) bool {
+		return activeTrades[i].ID < activeTrades[j].ID
+	})
+
 	return activeTrades
 }
 

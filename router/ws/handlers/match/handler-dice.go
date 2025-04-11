@@ -51,6 +51,10 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 			UpdateRobberMovement,
 			UpdatePass,
 			UpdateTrade,
+			UpdateVertexState,
+			UpdateEdgeState,
+			UpdateBuyDevelopmentCard,
+			UpdatePlayerDevHandPermissions,
 			UpdateLogs(logs),
 		)
 	} else if game.RoundType() == core.DiscardPhase {
@@ -60,6 +64,10 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 			UpdateDiscardPhase,
 			UpdatePass,
 			UpdateTrade,
+			UpdateVertexState,
+			UpdateEdgeState,
+			UpdateBuyDevelopmentCard,
+			UpdatePlayerDevHandPermissions,
 			UpdateLogs(logs),
 		)
 	} else {
@@ -71,6 +79,8 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 			UpdateTrade,
 			UpdateVertexState,
 			UpdateEdgeState,
+			UpdateBuyDevelopmentCard,
+			UpdatePlayerDevHandPermissions,
 			UpdateLogs(logs),
 		)
 	}
