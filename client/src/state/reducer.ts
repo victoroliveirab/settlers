@@ -31,7 +31,7 @@ import {
   setYearOfPlenty,
 } from "./match";
 import type { SettlersIncomingMessage } from "./messages";
-import { setRoom, setRoomParams, setRoomStatus } from "./room";
+import { setRoom, setRoomCapacity, setRoomParams, setRoomStatus } from "./room";
 
 export function reducer(message: SettlersIncomingMessage) {
   if (message.type === "match.bulk-update" || message.type === "setup.bulk-update") {
@@ -50,9 +50,15 @@ export function reducer(message: SettlersIncomingMessage) {
     case "room.connect.success": {
       setRoom(message.payload.room);
       setRoomParams(message.payload.params);
+      setRoomCapacity(message.payload.minMaxPlayers);
       break;
     }
     case "room.new-update": {
+      setRoom(message.payload.room);
+      setRoomParams(message.payload.params);
+      break;
+    }
+    case "room.update-capacity.success": {
       setRoom(message.payload.room);
       setRoomParams(message.payload.params);
       break;
@@ -72,6 +78,7 @@ export function reducer(message: SettlersIncomingMessage) {
       setMapName(message.payload.mapName);
       setMap(message.payload.map);
       setPlayers(message.payload.players);
+      setPorts(message.payload.ports);
       break;
     }
     case "setup.update-map":
@@ -117,10 +124,12 @@ export function reducer(message: SettlersIncomingMessage) {
       setResourceCount(message.payload.resourceCount);
       break;
     }
+    case "setup.update-points":
     case "match.update-points": {
       setPoints(message.payload.points);
       break;
     }
+    case "setup.update-longest-road-size":
     case "match.update-longest-road-size": {
       setLongestRoadSizes(message.payload.longestRoadSizeByPlayer);
       break;
@@ -129,6 +138,7 @@ export function reducer(message: SettlersIncomingMessage) {
       setKnightUsages(message.payload.knightUsesByPlayer);
       break;
     }
+    case "setup.update-ports":
     case "match.update-ports": {
       setPlayerPorts(message.payload.ports);
       break;

@@ -19,6 +19,10 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		return handleEndRound(player, message)
 	case "match.make-bank-trade":
 		return handleMakeBankTrade(player, message)
+	case "match.make-general-port-trade":
+		return handleMakeGeneralPortTrade(player, message)
+	case "match.make-resource-port-trade":
+		return handleMakeResourcePortTrade(player, message)
 	case "match.create-trade-offer":
 		return handleCreateTradeOffer(player, message)
 	case "match.create-counter-trade-offer":

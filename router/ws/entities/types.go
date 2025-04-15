@@ -45,8 +45,10 @@ type RoomParamsMetaEntry struct {
 type RoomParamsMeta map[string]RoomParamsMetaEntry
 
 type RoomParams struct {
-	Meta   RoomParamsMeta `json:"meta"`
-	Values map[string]int `json:"values"`
+	Meta       RoomParamsMeta `json:"meta"`
+	MaxPlayers int            `json:"maxPlayers"`
+	MinPlayers int            `json:"minPlayers"`
+	Values     map[string]int `json:"values"`
 }
 
 type Room struct {
@@ -59,7 +61,7 @@ type Room struct {
 	Private          bool                         `json:"private"`
 	Owner            string                       `json:"owner"`
 	Status           string                       `json:"status"`
-	Colors           []coreT.PlayerColor                `json:"colors"`
+	Colors           []coreT.PlayerColor          `json:"colors"`
 	incomingMsgQueue chan IncomingMessage         `json:"-"`
 	outgoingMsgQueue chan OutgoingMessage         `json:"-"`
 	handlers         []RoomIncomingMessageHandler `json:"-"`
@@ -71,7 +73,7 @@ type GamePlayer struct {
 	ID           int64                      `json:"-"`
 	Username     string                     `json:"name"`
 	Connection   *types.WebSocketConnection `json:"-"`
-	Color        *coreT.PlayerColor               `json:"color"`
+	Color        *coreT.PlayerColor         `json:"color"`
 	Room         *Room                      `json:"-"`
 	OnDisconnect func(player *GamePlayer)   `json:"-"`
 }

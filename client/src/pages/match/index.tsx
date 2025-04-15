@@ -11,7 +11,7 @@ export const Match = () => {
     <main className="h-full p-6 flex">
       <Card className="w-6xl mx-auto bg-neutral-800 h-full">
         <CardContent className="flex gap-4 h-full relative">
-          <div className="h-full flex flex-col gap-4 w-1/5 min-w-44">
+          <div className="h-full flex flex-col gap-4 w-1/4 min-w-44">
             <Logs />
             <hr className="w-full h-px bg-border" />
             <CardCounts />

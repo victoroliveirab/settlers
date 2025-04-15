@@ -20,8 +20,8 @@
   cursor: not-allowed;
 }
 
-#map-vertices.pulse > [data-type="vertex"][data-disabled="false"],
-#map-edges.pulse > [data-type="edge"][data-disabled="false"] {
+#map-vertices.pulse > [data-type="vertex"][data-disabled="false"][data-owned="false"],
+#map-edges.pulse > [data-type="edge"][data-disabled="false"][data-owned="false"] {
   animation-name: pulse;
   animation-duration: 0.75s;
   animation-timing-function: ease-out;

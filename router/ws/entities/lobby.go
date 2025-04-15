@@ -50,8 +50,10 @@ func (lobby *Lobby) CreateRoom(id, mapName string, capacity int) (*Room, error) 
 		paramsValues[key] = meta.Params[key].Default
 	}
 	params := RoomParams{
-		Meta:   paramsMeta,
-		Values: paramsValues,
+		Meta:       paramsMeta,
+		MaxPlayers: meta.Players.Max,
+		MinPlayers: meta.Players.Min,
+		Values:     paramsValues,
 	}
 
 	newRoom := NewRoom(id, mapName, capacity, params, func(room *Room) {

@@ -34,11 +34,13 @@ export type RoomParam = {
 };
 
 interface RoomState {
+  minMaxPlayers: [number, number];
   room: Room;
   params: RoomParam[];
 }
 
 export const useRoomStore = create<RoomState>(() => ({
+  minMaxPlayers: [0, 0],
   room: {
     id: "",
     capacity: 0,
@@ -54,6 +56,10 @@ export const useRoomStore = create<RoomState>(() => ({
 
 export const setRoom = (room: Room) => {
   return useRoomStore.setState({ room });
+};
+
+export const setRoomCapacity = (minMax: [number, number]) => {
+  return useRoomStore.setState({ minMaxPlayers: minMax });
 };
 
 export const setRoomParams = (params: RoomParam[]) => {

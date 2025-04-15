@@ -340,6 +340,13 @@ func (room *Room) Destroy(reason string) {
 	room.onDestroy(room)
 }
 
+func (room *Room) MinMax() [2]int {
+	var minMax [2]int
+	minMax[0] = room.params.MinPlayers
+	minMax[1] = room.params.MaxPlayers
+	return minMax
+}
+
 func (room *Room) Params() []RoomParamsMetaEntry {
 	var entries []RoomParamsMetaEntry
 	for _, v := range room.params.Meta {
@@ -361,6 +368,37 @@ func (room *Room) Params() []RoomParamsMetaEntry {
 	})
 
 	return entries
+}
+
+func (room *Room) UpdateSize(player *GamePlayer, newSize int) error {
+	if room.Owner != player.Username {
+		err := fmt.Errorf("cannot update size in room %s: not room owner", room.ID)
+		return err
+	}
+
+	room.Lock()
+	defer room.Unlock()
+
+	currentNumberOfParticipants := 0
+	for _, spot := range room.Participants {
+		if spot.Player != nil {
+			currentNumberOfParticipants++
+		}
+	}
+	if newSize < currentNumberOfParticipants {
+		err := fmt.Errorf("cannot shrink room size to %d in room %s: too many players", newSize, room.ID)
+		return err
+	}
+	participants := make([]RoomEntry, newSize)
+	currentIndex := 0
+	for _, spot := range room.Participants {
+		if spot.Player != nil {
+			participants[currentIndex] = spot
+			currentIndex++
+		}
+	}
+	room.Capacity = newSize
+	return nil
 }
 
 func (room *Room) UpdateParam(player *GamePlayer, key string, value int) error {

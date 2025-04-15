@@ -119,6 +119,10 @@ type GameState struct {
 	maxDevCardsPerRound int
 	bankTradeAmount     int
 
+	// cost related
+	generalPortCost  int
+	resourcePortCost int
+
 	// points related
 	targetPoint          int
 	points               map[string]int
@@ -216,6 +220,8 @@ func (state *GameState) New(players []*coreT.Player, mapName string, seed int, p
 	state.pointsPerLongestRoad = params.PointsForLongestRoad
 	state.mostKnightsMinimum = params.MostKnightsMinimum
 	state.longestRoadMinimum = params.LongestRoadMinimum
+	state.generalPortCost = 3
+	state.resourcePortCost = 2
 
 	state.targetPoint = params.TargetPoint
 	state.points = make(map[string]int)
@@ -304,8 +310,23 @@ func (state *GameState) MapName() string {
 	return state.mapName
 }
 
-func (state *GameState) Ports() map[int]string {
+func (state *GameState) PortsByVertex() map[int]string {
 	return state.ports
+}
+
+func (state *GameState) PortsLocations() [][2]int {
+	return state.definition.PortsLocations
+}
+
+func (state *GameState) Ports() []coreT.Port {
+	ports := make([]coreT.Port, 0)
+	for _, location := range state.definition.PortsLocations {
+		ports = append(ports, coreT.Port{
+			Type:     state.ports[location[0]],
+			Vertices: location,
+		})
+	}
+	return ports
 }
 
 func (state *GameState) PortsByPlayer(playerID string) []string {

@@ -19,7 +19,7 @@ export const PlayerTrade = () => {
   };
 
   return (
-    <Trade className="py-2" givenResourcesAvailable={hand}>
+    <Trade className="flex flex-col gap-4 py-2" givenResourcesAvailable={hand}>
       {({ dirty, given, requested, totalGiven, totalRequested }) => {
         return (
           <ul className="flex items-center justify-end gap-1">

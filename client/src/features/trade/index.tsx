@@ -2,7 +2,6 @@ import { type ReactNode, useState } from "react";
 
 import { GameCard } from "@/components/custom/game-card";
 import { QuantitySelector } from "@/components/custom/quantity-selector";
-import { cn } from "@/lib/utils";
 
 import { resourcesOrder } from "@/core/constants";
 import { sumOfResources } from "@/core/utils";
@@ -50,16 +49,32 @@ export const Trade = ({
   const totalGiven = sumOfResources(given);
   const totalRequested = sumOfResources(requested);
 
+  const isGivenResourceDisabled = (resource: SettlersCore.Resource) => {
+    const alreadyAddedAtRequested = requested[resource] > 0;
+    if (alreadyAddedAtRequested) return true;
+
+    if (givenResourceIsDisabledGetter) {
+      return givenResourceIsDisabledGetter(resource);
+    }
+    return false;
+  };
+
+  const isRequestedResourceDisabled = (resource: SettlersCore.Resource) => {
+    return given[resource] > 0;
+  };
+
   return (
-    <div className={cn("flex flex-col gap-4", className)}>
+    <div className={className}>
       <div className="flex flex-col gap-2">
         <h3>You give:</h3>
-        <ul className="flex justify-center gap-6">
+        <ul className="flex justify-center gap-4">
           {resourcesOrder.map((resource) => (
             <li key={resource} className="flex flex-col gap-2 text-center">
-              <GameCard className="h-16" value={resource} />
+              <div className="flex justify-center">
+                <GameCard size="md" value={resource} />
+              </div>
               <QuantitySelector
-                disabled={givenResourceIsDisabledGetter?.(resource) ?? false}
+                disabled={isGivenResourceDisabled(resource)}
                 min={0}
                 max={givenResourcesAvailable[resource]}
                 onValueChange={(value) => {
@@ -77,11 +92,14 @@ export const Trade = ({
       </div>
       <div className="flex flex-col gap-2">
         <h3>You receive:</h3>
-        <ul className="flex justify-center gap-6">
+        <ul className="flex justify-center gap-4">
           {resourcesOrder.map((resource) => (
-            <li key={resource} className="flex flex-col gap-3 text-center">
-              <GameCard className="h-16" value={resource} />
+            <li key={resource} className="flex flex-col gap-2 text-center">
+              <div className="flex justify-center">
+                <GameCard size="md" value={resource} />
+              </div>
               <QuantitySelector
+                disabled={isRequestedResourceDisabled(resource)}
                 onValueChange={(value) => {
                   setRequested({
                     ...requested,

@@ -9,8 +9,18 @@ import (
 )
 
 type makeBankTradeRequestPayload struct {
-	Given     string `json:"given"`
-	Requested string `json:"requested"`
+	Given     map[string]int `json:"given"`
+	Requested map[string]int `json:"requested"`
+}
+
+type makeGeneralPortTradeRequestPayload struct {
+	Given     map[string]int `json:"given"`
+	Requested map[string]int `json:"requested"`
+}
+
+type makeResourcePortTradeRequestPayload struct {
+	Given     map[string]int `json:"given"`
+	Requested map[string]int `json:"requested"`
 }
 
 type createTradeOfferRequestPayload struct {
@@ -59,7 +69,10 @@ func handleMakeBankTrade(player *entities.GamePlayer, message *types.WebSocketCl
 		return true, wsErr
 	}
 
-	logs := []string{fmt.Sprintf("%s traded [res q=4]%s[/res] for [res]%s[/res] with the bank", player.Username, resourceGiven, resourceRequested)}
+	formattedResourceGiven := formatResourceCollection(resourceGiven)
+	formattedResourceRequested := formatResourceCollection(resourceRequested)
+
+	logs := []string{fmt.Sprintf("%s traded %s for %s with the bank", player.Username, formattedResourceGiven, formattedResourceRequested)}
 	room.EnqueueBulkUpdate(
 		UpdateResourceCount,
 		UpdatePlayerHand,
@@ -67,6 +80,68 @@ func handleMakeBankTrade(player *entities.GamePlayer, message *types.WebSocketCl
 	)
 
 	return true, nil
+}
+
+func handleMakeGeneralPortTrade(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
+	payload, err := utils.ParseJsonPayload[makeGeneralPortTradeRequestPayload](message)
+	if err != nil {
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
+	}
+
+	resourceGiven := payload.Given
+	resourceRequested := payload.Requested
+	room := player.Room
+	game := room.Game
+
+	err = game.MakeGeneralPortTrade(player.Username, resourceGiven, resourceRequested)
+	if err != nil {
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
+	}
+	formattedResourceGiven := formatResourceCollection(resourceGiven)
+	formattedResourceRequested := formatResourceCollection(resourceRequested)
+
+	logs := []string{fmt.Sprintf("%s traded %s for %s with the port", player.Username, formattedResourceGiven, formattedResourceRequested)}
+	room.EnqueueBulkUpdate(
+		UpdateResourceCount,
+		UpdatePlayerHand,
+		UpdateLogs(logs),
+	)
+
+	return true, nil
+}
+
+func handleMakeResourcePortTrade(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
+	payload, err := utils.ParseJsonPayload[makeResourcePortTradeRequestPayload](message)
+	if err != nil {
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
+	}
+
+	resourceGiven := payload.Given
+	resourceRequested := payload.Requested
+	room := player.Room
+	game := room.Game
+
+	err = game.MakeResourcePortTrade(player.Username, resourceGiven, resourceRequested)
+	if err != nil {
+		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		return true, wsErr
+	}
+
+	formattedResourceGiven := formatResourceCollection(resourceGiven)
+	formattedResourceRequested := formatResourceCollection(resourceRequested)
+
+	logs := []string{fmt.Sprintf("%s traded %s for %s with the port", player.Username, formattedResourceGiven, formattedResourceRequested)}
+	room.EnqueueBulkUpdate(
+		UpdateResourceCount,
+		UpdatePlayerHand,
+		UpdateLogs(logs),
+	)
+
+	return true, nil
+
 }
 
 func handleCreateTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
@@ -187,12 +262,18 @@ func handleFinalizeTradeOffer(player *entities.GamePlayer, message *types.WebSoc
 		return true, wsErr
 	}
 
-	// TODO: send log to represent the trade deal
+	trade := game.GetTradeByID(tradeID)
+
+	formattedResourceGiven := formatResourceCollection(trade.Offer)
+	formattedResourceRequested := formatResourceCollection(trade.Request)
+
+	logs := []string{fmt.Sprintf("%s traded %s for %s with %s", player.Username, formattedResourceGiven, formattedResourceRequested, accepterID)}
 	room.EnqueueBulkUpdate(
 		UpdatePlayerHand,
 		UpdateResourceCount,
 		UpdateTradeOffers,
 		UpdateBuyDevelopmentCard,
+		UpdateLogs(logs),
 	)
 
 	return true, nil

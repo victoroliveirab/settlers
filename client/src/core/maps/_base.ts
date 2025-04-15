@@ -22,6 +22,7 @@ export default abstract class BaseMapRenderer {
 
   constructor(
     protected readonly root: HTMLElement,
+    protected readonly grid: HexCoordinate[],
     protected readonly colorByPlayer: Record<
       SettlersCore.Player["name"],
       SettlersCore.Player["color"]
@@ -31,7 +32,7 @@ export default abstract class BaseMapRenderer {
   ) {
     // REFACTOR: workaround, make this responsible someday
     this.hexSize = 64;
-    this.outerPadding = 20;
+    this.outerPadding = 50;
     this.spacingProportion = 1 / 8;
   }
 
@@ -147,6 +148,93 @@ export default abstract class BaseMapRenderer {
     return g;
   }
 
+  private getPortArc(pointA: Point, pointB: Point, spacing: number) {
+    const dx = pointB.x - pointA.x;
+    const dy = pointB.y - pointA.y;
+    const distance = Math.hypot(dx, dy);
+
+    if (distance === 0 || spacing * 2 >= distance) {
+      throw new Error("Spacing is too large or points are identical.");
+    }
+
+    const ux = dx / distance;
+    const uy = dy / distance;
+
+    const paddedA: Point = {
+      x: pointA.x + ux * spacing,
+      y: pointA.y + uy * spacing,
+    };
+
+    const paddedB: Point = {
+      x: pointB.x - ux * spacing,
+      y: pointB.y - uy * spacing,
+    };
+
+    const paddedDistance = Math.hypot(paddedB.x - paddedA.x, paddedB.y - paddedA.y);
+    const radius = paddedDistance;
+
+    const largeArcFlag = 0;
+    const sweepFlag = 0;
+
+    return `M ${paddedA.x} ${paddedA.y} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${paddedB.x} ${paddedB.y}`;
+  }
+
+  private getIsoscelesApexPoint(pointA: Point, pointB: Point) {
+    const { x: x1, y: y1 } = pointA;
+    const { x: x2, y: y2 } = pointB;
+
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+
+    const length = Math.hypot(dx, dy);
+
+    const h = length / 2;
+
+    const perpDx = -dy / length;
+    const perpDy = dx / length;
+
+    const cx = mx + perpDx * h;
+    const cy = my + perpDy * h;
+
+    return { x: cx, y: cy };
+  }
+
+  protected drawPort(
+    pointA: Point,
+    pointB: Point,
+    spacing: number,
+    portType: string,
+    angle: number,
+  ) {
+    const arcPath = this.getPortArc(pointA, pointB, spacing);
+    const middlePoint = this.getIsoscelesApexPoint(pointA, pointB);
+
+    const g = document.createElementNS(this.ns, "g");
+
+    const path = document.createElementNS(this.ns, "path");
+    path.setAttribute("d", arcPath);
+    path.setAttribute("stroke", "blue");
+    path.setAttribute("fill", "none");
+    path.setAttribute("stroke-width", "4");
+    g.appendChild(path);
+
+    const text = document.createElementNS(this.ns, "text");
+    text.setAttribute("x", String(middlePoint.x));
+    text.setAttribute("y", String(middlePoint.y));
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.setAttribute("font-size", "10");
+    text.textContent = portType;
+    text.setAttribute("fill", "white");
+    text.setAttribute("transform", `rotate(${angle}, ${middlePoint.x}, ${middlePoint.y})`);
+    g.appendChild(text);
+
+    return g;
+  }
+
   protected getVirtualMiddlePoints(hexPoints: HexagonDef, spacing: number): HexagonDef {
     const points: Point[] = [];
     const spacing1_2 = spacing / 2;
@@ -249,6 +337,10 @@ export default abstract class BaseMapRenderer {
     // FIXME: fix the generation to generate in the correct order instead of this
     return [...edgesPoints.slice(3), ...edgesPoints.slice(0, 3)];
   }
+
+  // protected getPortBridgeCoordinatesByVertexIndex(vertexCenter: Point, vertexIndex: number) {
+  //   const bridgeLength = this.hexSize / 2;
+  // }
 
   protected drawVertex(
     center: Point,

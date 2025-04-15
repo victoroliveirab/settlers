@@ -22,6 +22,11 @@ type MapBlock struct {
 	Blocked     bool          `json:"blocked"`
 }
 
+type Port struct {
+	Type     string `json:"type"`
+	Vertices [2]int `json:"vertices"`
+}
+
 type PlayerColor struct {
 	Background string `json:"background"`
 	Foreground string `json:"foreground"`

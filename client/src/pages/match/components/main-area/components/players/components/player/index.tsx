@@ -29,8 +29,13 @@ export const Player = ({
   return (
     <li className="h-full">
       <Card
-        className="relative h-full aspect-[3/2] flex flex-col justify-between gap-2 border-0"
-        style={{ background: playerColor.background, color: playerColor.foreground }}
+        className="relative h-full aspect-[3/2] flex flex-col justify-between border-2 border-dotted"
+        variant="dense"
+        style={{
+          background: playerColor.background,
+          color: playerColor.foreground,
+          borderColor: isPlayerRound ? playerColor.foreground : "transparent",
+        }}
       >
         <CardHeader>
           <CardTitle>{playerName}</CardTitle>

@@ -14,6 +14,7 @@ import { ParticipantList } from "./components/participant-list";
 import { RoomParameters } from "./components/room-parameters";
 import { ToggleReady } from "./components/toggle-ready";
 import { StartButton } from "./components/button-start";
+import { RoomCapacitySelect } from "./components/room-capacity-select";
 
 export const Room = () => {
   const room = useRoomStore((state) => state.room);
@@ -29,6 +30,10 @@ export const Room = () => {
             <ScrollArea className="h-full max-h-full">
               <ParticipantList />
             </ScrollArea>
+            <div className="flex items-center justify-between">
+              <p>Room Capacity:</p>
+              <RoomCapacitySelect />
+            </div>
           </div>
           <div className="flex-auto basis-0">
             <ScrollArea className="h-full max-h-full">

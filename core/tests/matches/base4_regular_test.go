@@ -1,197 +1,26 @@
-package tests
+package matches_test
 
 import (
-	"fmt"
 	"testing"
 
 	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
-func TestFullGame(t *testing.T) {
-	game := testUtils.CreateTestGame()
+func TestBase4RegularFullGame(t *testing.T) {
+	instance := createGameStateStub()
+	game := instance.game
 
-	expectedHand := func(expected map[string]string) {
-		entryOrder := []byte{'L', 'B', 'S', 'G', 'O'}
-		entryMap := map[byte]string{
-			'L': "Lumber",
-			'B': "Brick",
-			'S': "Sheep",
-			'G': "Grain",
-			'O': "Ore",
-		}
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedHand, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected hand for player %s", playerID))
-			}
-			actualHand := game.ResourceHandByPlayer(playerID)
-			index := 0
-			quantity := 0
-			for _, entry := range entryOrder {
-				quantity = 0
-				for {
-					if index >= len(expectedHand) {
-						break
-					}
-					// fmt.Printf("index:%d,quantity:%d,resource:%s,currentByte:%s\n", index, quantity, string(resource), string(expectedHand[index]))
-					if expectedHand[index] == entry {
-						quantity++
-						index++
-					} else {
-						break
-					}
-				}
-				entryName := entryMap[entry]
-				if actualHand[entryName] != quantity {
-					panic(fmt.Errorf("expected player %s to have %d %s, found %d", playerID, quantity, entryName, actualHand[entryName]))
-				}
-				// fmt.Printf("player:%s, checked %s and has correct quantity, reseting quantity variable\n", playerID, resourceName)
-			}
-		}
-	}
-	expectedDevHand := func(expected map[string]string) {
-		entryOrder := []byte{'K', 'V', 'R', 'Y', 'M'}
-		entryMap := map[byte]string{
-			'K': "Knight",
-			'V': "Victory Point",
-			'R': "Road Building",
-			'Y': "Year of Plenty",
-			'M': "Monopoly",
-		}
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedDevHand, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected devhand for player %s", playerID))
-			}
-			actualHand := game.DevelopmentHandByPlayer(playerID)
-			index := 0
-			quantity := 0
-			for _, entry := range entryOrder {
-				quantity = 0
-				for {
-					if index >= len(expectedDevHand) {
-						break
-					}
-					if expectedDevHand[index] == entry {
-						quantity++
-						index++
-					} else {
-						break
-					}
-				}
-				entryName := entryMap[entry]
-				if actualHand[entryName] != quantity {
-					panic(fmt.Errorf("expected player %s to have %d %s, found %d", playerID, quantity, entryName, actualHand[entryName]))
-				}
-			}
-		}
-	}
-	expectedSettlements := func(expected map[string][]int) {
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedSettlements, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected settlements for player %s", playerID))
-			}
-			actualSettlements := game.SettlementsByPlayer(playerID)
-			if len(expectedSettlements) != len(actualSettlements) {
-				panic(fmt.Errorf("expected settlements to be %v, got %v", expectedSettlements, actualSettlements))
-			}
-			for i, vertexID := range actualSettlements {
-				if expectedSettlements[i] != vertexID {
-					panic(fmt.Errorf("expected to have settlement#%d, but doesn't", expectedSettlements[i]))
-				}
-			}
-		}
-	}
-	expectedCities := func(expected map[string][]int) {
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedCities, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected cities for player %s", playerID))
-			}
-			actualCities := game.CitiesByPlayer(playerID)
-			if len(expectedCities) != len(actualCities) {
-				panic(fmt.Errorf("expected cities to be %v, got %v", expectedCities, actualCities))
-			}
-			for i, vertexID := range actualCities {
-				if expectedCities[i] != vertexID {
-					panic(fmt.Errorf("expected to have city#%d, but doesn't", expectedCities[i]))
-				}
-			}
-		}
-	}
-	expectedRoads := func(expected map[string][]int) {
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedRoads, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected roads for player %s", playerID))
-			}
-			actualRoads := game.RoadsByPlayer(playerID)
-			if len(expectedRoads) != len(actualRoads) {
-				panic(fmt.Errorf("expected roads to be %v, got %v", expectedRoads, actualRoads))
-			}
-			for i, vertexID := range actualRoads {
-				if expectedRoads[i] != vertexID {
-					panic(fmt.Errorf("expected to have road#%d, but doesn't", expectedRoads[i]))
-				}
-			}
-		}
-	}
-	expectedLongestRoadSize := func(expected map[string]int) {
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedLongestRoadSize, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected longest road size for player %s", playerID))
-			}
-			actualLongestRoadSize := game.LongestRoadLengthByPlayer(playerID)
-			if expectedLongestRoadSize != actualLongestRoadSize {
-				panic(fmt.Errorf("expected %s to have %d longest road length, actually has %d", playerID, expectedLongestRoadSize, actualLongestRoadSize))
-			}
-		}
-	}
-	expectedKnightsUsed := func(expected map[string]int) {
-		players := game.Players()
-		for _, player := range players {
-			playerID := player.ID
-			expectedKnightsUsed, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected number of knights used for player %s", playerID))
-			}
-			actualKnightsUsed := game.NumberOfKnightsUsedByPlayer(playerID)
-			if expectedKnightsUsed != actualKnightsUsed {
-				panic(fmt.Errorf("expected %s to have %d knights used, actually has %d", playerID, expectedKnightsUsed, actualKnightsUsed))
-			}
-		}
-	}
-	expectedPoints := func(expected map[string]int) {
-		players := game.Players()
-		points := game.Points()
-		for _, player := range players {
-			playerID := player.ID
-			expectedPoints, exists := expected[playerID]
-			if !exists {
-				panic(fmt.Errorf("not found expected points for player %s", playerID))
-			}
-			actualPoints := points[playerID]
-			if expectedPoints != actualPoints {
-				panic(fmt.Errorf("expected %s to have %d points, actually has %d", playerID, expectedPoints, actualPoints))
-			}
-		}
-	}
+	expectedHand := instance.expectedHand
+	expectedDevHand := instance.expectedDevHand
+	expectedSettlements := instance.expectedSettlements
+	expectedCities := instance.expectedCities
+	expectedRoads := instance.expectedRoads
+	expectedLongestRoadSize := instance.expectedLongestRoadSize
+	expectedKnightsUsed := instance.expectedKnightsUsed
+	expectedPoints := instance.expectedPoints
+	expectedDice := instance.expectedDice
 
-	t.Run("full run", func(t *testing.T) {
+	t.Run("base4 - regular params - full run", func(t *testing.T) {
 		game.BuildSettlement("1", 2)
 		game.BuildRoad("1", 2)
 
@@ -216,22 +45,20 @@ func TestFullGame(t *testing.T) {
 		game.BuildSettlement("1", 4)
 		game.BuildRoad("1", 3)
 
-		// End of setup phase
 		if game.RoundType() != testUtils.FirstRound {
 			t.Errorf("expected to be at first round after setup end, round type is actually %s", testUtils.RoundTypeTranslation[game.RoundType()])
 		}
-
 		expectedHand(map[string]string{
 			"1": "SO",
 			"2": "LBO",
 			"3": "LSG",
 			"4": "GO",
 		})
-		expectedRoads(map[string][]int{
-			"1": {2, 3},
-			"2": {37, 43},
-			"3": {60, 9},
-			"4": {28, 29},
+		expectedDevHand(map[string]string{
+			"1": "",
+			"2": "",
+			"3": "",
+			"4": "",
 		})
 		expectedSettlements(map[string][]int{
 			"1": {2, 4},
@@ -266,6 +93,7 @@ func TestFullGame(t *testing.T) {
 
 		// Start of the game
 		game.RollDice("1") // 8
+		expectedDice(8)
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "SO",
@@ -275,6 +103,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 5
+		expectedDice(5)
 		game.BuildRoad("2", 44)
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -303,6 +132,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 11
+		expectedDice(11)
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "SOOO",
@@ -312,12 +142,17 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 9
+		expectedDice(9)
 		tradeID, err := game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		counterTradeID, _ := game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Ore": 1})
+		counterTradeID, err := game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Grain": 1, "Ore": 1}, map[string]int{"Sheep": 1})
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		game.RejectTradeOffer("2", tradeID)
 		game.AcceptTradeOffer("3", counterTradeID)
 		err = game.FinalizeTrade("4", "1", counterTradeID)
@@ -351,6 +186,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 10
+		expectedDice(10)
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "GOOOO",
@@ -366,6 +202,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 5
+		expectedDice(5)
 		game.MakeTradeOffer("2", map[string]int{"Brick": 1}, map[string]int{"Sheep": 1}, []string{})
 		tradeID, _ = game.MakeTradeOffer("2", map[string]int{"Brick": 1}, map[string]int{"Ore": 1}, []string{})
 		game.AcceptTradeOffer("1", tradeID)
@@ -410,6 +247,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 8
+		expectedDice(8)
 		game.BuildRoad("3", 72)
 		tradeID, _ = game.MakeTradeOffer("3", map[string]int{"Lumber": 1, "Grain": 1}, map[string]int{"Brick": 1}, []string{})
 		game.AcceptTradeOffer("1", tradeID)
@@ -494,6 +332,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 7
+		expectedDice(7)
 		err = game.MoveRobber("4", 1)
 		if err != nil {
 			t.Error(err)
@@ -509,6 +348,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 2
+		expectedDice(2)
 		err = game.BuildCity("1", 4)
 		if err != nil {
 			t.Error(err)
@@ -541,9 +381,11 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 2
+		expectedDice(2)
 		game.EndRound("2")
 
 		game.RollDice("3") // 9
+		expectedDice(9)
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "",
@@ -553,6 +395,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 4
+		expectedDice(4)
 		game.EndRound("4")
 		expectedHand(map[string]string{
 			"1": "",
@@ -568,6 +411,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 7
+		expectedDice(7)
 		game.MoveRobber("1", 15)
 		game.RobPlayer("1", "3")
 		game.EndRound("1")
@@ -579,7 +423,8 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 5
-		game.MakeBankTrade("2", "Grain", "Sheep")
+		expectedDice(5)
+		game.MakeBankTrade("2", map[string]int{"Grain": 4}, map[string]int{"Sheep": 1})
 		game.BuyDevelopmentCard("2")
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -596,6 +441,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 10
+		expectedDice(10)
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "L",
@@ -605,6 +451,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 9
+		expectedDice(9)
 		game.BuildCity("4", 22)
 		game.EndRound("4")
 		expectedHand(map[string]string{
@@ -633,6 +480,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 6
+		expectedDice(6)
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "L",
@@ -642,6 +490,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 7
+		expectedDice(7)
 		game.MoveRobber("2", 19)
 		game.RobPlayer("2", "3")
 		game.UseYearOfPlenty("2")
@@ -680,6 +529,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 4
+		expectedDice(4)
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "L",
@@ -689,7 +539,8 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 3
-		game.MakeBankTrade("4", "Grain", "Brick")
+		expectedDice(3)
+		game.MakeBankTrade("2", map[string]int{"Grain": 4}, map[string]int{"Brick": 1})
 		game.BuildRoad("4", 26)
 		game.EndRound("4")
 		expectedHand(map[string]string{
@@ -712,6 +563,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 10
+		expectedDice(10)
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "LSS",
@@ -721,6 +573,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 7
+		expectedDice(7)
 		game.MoveRobber("2", 3)
 		game.RobPlayer("2", "3")
 		game.BuildRoad("2", 52)
@@ -745,6 +598,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 5
+		expectedDice(5)
 		game.BuildRoad("3", 16)
 		game.EndRound("3")
 		expectedHand(map[string]string{
@@ -767,6 +621,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 9
+		expectedDice(9)
 		tradeID, _ = game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Ore": 1})
 		game.RejectTradeOffer("4", counterTradeID)
@@ -788,8 +643,13 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 11
+		expectedDice(11)
 		game.BuyDevelopmentCard("1")
-		game.MakePortTrade("1", 4, "Ore", "Brick")
+		game.MakeResourcePortTrade("1", map[string]int{
+			"Ore": 2,
+		}, map[string]int{
+			"Brick": 1,
+		})
 		game.BuildRoad("1", 19)
 		game.EndRound("1")
 		expectedHand(map[string]string{
@@ -818,6 +678,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 3
+		expectedDice(3)
 		game.BuyDevelopmentCard("2")
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -834,7 +695,12 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 12
-		game.MakePortTrade("3", 54, "Lumber", "Ore")
+		expectedDice(12)
+		game.MakeResourcePortTrade("3", map[string]int{
+			"Lumber": 2,
+		}, map[string]int{
+			"Ore": 1,
+		})
 		game.BuyDevelopmentCard("3")
 		err = game.UseKnight("3")
 		if err == nil {
@@ -865,6 +731,7 @@ func TestFullGame(t *testing.T) {
 		game.MoveRobber("4", 19)
 		game.RobPlayer("4", "3")
 		game.RollDice("4") // 4
+		expectedDice(4)
 		game.EndRound("4")
 		expectedHand(map[string]string{
 			"1": "BSS",
@@ -892,6 +759,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 12
+		expectedDice(12)
 		tradeID, _ = game.MakeTradeOffer("1", map[string]int{"Sheep": 1}, map[string]int{"Lumber": 1}, []string{})
 		game.AcceptTradeOffer("2", tradeID)
 		game.FinalizeTrade("1", "2", tradeID)
@@ -915,7 +783,6 @@ func TestFullGame(t *testing.T) {
 			"3": 2,
 			"4": 3,
 		})
-
 		expectedPoints(map[string]int{
 			"1": 3,
 			"2": 4,
@@ -924,6 +791,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 2
+		expectedDice(2)
 		game.UseYearOfPlenty("2")
 		game.PickYearOfPlentyResources("2", "Brick", "Brick")
 		game.BuildRoad("2", 51)
@@ -970,6 +838,7 @@ func TestFullGame(t *testing.T) {
 		game.MoveRobber("3", 11)
 		game.RobPlayer("3", "2")
 		game.RollDice("3") // 5
+		expectedDice(5)
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "BS",
@@ -991,12 +860,13 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 7
+		expectedDice(7)
 		game.MoveRobber("4", 13)
 		game.RobPlayer("4", "2")
 		tradeID, _ = game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
-		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 2})
+		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Grain": 2}, map[string]int{"Sheep": 1})
 		game.FinalizeTrade("4", "3", counterTradeID)
-		game.MakeBankTrade("4", "Grain", "Ore")
+		game.MakeBankTrade("2", map[string]int{"Grain": 4}, map[string]int{"Ore": 1})
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
 		expectedHand(map[string]string{
@@ -1019,6 +889,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 4
+		expectedDice(4)
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "BS",
@@ -1028,6 +899,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 6
+		expectedDice(6)
 		game.BuildRoad("2", 50)
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -1050,8 +922,9 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 10
+		expectedDice(10)
 		tradeID, _ = game.MakeTradeOffer("3", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
-		counterTradeID, _ = game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Lumber": 1})
+		counterTradeID, _ = game.MakeCounterTradeOffer("1", tradeID, map[string]int{"Grain": 1, "Lumber": 1}, map[string]int{"Sheep": 1})
 		err = game.FinalizeTrade("3", "1", counterTradeID)
 		game.BuildSettlement("3", 14)
 		game.EndRound("3")
@@ -1075,15 +948,11 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.UseKnight("4")
-		game.MoveRobber("4", 19)
-		game.RobPlayer("4", "3")
-		game.RollDice("4") // 3
-		game.EndRound("4")
-		expectedHand(map[string]string{
-			"1": "LBSSG",
-			"2": "BGO",
-			"3": "S",
-			"4": "GGGGO",
+		expectedKnightsUsed(map[string]int{
+			"1": 0,
+			"2": 0,
+			"3": 1,
+			"4": 3,
 		})
 		expectedPoints(map[string]int{
 			"1": 3,
@@ -1091,14 +960,20 @@ func TestFullGame(t *testing.T) {
 			"3": 4,
 			"4": 5,
 		})
-		expectedKnightsUsed(map[string]int{
-			"1": 0,
-			"2": 0,
-			"3": 1,
-			"4": 3,
+		game.MoveRobber("4", 19)
+		game.RobPlayer("4", "3")
+		game.RollDice("4") // 3
+		expectedDice(3)
+		game.EndRound("4")
+		expectedHand(map[string]string{
+			"1": "LBSSG",
+			"2": "BGO",
+			"3": "S",
+			"4": "GGGGO",
 		})
 
 		game.RollDice("1") // 4
+		expectedDice(4)
 		game.BuildSettlement("1", 19)
 		game.EndRound("1")
 		expectedHand(map[string]string{
@@ -1121,8 +996,9 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 5
+		expectedDice(5)
 		tradeID, _ = game.MakeTradeOffer("2", map[string]int{"Grain": 1, "Ore": 1}, map[string]int{"Sheep": 1}, []string{})
-		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Ore": 1, "Brick": 1})
+		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Grain": 1, "Ore": 1, "Brick": 1}, map[string]int{"Sheep": 1})
 		game.FinalizeTrade("2", "3", counterTradeID)
 		game.BuildSettlement("2", 39)
 		game.EndRound("2")
@@ -1146,8 +1022,9 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 6
+		expectedDice(6)
 		tradeID, _ = game.MakeTradeOffer("3", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
-		counterTradeID, _ = game.MakeCounterTradeOffer("2", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 1, "Brick": 1})
+		counterTradeID, _ = game.MakeCounterTradeOffer("2", tradeID, map[string]int{"Grain": 1, "Brick": 1}, map[string]int{"Sheep": 1})
 		game.FinalizeTrade("3", "2", counterTradeID)
 		game.BuyDevelopmentCard("3")
 		game.EndRound("3")
@@ -1165,8 +1042,9 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 6
+		expectedDice(6)
 		tradeID, _ = game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
-		counterTradeID, _ = game.MakeCounterTradeOffer("2", tradeID, map[string]int{"Sheep": 1}, map[string]int{"Grain": 2})
+		counterTradeID, _ = game.MakeCounterTradeOffer("2", tradeID, map[string]int{"Grain": 2}, map[string]int{"Sheep": 1})
 		game.FinalizeTrade("4", "2", counterTradeID)
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
@@ -1184,6 +1062,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 7
+		expectedDice(7)
 		if game.RoundType() != testUtils.DiscardPhase {
 			t.Errorf("expected round type to be %s, but got %s", testUtils.RoundTypeTranslation[testUtils.DiscardPhase], testUtils.RoundTypeTranslation[game.RoundType()])
 			return
@@ -1211,7 +1090,8 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 8
-		game.MakePortTrade("2", 39, "Grain", "Lumber")
+		expectedDice(8)
+		game.MakeResourcePortTrade("2", map[string]int{"Grain": 2}, map[string]int{"Lumber": 1})
 		game.BuildRoad("2", 53)
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -1240,6 +1120,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 9
+		expectedDice(9)
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "SSG",
@@ -1254,6 +1135,7 @@ func TestFullGame(t *testing.T) {
 			return
 		}
 		game.RollDice("4") // 6
+		expectedDice(6)
 		game.UseRoadBuilding("4")
 		game.PickRoadBuildingSpot("4", 30)
 		game.PickRoadBuildingSpot("4", 31)
@@ -1277,6 +1159,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 8
+		expectedDice(8)
 		game.BuyDevelopmentCard("1")
 		game.EndRound("1")
 		expectedHand(map[string]string{
@@ -1299,6 +1182,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 5
+		expectedDice(5)
 		game.BuyDevelopmentCard("2")
 		game.BuildCity("2", 41)
 		game.EndRound("2")
@@ -1334,8 +1218,8 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 6
-		game.MakePortTrade("3", 54, "Lumber", "Sheep")
-		game.MakePortTrade("3", 54, "Lumber", "Ore")
+		expectedDice(6)
+		game.MakeResourcePortTrade("3", map[string]int{"Lumber": 4}, map[string]int{"Sheep": 1, "Ore": 1})
 		game.BuyDevelopmentCard("3")
 		err = game.UseKnight("3")
 		if err != nil {
@@ -1362,6 +1246,7 @@ func TestFullGame(t *testing.T) {
 		game.MoveRobber("4", 8)
 		game.RobPlayer("4", "2")
 		game.RollDice("4") // 7
+		expectedDice(7)
 		game.MoveRobber("4", 13)
 		game.RobPlayer("4", "2")
 		game.EndRound("4")
@@ -1379,14 +1264,14 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("1") // 11
+		expectedDice(11)
 		tradeID, _ = game.MakeTradeOffer("1", map[string]int{"Grain": 1}, map[string]int{"Lumber": 2}, []string{"2"})
 		game.AcceptTradeOffer("3", tradeID)
 		game.FinalizeTrade("1", "3", tradeID)
 		tradeID, _ = game.MakeTradeOffer("1", map[string]int{"Grain": 1}, map[string]int{"Ore": 2}, []string{"2"})
 		game.AcceptTradeOffer("4", tradeID)
 		game.FinalizeTrade("1", "4", tradeID)
-		game.MakePortTrade("1", 4, "Ore", "Brick")
-		game.MakePortTrade("1", 4, "Ore", "Brick")
+		game.MakeResourcePortTrade("1", map[string]int{"Ore": 4}, map[string]int{"Brick": 2})
 		game.BuildRoad("1", 4)
 		game.BuildRoad("1", 5)
 		game.EndRound("1")
@@ -1416,9 +1301,10 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 8
+		expectedDice(8)
 		game.BuyDevelopmentCard("2")
 		game.BuyDevelopmentCard("2")
-		game.MakeBankTrade("2", "Sheep", "Brick")
+		game.MakeBankTrade("2", map[string]int{"Sheep": 4}, map[string]int{"Brick": 1})
 		game.BuildRoad("2", 32)
 		game.EndRound("2")
 		expectedHand(map[string]string{
@@ -1453,6 +1339,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("3") // 4
+		expectedDice(4)
 		game.UseKnight("3")
 		game.MoveRobber("3", 8)
 		game.RobPlayer("3", "2")
@@ -1481,6 +1368,7 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("4") // 5
+		expectedDice(5)
 		game.BuyDevelopmentCard("4")
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
@@ -1507,6 +1395,7 @@ func TestFullGame(t *testing.T) {
 		game.MoveRobber("1", 13)
 		game.RobPlayer("1", "2")
 		game.RollDice("1") // 9
+		expectedDice(9)
 		game.BuildRoad("1", 6)
 		game.EndRound("1")
 		expectedHand(map[string]string{
@@ -1541,15 +1430,14 @@ func TestFullGame(t *testing.T) {
 		})
 
 		game.RollDice("2") // 8
+		expectedDice(8)
 		game.UseMonopoly("2")
 		game.PickMonopolyResource("2", "Grain")
-		game.MakePortTrade("2", 39, "Grain", "Ore")
+		game.MakeResourcePortTrade("2", map[string]int{"Grain": 2}, map[string]int{"Ore": 1})
 		game.BuildCity("2", 35)
-		game.MakePortTrade("2", 39, "Grain", "Lumber")
-		game.MakePortTrade("2", 39, "Grain", "Brick")
+		game.MakeResourcePortTrade("2", map[string]int{"Grain": 4}, map[string]int{"Lumber": 1, "Brick": 1})
 		game.BuildRoad("2", 36)
 		game.BuildRoad("2", 35)
-		game.EndRound("2")
 		expectedHand(map[string]string{
 			"1": "",
 			"2": "GG",

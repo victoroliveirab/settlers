@@ -308,7 +308,8 @@
   },
   "meta": {
     "id": 1,
-    "name": "Base 4 map",
+    "name": "base4",
+    "description": "base map",
     "players": {
       "min": 2,
       "max": 4
@@ -317,9 +318,23 @@
       "bankTradeAmount": {
         "description": "How many resources a player should give to receive any single resource from bank",
         "label": "Bank Trade Amount",
-        "priority": 1,
+        "priority": 3,
         "values": [1, 2, 3, 4, 5],
         "default": 4
+      },
+      "generalPortTradeAmount": {
+        "description": "How many resources a player should give to receive any single resource from the general port",
+        "label": "General Port Trade Amount",
+        "priority": 3,
+        "values": [2, 3, 4, 5],
+        "default": 3
+      },
+      "resourcePortTradeAmount": {
+        "description": "How many resources a player should give to receive any single resource from the resource port",
+        "label": "Resource Port Trade Amount",
+        "priority": 3,
+        "values": [1, 2, 3, 4],
+        "default": 2
       },
       "maxCards": {
         "description": "The maximum amount of cards a player can hold before having to discard if the dice rolled sum 7",

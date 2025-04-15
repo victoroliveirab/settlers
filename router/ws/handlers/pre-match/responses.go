@@ -7,8 +7,9 @@ import (
 
 func BuildRoomMessage(room *entities.Room, messageType string) *types.WebSocketServerResponse {
 	responsePayload := roomUpdateResponsePayload{
-		Room:       room,
-		RoomParams: room.Params(),
+		MinMaxPlayers: room.MinMax(),
+		Room:          room,
+		RoomParams:    room.Params(),
 	}
 	msg := &types.WebSocketServerResponse{
 		Type:    types.ResponseType(messageType),
@@ -21,8 +22,9 @@ func buildStartMatch(room *entities.Room) *types.WebSocketServerResponse {
 	game := room.Game
 	responsePayload := roomStartMatchPayload{
 		Map:           game.Map(),
-		MapName:       "base4",
+		MapName:       game.MapName(),
 		Players:       game.Players(),
+		Ports:         game.Ports(),
 		ResourceCount: game.NumberOfResourcesByPlayer(),
 		Logs:          []string{},
 	}

@@ -6,8 +6,8 @@ import { Players } from "./components/players";
 
 export const MainArea = () => {
   return (
-    <section className="h-full w-full flex flex-col gap-4 justify-between relative">
-      <div className="h-32">
+    <section className="h-full w-3/4 flex flex-col gap-4 justify-between relative">
+      <div>
         <Players />
       </div>
       <hr className="w-full h-px bg-border" />

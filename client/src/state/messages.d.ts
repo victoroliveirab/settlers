@@ -1,10 +1,16 @@
 export namespace SettlersRoom {
   export type IncomingMessages = {
     "room.connect.success": {
+      minMaxPlayers: [number, number];
       room: SettlersServer.Room;
       params: SettlersServer.RoomParam[];
     };
     "room.new-update": {
+      room: SettlersServer.Room;
+      params: SettlersServer.RoomParam[];
+    };
+    "room.update-capacity.success": {
+      minMaxPlayers: [number, number];
       room: SettlersServer.Room;
       params: SettlersServer.RoomParam[];
     };
@@ -21,6 +27,7 @@ export namespace SettlersRoom {
       map: SettlersCore.Map;
       mapName: string;
       players: SettlersCore.Player[];
+      ports: SettlersCore.Ports;
       resourceCount: Record<SettlersCore.Player["name"], number>;
     };
   };
@@ -28,6 +35,9 @@ export namespace SettlersRoom {
   export type OutgoingMessages = {
     "room.player-change-color": {
       color: string;
+    };
+    "room.update-capacity": {
+      capacity: number;
     };
     "room.update-param": {
       key: string;
@@ -71,6 +81,15 @@ export namespace SettlersMatch {
       cities: SettlersCore.Cities;
       roads: SettlersCore.Roads;
       settlements: SettlersCore.Settlements;
+    };
+    "setup.update-ports": {
+      ports: SettlersCore.PortType[];
+    };
+    "setup.update-longest-road-size": {
+      longestRoadSizeByPlayer: Record<SettlersCore.Player["name"], number>;
+    };
+    "setup.update-points": {
+      points: Record<SettlersCore.Player["name"], number>;
     };
     "setup.update-logs": string[];
 
@@ -194,21 +213,14 @@ export namespace SettlersMatch {
       resources: SettlersCore.ResourceCollection;
     };
     "match.make-bank-trade": {
-      given: SettlersCore.Resource;
-      requested: SettlersCore.Resource;
-    };
-    "match.make-bank-trade-v2": {
-      // Not used, but someday...
       given: SettlersCore.ResourceCollection;
       requested: SettlersCore.ResourceCollection;
     };
-    "match.make-port-trade": {
-      given: SettlersCore.Resource;
-      requested: SettlersCore.Resource;
-      vertex: number;
+    "match.make-general-port-trade": {
+      given: SettlersCore.ResourceCollection;
+      requested: SettlersCore.ResourceCollection;
     };
-    "match.make-port-trade-v2": {
-      // Not used, but someday...
+    "match.make-resource-port-trade": {
       given: SettlersCore.ResourceCollection;
       requested: SettlersCore.ResourceCollection;
     };

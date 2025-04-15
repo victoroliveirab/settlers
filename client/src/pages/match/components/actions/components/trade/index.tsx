@@ -11,12 +11,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { useMatchStore } from "@/state/match";
 
-import { BankTrade } from "./components/bank-trade";
+import { GeneralTrade } from "./components/general-trade";
 import { PortTrade } from "./components/port-trade";
 import { PlayerTrade } from "./components/player-trade";
 
 export const Trade = () => {
   const tradeState = useMatchStore((state) => state.actions.trade);
+  const hand = useMatchStore((state) => state.hand);
+  const ports = useMatchStore((state) => state.ownedPorts);
+
+  const hasGeneralPort = ports.includes("General");
+  const bankStep = hasGeneralPort ? 3 : 4; // TODO: get from game params
+
+  const isBankTradeDisabled = Object.values(hand).every((quantity) => quantity < bankStep);
+  const isPortTradeDisabled = ports.filter((type) => type !== "General").length === 0;
+  const isPlayerTradeDisabled = Object.values(hand).every((quantity) => quantity === 0);
 
   return (
     <Dialog>
@@ -25,27 +34,31 @@ export const Trade = () => {
           Trade
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-3xl h-fit">
-        <DialogHeader className="h-fit">
+      <DialogContent className="w-fit h-fit">
+        <DialogHeader>
           <DialogTitle>Trade menu</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="flex flex-col gap-4">
             <Tabs defaultValue="player" className="w-full">
               <TabsList className="w-full">
-                <TabsTrigger className="cursor-pointer" value="bank">
-                  Bank
+                <TabsTrigger className="cursor-pointer" value="bank" disabled={isBankTradeDisabled}>
+                  {hasGeneralPort ? "General" : "Bank"}
                 </TabsTrigger>
-                <TabsTrigger className="cursor-pointer" value="port">
+                <TabsTrigger className="cursor-pointer" value="port" disabled={isPortTradeDisabled}>
                   Port
                 </TabsTrigger>
-                <TabsTrigger className="cursor-pointer" value="player">
+                <TabsTrigger
+                  className="cursor-pointer"
+                  value="player"
+                  disabled={isPlayerTradeDisabled}
+                >
                   Player
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="bank">
-                <BankTrade />
+                <GeneralTrade isBankTrade={!hasGeneralPort} step={bankStep} />
               </TabsContent>
               <TabsContent value="port">
-                <PortTrade />
+                <PortTrade step={2} />
               </TabsContent>
               <TabsContent value="player">
                 <PlayerTrade />

@@ -9,6 +9,10 @@ type roomConnectResponsePayload struct {
 	Room *entities.Room `json:"room"`
 }
 
+type roomUpdateCapacityRequestPayload struct {
+	Capacity int `json:"capacity"`
+}
+
 type roomUpdateParamRequestPayload struct {
 	Key   string `json:"key"`
 	Value int    `json:"value"`
@@ -23,14 +27,16 @@ type roomPlayerReadyRequestPayload struct {
 }
 
 type roomUpdateResponsePayload struct {
-	Room       *entities.Room                 `json:"room"`
-	RoomParams []entities.RoomParamsMetaEntry `json:"params"`
+	MinMaxPlayers [2]int                         `json:"minMaxPlayers"`
+	Room          *entities.Room                 `json:"room"`
+	RoomParams    []entities.RoomParamsMetaEntry `json:"params"`
 }
 
 type roomStartMatchPayload struct {
 	Map           []*coreT.MapBlock `json:"map"`
 	MapName       string            `json:"mapName"`
 	Players       []coreT.Player    `json:"players"`
+	Ports         []coreT.Port      `json:"ports"`
 	ResourceCount map[string]int    `json:"resourceCount"`
 	Logs          []string          `json:"logs"`
 }

@@ -113,7 +113,7 @@ type hydrateSetupMatchResponsePayload struct {
 	MapName           string                         `json:"mapName"`
 	MapUpdate         *types.WebSocketServerResponse `json:"mapUpdate"`
 	Players           []coreT.Player                 `json:"players"`
-	Ports             map[int]string                 `json:"ports"`
+	Ports             []coreT.Port                   `json:"ports"`
 	ResourceCount     map[string]int                 `json:"resourceCount"`
 	RoundPlayerUpdate *types.WebSocketServerResponse `json:"roundPlayerUpdate"`
 	VertexUpdate      *types.WebSocketServerResponse `json:"vertexUpdate"`
@@ -136,7 +136,7 @@ type hydrateOngoingMatchResponsePayload struct {
 	PassActionState          *types.WebSocketServerResponse `json:"passActionState"`
 	Players                  []coreT.Player                 `json:"players"`
 	PointsUpdate             *types.WebSocketServerResponse `json:"pointsUpdate"`
-	Ports                    map[int]string                 `json:"ports"`
+	Ports                    []coreT.Port                   `json:"ports"`
 	PortsUpdate              *types.WebSocketServerResponse `json:"portsUpdate"`
 	ResourceCount            map[string]int                 `json:"resourceCount"`
 	RobbablePlayersUpdate    *types.WebSocketServerResponse `json:"robbablePlayersUpdate"`

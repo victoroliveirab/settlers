@@ -20,7 +20,7 @@ func equalResourceMaps(a, b map[string]int) bool {
 	return true
 }
 
-func (state *GameState) MakeBankTrade(playerID string, givenResource, desiredResource string) error {
+func (state *GameState) MakeBankTrade(playerID string, givenResources, requestedResources map[string]int) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot trade with bank during other player's turn")
 		return err
@@ -31,17 +31,51 @@ func (state *GameState) MakeBankTrade(playerID string, givenResource, desiredRes
 		return err
 	}
 
-	if state.playerResourceHandMap[playerID][givenResource] < state.bankTradeAmount {
-		err := fmt.Errorf("Cannot trade with bank: need %d %s, only have %d", state.bankTradeAmount, givenResource, state.playerResourceHandMap[playerID][givenResource])
+	ownedPorts := state.PortsByPlayer(playerID)
+	if utils.SliceContains(ownedPorts, "General") {
+		err := fmt.Errorf("Cannot trade with bank: owns General port")
 		return err
 	}
 
-	state.playerResourceHandMap[playerID][givenResource] -= state.bankTradeAmount
-	state.playerResourceHandMap[playerID][desiredResource]++
+	availableResourcesToRequest := 0
+	for resource, quantity := range givenResources {
+		if quantity == 0 {
+			continue
+		}
+		if quantity%state.bankTradeAmount != 0 {
+			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.bankTradeAmount)
+			return err
+		}
+		if state.playerResourceHandMap[playerID][resource] < quantity {
+			err := fmt.Errorf("Cannot trade %d of %s with bank: doesn't have that quantity available", quantity, resource)
+			return err
+		}
+		availableResourcesToRequest += quantity / state.bankTradeAmount
+	}
+
+	for resource, quantity := range requestedResources {
+		givenQuantity, ok := givenResources[resource]
+		if ok && givenQuantity > 0 && quantity > 0 {
+			err := fmt.Errorf("Cannot complete bank trade: giving and requesting %s", resource)
+			return err
+		}
+		availableResourcesToRequest -= quantity
+	}
+	if availableResourcesToRequest != 0 {
+		err := fmt.Errorf("Cannot complete bank trade: wrong proportion of given and requested resorces")
+		return err
+	}
+
+	for resource, quantity := range givenResources {
+		state.playerResourceHandMap[playerID][resource] -= quantity
+	}
+	for resource, quantity := range requestedResources {
+		state.playerResourceHandMap[playerID][resource] += quantity
+	}
 	return nil
 }
 
-func (state *GameState) MakePortTrade(playerID string, vertexID int, givenResource, wantedResource string) error {
+func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, requestedResources map[string]int) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot trade with port during other player's turn")
 		return err
@@ -52,41 +86,106 @@ func (state *GameState) MakePortTrade(playerID string, vertexID int, givenResour
 		return err
 	}
 
-	var portType string
-	for _, portID := range state.playerPortMap[playerID] {
-		if portID == vertexID {
-			portType = state.ports[portID]
+	ownedPorts := state.PortsByPlayer(playerID)
+	if !utils.SliceContains(ownedPorts, "General") {
+		err := fmt.Errorf("Cannot trade in port General: doesn't own port")
+		return err
+	}
+
+	availableResourcesToRequest := 0
+	for resource, quantity := range givenResources {
+		if quantity == 0 {
+			continue
 		}
-	}
-
-	if portType == "" {
-		err := fmt.Errorf("Vertex#%d doesn't have a port owned by player %s", vertexID, playerID)
-		return err
-	}
-
-	if portType != "General" && portType != givenResource {
-		err := fmt.Errorf("Vertex#%d port is of resource %s, not %s", vertexID, portType, givenResource)
-		return err
-	}
-
-	var neededResources int
-	if portType == "General" {
-		neededResources = 3
-	} else {
-		if portType != givenResource {
-			err := fmt.Errorf("Port type is %s, but given resource was %s", portType, givenResource)
+		if utils.SliceContains(ownedPorts, resource) {
+			err := fmt.Errorf("Cannot trade %s in General port: owns specific port", resource)
 			return err
 		}
-		neededResources = 2
+		if quantity%state.generalPortCost != 0 {
+			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.generalPortCost)
+			return err
+		}
+		if state.playerResourceHandMap[playerID][resource] < quantity {
+			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
+			return err
+		}
+		availableResourcesToRequest += quantity / state.generalPortCost
 	}
 
-	if state.playerResourceHandMap[playerID][givenResource] < neededResources {
-		err := fmt.Errorf("Player doesn't have %d %s to trade in port %s", neededResources, givenResource, portType)
+	for resource, quantity := range requestedResources {
+		givenQuantity, ok := givenResources[resource]
+		if ok && givenQuantity > 0 && quantity > 0 {
+			err := fmt.Errorf("Cannot complete port trade: giving and requesting %s", resource)
+			return err
+		}
+		availableResourcesToRequest -= quantity
+	}
+	if availableResourcesToRequest != 0 {
+		err := fmt.Errorf("Cannot complete port trade: wrong proportion of given and requested resorces")
 		return err
 	}
 
-	state.playerResourceHandMap[playerID][givenResource] -= neededResources
-	state.playerResourceHandMap[playerID][wantedResource]++
+	for resource, quantity := range givenResources {
+		state.playerResourceHandMap[playerID][resource] -= quantity
+	}
+	for resource, quantity := range requestedResources {
+		state.playerResourceHandMap[playerID][resource] += quantity
+	}
+	return nil
+}
+
+func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, requestedResources map[string]int) error {
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot trade with port during other player's turn")
+		return err
+	}
+
+	if state.roundType != Regular {
+		err := fmt.Errorf("Cannot trade with port during %s", RoundTypeTranslation[state.roundType])
+		return err
+	}
+
+	ownedPorts := state.PortsByPlayer(playerID)
+	availableResourcesToRequest := 0
+
+	for resource, quantity := range givenResources {
+		if quantity == 0 {
+			continue
+		}
+		if !utils.SliceContains(ownedPorts, resource) {
+			err := fmt.Errorf("Cannot trade in port %s: doesn't own port", resource)
+			return err
+		}
+		if quantity%state.resourcePortCost != 0 {
+			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.resourcePortCost)
+			return err
+		}
+		if state.playerResourceHandMap[playerID][resource] < quantity {
+			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
+			return err
+		}
+		availableResourcesToRequest += quantity / state.resourcePortCost
+	}
+
+	for resource, quantity := range requestedResources {
+		givenQuantity, ok := givenResources[resource]
+		if ok && givenQuantity > 0 && quantity > 0 {
+			err := fmt.Errorf("Cannot complete port trade: giving and requesting %s", resource)
+			return err
+		}
+		availableResourcesToRequest -= quantity
+	}
+	if availableResourcesToRequest != 0 {
+		err := fmt.Errorf("Cannot complete port trade: wrong proportion of given and requested resorces")
+		return err
+	}
+
+	for resource, quantity := range givenResources {
+		state.playerResourceHandMap[playerID][resource] -= quantity
+	}
+	for resource, quantity := range requestedResources {
+		state.playerResourceHandMap[playerID][resource] += quantity
+	}
 	return nil
 }
 
@@ -396,4 +495,8 @@ func (state *GameState) CancelTradeOffer(playerID string, tradeID int) error {
 func (state *GameState) cancelOffer(offer *Trade) {
 	offer.Finalized = true
 	offer.Status = TradeClosed
+}
+
+func (state *GameState) GetTradeByID(tradeID int) *Trade {
+	return state.playersTrades[tradeID]
 }

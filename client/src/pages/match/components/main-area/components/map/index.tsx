@@ -26,6 +26,7 @@ export const SettlersMap = () => {
   const username = usePlayerStore((state) => state.username);
   const mapName = useMatchStore((state) => state.mapName);
   const map = useMatchStore((state) => state.map);
+  const ports = useMatchStore((state) => state.ports);
   const players = useMatchStore((state) => state.players);
 
   const onEdgeClick = useOnEdgeClick();
@@ -48,7 +49,7 @@ export const SettlersMap = () => {
       { onEdgeClick, onTileClick, onVertexClick },
     );
     if (!renderer) return;
-    renderer.render(map, []);
+    renderer.render(map, ports);
     setInstance(renderer);
   }, [instance, map, mapName, onEdgeClick, onTileClick, onVertexClick]);
 
