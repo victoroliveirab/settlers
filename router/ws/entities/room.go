@@ -397,6 +397,7 @@ func (room *Room) UpdateSize(player *GamePlayer, newSize int) error {
 			currentIndex++
 		}
 	}
+	room.Participants = participants
 	room.Capacity = newSize
 	return nil
 }
