@@ -7,11 +7,13 @@ import (
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 )
 
 func metaEntriesToParams(entries []entities.RoomParamsMetaEntry) *core.Params {
 	params := core.Params{}
 	valueMap := map[string]*int{
+		"speed":                &params.Speed,
 		"bankTradeAmount":      &params.BankTradeAmount,
 		"maxCards":             &params.MaxCards,
 		"maxDevCardsPerRound":  &params.MaxDevCardsPerRound,
@@ -52,7 +54,7 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 	}
 
 	params := metaEntriesToParams(room.Params())
-	err := gameState.New(players, room.MapName, 42, *params)
+	err := gameState.New(players, room.MapName, room.Rand, *params)
 	if err != nil {
 		return err
 	}
@@ -61,5 +63,33 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 
 	room.Game = gameState
 	room.Status = "setup"
+
+	onSetupRoundTimeout := match.OnSetupRoundTimeoutCurry(room)
+	onRegularRoundTimeout := match.OnRegularRoundTimeoutCurry(room)
+
+	onBetweenTurnsTimeout := match.OnBetweenTurnsTimeoutCurry(room)
+	onMoveRobberTimeout := match.OnMoveRobberTimeoutCurry(room)
+	onPickRobbedTimeout := match.OnPickRobbedTimeoutCurry(room)
+	onBuildRoadDevelopmentTimeout := match.OnBuildRoadDevelopmentTimeoutCurry(room)
+	onMonopolyPickResourceTimeout := match.OnMonopolyPickResourceTimeoutCurry(room)
+	onYearOfPlentyPickResourcesTimeout := match.OnYearOfPlentyPickResourcesTimeoutCurry(room)
+	onDiscardPhaseTimeout := match.OnDiscardPhaseTimeoutCurry(room)
+
+	room.CreateRoundManager(onRegularRoundTimeout, map[int]func(){
+		core.SetupSettlement1:          onSetupRoundTimeout,
+		core.SetupRoad1:                onSetupRoundTimeout,
+		core.SetupSettlement2:          onSetupRoundTimeout,
+		core.SetupRoad2:                onSetupRoundTimeout,
+		core.FirstRound:                onBetweenTurnsTimeout,
+		core.MoveRobberDue7:            onMoveRobberTimeout,
+		core.MoveRobberDueKnight:       onMoveRobberTimeout,
+		core.PickRobbed:                onPickRobbedTimeout,
+		core.BetweenTurns:              onBetweenTurnsTimeout,
+		core.BuildRoad1Development:     onBuildRoadDevelopmentTimeout,
+		core.BuildRoad2Development:     onBuildRoadDevelopmentTimeout,
+		core.MonopolyPickResource:      onMonopolyPickResourceTimeout,
+		core.YearOfPlentyPickResources: onYearOfPlentyPickResourcesTimeout,
+		core.DiscardPhase:              onDiscardPhaseTimeout,
+	})
 	return nil
 }

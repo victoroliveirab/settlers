@@ -63,7 +63,10 @@ export namespace SettlersRoom {
 export namespace SettlersMatch {
   export type IncomingMessages = {
     "setup.update-round-player": {
+      deadline: string;
       player: string;
+      serverNow: string;
+      subDeadline: string | null;
     };
     "setup.update-vertices": {
       availableSettlementVertices: number[];
@@ -94,7 +97,10 @@ export namespace SettlersMatch {
     "setup.update-logs": string[];
 
     "match.update-round-player": {
+      deadline: string;
       player: string;
+      serverNow: string;
+      subDeadline: string | null;
     };
     "match.update-vertices": {
       availableSettlementVertices: number[];

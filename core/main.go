@@ -8,7 +8,6 @@ import (
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
 	coreT "github.com/victoroliveirab/settlers/core/types"
-	"github.com/victoroliveirab/settlers/utils"
 )
 
 const (
@@ -171,6 +170,7 @@ type GameState struct {
 }
 
 type Params struct {
+	Speed                int
 	BankTradeAmount      int
 	MaxCards             int
 	MaxDevCardsPerRound  int
@@ -186,8 +186,8 @@ type Params struct {
 	LongestRoadMinimum   int
 }
 
-func (state *GameState) New(players []*coreT.Player, mapName string, seed int, params Params) error {
-	state.rand = utils.RandNew(int64(seed))
+func (state *GameState) New(players []*coreT.Player, mapName string, randGenerator *rand.Rand, params Params) error {
+	state.rand = randGenerator
 	data, err := coreMaps.GenerateMap(mapName, state.rand)
 	if err != nil {
 		return err

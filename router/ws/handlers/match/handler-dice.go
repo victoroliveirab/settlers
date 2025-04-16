@@ -25,13 +25,19 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
 		return true, wsErr
 	}
+	handleDiceRollResponse(room, prevResourceHands)
+	return true, nil
+}
 
+func handleDiceRollResponse(room *entities.Room, prevResourceHands map[string]map[string]int) {
+	game := room.Game
+	currentRoundPlayer := game.CurrentRoundPlayer().ID
 	dices := game.Dice()
 	dice1 := dices[0]
 	dice2 := dices[1]
 
 	logs := make([]string, 1)
-	logs[0] = fmt.Sprintf("%s rolled [dice]%d[/dice] [dice]%d[/dice]", player.Username, dice1, dice2)
+	logs[0] = fmt.Sprintf("%s rolled [dice]%d[/dice] [dice]%d[/dice]", currentRoundPlayer, dice1, dice2)
 
 	for _, player := range game.Players() {
 		diff, err := diffResourceHands(prevResourceHands[player.ID], game.ResourceHandByPlayer(player.ID))
@@ -45,8 +51,10 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 	}
 
 	if game.RoundType() == core.MoveRobberDue7 {
-		logs := []string{fmt.Sprintf("%s moving robber", player.Username)}
+		logs = append(logs, fmt.Sprintf("%s moving robber", currentRoundPlayer))
+		room.StartSubRound(core.MoveRobberDue7)
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdateDiceState,
 			UpdateRobberMovement,
 			UpdatePass,
@@ -58,8 +66,10 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 			UpdateLogs(logs),
 		)
 	} else if game.RoundType() == core.DiscardPhase {
-		logs := []string{fmt.Sprintf("some players have to discard")}
+		logs = append(logs, fmt.Sprintf("some players have to discard"))
+		room.StartSubRound(core.DiscardPhase)
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdateDiceState,
 			UpdateDiscardPhase,
 			UpdatePass,
@@ -71,7 +81,9 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 			UpdateLogs(logs),
 		)
 	} else {
+		room.ResumeRound()
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdateDiceState,
 			UpdatePlayerHand,
 			UpdateResourceCount,
@@ -84,5 +96,4 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 			UpdateLogs(logs),
 		)
 	}
-	return true, nil
 }

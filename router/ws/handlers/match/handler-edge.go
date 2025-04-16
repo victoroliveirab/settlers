@@ -30,14 +30,25 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 		return true, wsErr
 	}
 
+	if room.Status == "setup" {
+		handleEdgeClickSetupResponse(room, player.Username)
+	} else {
+		handleEdgeClickMatchResponse(room)
+	}
+	return true, nil
+}
+
+func handleEdgeClickSetupResponse(room *entities.Room, player string) {
+	game := room.Game
 	logs := make([]string, 1)
-	logs[0] = fmt.Sprintf("%s has built a new road.", player.Username)
+	logs[0] = fmt.Sprintf("%s has built a new road.", player)
 	if game.RoundType() == core.FirstRound {
 		room.ProgressStatus()
 		logs = append(logs, "Setup phase is over.", "Match starting. Good luck to everyone!")
+		room.StartSubRound(core.FirstRound)
 		room.EnqueueBulkUpdate(
-			UpdateMapState,
 			UpdateCurrentRoundPlayerState,
+			UpdateMapState,
 			UpdateVertexState,
 			UpdateEdgeState,
 			UpdatePlayerHand,
@@ -48,9 +59,12 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 			UpdateLogs(logs),
 		)
 	} else {
+		room.EndRound()
+		room.StartRound()
+		room.StartSubRound(game.RoundType())
 		room.EnqueueBulkUpdate(
-			UpdateMapState,
 			UpdateCurrentRoundPlayerState,
+			UpdateMapState,
 			UpdateVertexState,
 			UpdateEdgeState,
 			UpdatePlayerHand,
@@ -60,5 +74,19 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 			UpdateLogs(logs),
 		)
 	}
-	return true, nil
+}
+
+func handleEdgeClickMatchResponse(room *entities.Room) {
+	game := room.Game
+	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
+		UpdateMapState,
+		UpdateVertexState,
+		UpdateEdgeState,
+		UpdatePlayerHand,
+		UpdateBuyDevelopmentCard,
+		UpdateLongestRoadSize,
+		UpdatePoints,
+		UpdateLogs([]string{fmt.Sprintf("%s has built a new road.", game.CurrentRoundPlayer().ID)}),
+	)
 }

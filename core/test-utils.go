@@ -6,6 +6,7 @@ import (
 
 	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
 	coreT "github.com/victoroliveirab/settlers/core/types"
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 type GameStateMock struct {
@@ -49,7 +50,9 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 		}
 	}
 
-	game.New(players, "base4", 42, Params{
+	randGenerator := utils.RandNew(42)
+
+	game.New(players, "base4", randGenerator, Params{
 		BankTradeAmount:      4,
 		MaxCards:             7,
 		MaxSettlements:       5,

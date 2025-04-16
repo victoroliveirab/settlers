@@ -3,6 +3,7 @@ package entities
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
@@ -50,7 +51,8 @@ var availableColors []coreT.PlayerColor = []coreT.PlayerColor{
 	},
 }
 
-func NewRoom(id, mapName string, capacity int, params RoomParams, onDestroy func(room *Room)) *Room {
+func NewRoom(id, mapName string, capacity, randSeed int, params RoomParams, onDestroy func(room *Room)) *Room {
+	randGenerator := utils.RandNew(int64(randSeed))
 	return &Room{
 		ID:               id,
 		Capacity:         capacity,
@@ -64,6 +66,7 @@ func NewRoom(id, mapName string, capacity int, params RoomParams, onDestroy func
 		outgoingMsgQueue: make(chan OutgoingMessage),     // process msg immediatly, one by one
 		handlers:         make([]RoomIncomingMessageHandler, 0),
 		onDestroy:        onDestroy,
+		Rand:             randGenerator,
 		Game:             nil,
 		Private:          true,
 	}
@@ -222,6 +225,67 @@ func (room *Room) assignNewOwner() error {
 	}
 	err := fmt.Errorf("Cannot assign a new owner to room %s: no players left", room.ID)
 	return err
+}
+
+func (room *Room) CreateRoundManager(onTimeout func(), onExpireFuncs map[int]func()) error {
+	if room.roundManager != nil {
+		err := fmt.Errorf("Error: room#%s already has a round manager initialized", room.ID)
+		return err
+	}
+
+	room.roundManager = newRoundManager(room.params.Values["speed"], onTimeout, onExpireFuncs)
+	return nil
+}
+
+func (room *Room) StartRound() error {
+	if room.roundManager == nil {
+		err := fmt.Errorf("Error: room#%s doesn't have a round manager initialized", room.ID)
+		return err
+	}
+	room.roundManager.start()
+	return nil
+}
+
+func (room *Room) ResumeRound() error {
+	if room.roundManager == nil {
+		err := fmt.Errorf("Error: room#%s doesn't have a round manager initialized", room.ID)
+		return err
+	}
+	room.roundManager.cancelSubTimer()
+	room.roundManager.resume()
+	return nil
+}
+
+func (room *Room) StartSubRound(phase int) error {
+	if room.roundManager == nil {
+		err := fmt.Errorf("Error: room#%s doesn't have a round manager initialized", room.ID)
+		return err
+	}
+	room.roundManager.pause()
+	room.roundManager.startPhaseTimer(phase)
+	return nil
+}
+
+func (room *Room) EndRound() error {
+	if room.roundManager == nil {
+		err := fmt.Errorf("Error: room#%s doesn't have a round manager initialized", room.ID)
+		return err
+	}
+	room.roundManager.cancel()
+	return nil
+
+}
+
+func (room *Room) Now() time.Time {
+	return room.roundManager.Now()
+}
+
+func (room *Room) RoundDeadline() *time.Time {
+	return room.roundManager.Deadline()
+}
+
+func (room *Room) SubRoundDeadline() *time.Time {
+	return room.roundManager.SubPhaseDeadline()
 }
 
 func (room *Room) RegisterIncomingMessageHandler(f RoomIncomingMessageHandler) {

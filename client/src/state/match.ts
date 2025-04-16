@@ -25,7 +25,12 @@ type MatchState = {
   }[];
   blockedTiles: number[];
   cities: SettlersCore.Cities;
-  currentRoundPlayer: string;
+  currentRoundPlayer: {
+    deadline: string;
+    player: string;
+    serverNow: string;
+    subDeadline: string | null;
+  } | null;
   devHand: SettlersCore.DevHand;
   devHandPermissions: Record<SettlersCore.DevelopmentCard, boolean>;
   dice: {
@@ -86,7 +91,7 @@ export const useMatchStore = create<MatchState>(() => ({
   activeTradeOffers: [],
   blockedTiles: [],
   cities: {},
-  currentRoundPlayer: "",
+  currentRoundPlayer: null,
   devHand: {
     Knight: 0,
     Monopoly: 0,
@@ -194,8 +199,20 @@ export const setCities = (value: SettlersCore.Cities) => {
   return useMatchStore.setState({ cities: value });
 };
 
-export const setCurrentRoundPlayer = (name: string) => {
-  return useMatchStore.setState({ currentRoundPlayer: name });
+export const setCurrentRoundPlayer = (
+  player: string,
+  deadline: string,
+  subDeadline: string | null,
+  serverNow: string,
+) => {
+  return useMatchStore.setState({
+    currentRoundPlayer: {
+      deadline,
+      player,
+      serverNow,
+      subDeadline,
+    },
+  });
 };
 
 export const setDevHand = (value: SettlersCore.DevHand) => {

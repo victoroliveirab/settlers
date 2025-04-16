@@ -34,7 +34,12 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 			state.roundType = PickRobbed
 			robbablePlayers, _ := state.RobbablePlayers(playerID)
 			if len(robbablePlayers) == 0 {
-				state.roundType = Regular
+				// Used knight before round started
+				if state.dice1 == 0 && state.dice2 == 0 {
+					state.roundType = BetweenTurns
+				} else {
+					state.roundType = Regular
+				}
 			}
 			return nil
 		}

@@ -117,7 +117,12 @@ export function reducer(message: SettlersIncomingMessage) {
     }
     case "setup.update-round-player":
     case "match.update-round-player": {
-      setCurrentRoundPlayer(message.payload.player);
+      setCurrentRoundPlayer(
+        message.payload.player,
+        message.payload.deadline,
+        message.payload.subDeadline,
+        message.payload.serverNow,
+      );
       break;
     }
     case "match.update-resource-count": {
@@ -201,7 +206,12 @@ export function reducer(message: SettlersIncomingMessage) {
         vertices.enabled,
       );
 
-      setCurrentRoundPlayer(message.payload.roundPlayerUpdate.payload.player);
+      setCurrentRoundPlayer(
+        message.payload.roundPlayerUpdate.payload.player,
+        message.payload.roundPlayerUpdate.payload.deadline,
+        message.payload.roundPlayerUpdate.payload.subDeadline,
+        message.payload.roundPlayerUpdate.payload.serverNow,
+      );
 
       setMapName(message.payload.mapName);
       setMap(message.payload.map);
@@ -227,7 +237,12 @@ export function reducer(message: SettlersIncomingMessage) {
         vertices.enabled,
       );
 
-      setCurrentRoundPlayer(message.payload.roundPlayerUpdate.payload.player);
+      setCurrentRoundPlayer(
+        message.payload.roundPlayerUpdate.payload.player,
+        message.payload.roundPlayerUpdate.payload.deadline,
+        message.payload.roundPlayerUpdate.payload.subDeadline,
+        message.payload.roundPlayerUpdate.payload.serverNow,
+      );
 
       setMapName(message.payload.mapName);
       setMap(message.payload.map);

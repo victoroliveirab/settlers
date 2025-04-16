@@ -17,7 +17,7 @@ func NewLobby() *Lobby {
 }
 
 // CreateRoom generates a new room and stores it in the Hub
-func (lobby *Lobby) CreateRoom(id, mapName string, capacity int) (*Room, error) {
+func (lobby *Lobby) CreateRoom(id, mapName string, capacity, randSeed int) (*Room, error) {
 	lobby.Lock()
 	defer lobby.Unlock()
 	_, exists := lobby.rooms[id]
@@ -56,7 +56,7 @@ func (lobby *Lobby) CreateRoom(id, mapName string, capacity int) (*Room, error) 
 		Values:     paramsValues,
 	}
 
-	newRoom := NewRoom(id, mapName, capacity, params, func(room *Room) {
+	newRoom := NewRoom(id, mapName, capacity, randSeed, params, func(room *Room) {
 		lobby.DestroyRoom(room.ID)
 	})
 	lobby.rooms[id] = newRoom

@@ -51,3 +51,8 @@ func SliceRemove[T any](slice *[]T, index int) {
 	}
 	*slice = append((*slice)[:index], (*slice)[index+1:]...)
 }
+
+func SliceGetRandom[T any](slice []T, randGenerator *rand.Rand) T {
+	index := randGenerator.Intn(len(slice))
+	return slice[index]
+}

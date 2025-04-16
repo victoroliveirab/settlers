@@ -30,9 +30,18 @@ func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketCli
 
 	formattedResources := utils.FormatResources(payload.Resources)
 	logs := []string{fmt.Sprintf("%s discarded %s", player.Username, formattedResources)}
+	handleDiscardCardsResponse(room, logs)
+	return true, nil
+}
+
+func handleDiscardCardsResponse(room *entities.Room, logs []string) {
+	game := room.Game
 
 	if game.RoundType() == core.MoveRobberDue7 {
+		// last player that needed to discard has discarded
+		room.StartSubRound(core.MoveRobberDue7)
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdatePlayerHand,
 			UpdateResourceCount,
 			UpdateDiscardPhase,
@@ -40,13 +49,13 @@ func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketCli
 			UpdateLogs(logs),
 		)
 	} else {
+		// there are still players that need to discard
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdatePlayerHand,
 			UpdateResourceCount,
 			UpdateDiscardPhase,
 			UpdateLogs(logs),
 		)
 	}
-
-	return true, nil
 }

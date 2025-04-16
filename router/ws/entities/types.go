@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/victoroliveirab/settlers/core"
 	coreT "github.com/victoroliveirab/settlers/core/types"
@@ -65,8 +67,22 @@ type Room struct {
 	incomingMsgQueue chan IncomingMessage         `json:"-"`
 	outgoingMsgQueue chan OutgoingMessage         `json:"-"`
 	handlers         []RoomIncomingMessageHandler `json:"-"`
+	Rand             *rand.Rand                   `json:"-"`
+	roundManager     *roundManager                `json:"-"`
 	onDestroy        func(room *Room)             `json:"-"`
 	sync.Mutex
+}
+
+type roundManager struct {
+	sync.Mutex
+	speed            int
+	remaining        time.Duration
+	timer            *time.Timer
+	subTimer         *time.Timer
+	deadline         *time.Time
+	subPhaseDeadline *time.Time
+	onTimeout        func()
+	onExpireFuncs    map[int]func()
 }
 
 type GamePlayer struct {

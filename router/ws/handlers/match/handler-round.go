@@ -3,6 +3,7 @@ package match
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -17,6 +18,14 @@ func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientR
 		return true, wsErr
 	}
 
+	handleEndRoundResponse(room, player.Username)
+	return true, err
+}
+
+func handleEndRoundResponse(room *entities.Room, player string) {
+	room.EndRound()
+	room.StartRound()
+	room.StartSubRound(core.BetweenTurns)
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,
 		UpdateDiceState,
@@ -24,7 +33,6 @@ func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientR
 		UpdateTrade,
 		UpdateBuyDevelopmentCard,
 		UpdatePlayerDevHandPermissions,
-		UpdateLogs([]string{fmt.Sprintf("%s finished their round.", player.Username)}),
+		UpdateLogs([]string{fmt.Sprintf("%s finished their round.", player)}),
 	)
-	return true, err
 }

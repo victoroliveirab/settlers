@@ -1,13 +1,18 @@
 package match
 
 import (
+	"time"
+
 	"github.com/victoroliveirab/settlers/core"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
 type currentRoundPlayerStateUpdateResponsePayload struct {
-	Player string `json:"player"`
+	Deadline    *time.Time `json:"deadline"`
+	Player      string     `json:"player"`
+	ServerTime  time.Time  `json:"serverNow"`
+	SubDeadline *time.Time `json:"subDeadline"`
 }
 
 type verticesStateUpdateResponsePayload struct {

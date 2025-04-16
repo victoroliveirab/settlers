@@ -28,9 +28,15 @@ func handlePickRobbedPlayer(player *entities.GamePlayer, message *types.WebSocke
 		return true, wsErr
 	}
 
-	logs := []string{fmt.Sprintf("%s robbed [res][/res] from %s", player.Username, robbedPlayer)}
+	handlePickRobbedResponse(room, player.Username, robbedPlayer)
+	return true, nil
+}
 
+func handlePickRobbedResponse(room *entities.Room, robber, robbed string) {
+	logs := []string{fmt.Sprintf("%s robbed [res][/res] from %s", robber, robbed)}
+	room.ResumeRound()
 	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
 		UpdateResourceCount,
 		UpdatePlayerHand,
 		UpdatePass,
@@ -39,6 +45,4 @@ func handlePickRobbedPlayer(player *entities.GamePlayer, message *types.WebSocke
 		UpdatePlayerDevHandPermissions,
 		UpdateLogs(logs),
 	)
-
-	return true, nil
 }

@@ -315,6 +315,13 @@
       "max": 4
     },
     "params": {
+      "speed": {
+        "description": "The match pace (lower is faster)",
+        "label": "Game Speed",
+        "priority": 10,
+        "values": [30, 45, 60, 75, 90],
+        "default": 60
+      },
       "bankTradeAmount": {
         "description": "How many resources a player should give to receive any single resource from bank",
         "label": "Bank Trade Amount",

@@ -33,6 +33,7 @@ func handleBuyDevCard(player *entities.GamePlayer, message *types.WebSocketClien
 	}
 
 	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
 		UpdateResourceCount,
 		UpdatePlayerHand,
 		UpdatePlayerDevHand,
@@ -61,45 +62,58 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 	if game.RoundType() == core.GameOver {
 		panic("HANDLE ME")
 	} else if game.RoundType() == core.MoveRobberDueKnight {
+		room.StartSubRound(core.MoveRobberDueKnight)
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdateRobberMovement,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
 			UpdatePass,
 			UpdateTrade,
+			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Knight card", player.Username)}),
 		)
 	} else if game.RoundType() == core.MonopolyPickResource {
+		room.StartSubRound(core.MonopolyPickResource)
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
 			UpdatePass,
 			UpdateTrade,
 			UpdateMonopoly,
+			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Monopoly card", player.Username)}),
 		)
 	} else if game.RoundType() == core.BuildRoad1Development || game.RoundType() == core.BuildRoad2Development {
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdateEdgeState,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
 			UpdatePass,
 			UpdateTrade,
+			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Road Building card", player.Username)}),
 		)
 	} else if game.RoundType() == core.YearOfPlentyPickResources {
+		room.StartSubRound(core.YearOfPlentyPickResources)
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
 			UpdateYOP,
+			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Year of Plenty card", player.Username)}),
 		)
 	} else {
 		room.EnqueueBulkUpdate(
+			UpdateCurrentRoundPlayerState,
 			UpdatePass,
 			UpdateTrade,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
+			UpdatePoints,
 		)
 	}
 
@@ -123,19 +137,26 @@ func handleMonopolyResource(player *entities.GamePlayer, message *types.WebSocke
 		return true, wsErr
 	}
 
-	resourceCountAfter := game.NumberOfResourcesByPlayer()[player.Username]
+	handleMonopolyResourceResponse(room, payload.Resource, resourceCountBefore)
+	return true, nil
+}
+
+func handleMonopolyResourceResponse(room *entities.Room, resourceStolen string, resourceCountBefore int) {
+	game := room.Game
+	currentRoundPlayer := game.CurrentRoundPlayer().ID
+
+	resourceCountAfter := game.NumberOfResourcesByPlayer()[currentRoundPlayer]
 	resourceDiff := resourceCountAfter - resourceCountBefore
 
-	logs := []string{fmt.Sprintf("%s stole %d [res]%s[/res] from the other players", player.Username, resourceDiff, payload.Resource)}
-
+	logs := []string{fmt.Sprintf("%s stole %d [res]%s[/res] from the other players", currentRoundPlayer, resourceDiff, resourceStolen)}
+	room.ResumeRound()
 	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
 		UpdateResourceCount,
 		UpdatePlayerHand,
 		UpdateMonopoly,
 		UpdateLogs(logs),
 	)
-
-	return true, nil
 }
 
 func handlePickYearOfPlentyResources(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
@@ -153,14 +174,21 @@ func handlePickYearOfPlentyResources(player *entities.GamePlayer, message *types
 		return true, wsErr
 	}
 
-	logs := []string{fmt.Sprintf("%s picked [res]%s[/res] and [res]%s[/res]", player.Username, payload.Resource1, payload.Resource2)}
+	handlePickYearOfPlentyResourcesResponse(room, payload.Resource1, payload.Resource2)
+	return true, nil
+}
 
+func handlePickYearOfPlentyResourcesResponse(room *entities.Room, resource1, resource2 string) {
+	game := room.Game
+	currentRoundPlayer := game.CurrentRoundPlayer().ID
+
+	logs := []string{fmt.Sprintf("%s picked [res]%s[/res] and [res]%s[/res]", currentRoundPlayer, resource1, resource2)}
+	room.ResumeRound()
 	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
 		UpdateResourceCount,
 		UpdatePlayerHand,
 		UpdateYOP,
 		UpdateLogs(logs),
 	)
-
-	return true, nil
 }

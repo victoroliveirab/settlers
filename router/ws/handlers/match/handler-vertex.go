@@ -12,6 +12,7 @@ type vertexClickRequestPayload struct {
 	VertexID int `json:"vertex"`
 }
 
+// REFACTOR: replace with separate calls for settlement and city
 func handleVertexClick(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[vertexClickRequestPayload](message)
 	if err != nil {
@@ -42,6 +43,7 @@ func handleVertexClick(player *entities.GamePlayer, message *types.WebSocketClie
 	}
 
 	room.EnqueueBulkUpdate(
+		UpdateCurrentRoundPlayerState,
 		UpdateMapState,
 		UpdateEdgeState,
 		UpdateVertexState,

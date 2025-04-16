@@ -14,7 +14,10 @@ func UpdateCurrentRoundPlayerState(room *entities.Room, username string) *types.
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: currentRoundPlayerStateUpdateResponsePayload{
-			Player: game.CurrentRoundPlayer().ID,
+			Deadline:    room.RoundDeadline(),
+			Player:      game.CurrentRoundPlayer().ID,
+			ServerTime:  room.Now(),
+			SubDeadline: room.SubRoundDeadline(),
 		},
 	}
 }

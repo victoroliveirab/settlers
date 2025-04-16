@@ -22,7 +22,7 @@ export function CardParameter({
   const [value, setValue] = useState(param.value);
   const minValue = param.values[0];
   const maxValue = param.values[param.values.length - 1];
-  const step = Math.round((maxValue - minValue) / param.values.length);
+  const step = param.values[1] - param.values[0];
   const debouncedValue = useDebounce(value, 250);
   const firstRenderRef = useRef(true);
 
