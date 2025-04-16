@@ -159,7 +159,7 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
-			room, err := l.CreateRoom(id, "base4", 4, 1)
+			room, err := l.CreateRoom(id, "base4", 4, 0)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}

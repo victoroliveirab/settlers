@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
+	"github.com/victoroliveirab/settlers/core/types"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -51,6 +52,43 @@ func CreateTestGame(opts ...GameStateOption) *GameState {
 	}
 
 	randGenerator := utils.RandNew(42)
+
+	game.New(players, "base4", randGenerator, Params{
+		BankTradeAmount:      4,
+		MaxCards:             7,
+		MaxSettlements:       5,
+		MaxCities:            4,
+		MaxRoads:             20,
+		MaxDevCardsPerRound:  1,
+		TargetPoint:          10,
+		PointsPerSettlement:  1,
+		PointsPerCity:        2,
+		PointsForMostKnights: 2,
+		PointsForLongestRoad: 2,
+		LongestRoadMinimum:   5,
+		MostKnightsMinimum:   3,
+	})
+
+	for _, opt := range opts {
+		opt(&game)
+	}
+
+	return &game
+}
+
+func CreateTestGameWithRand(randGenerator *rand.Rand, opts ...GameStateOption) *GameState {
+	mapsdefinitions.LoadMap("base4")
+	var game GameState
+	players := make([]*coreT.Player, 4)
+	for i := 0; i < 4; i++ {
+		players[i] = &coreT.Player{
+			ID: strconv.FormatInt(int64(i+1), 10),
+			Color: coreT.PlayerColor{
+				Background: "bg",
+				Foreground: "fg",
+			},
+		}
+	}
 
 	game.New(players, "base4", randGenerator, Params{
 		BankTradeAmount:      4,
@@ -227,6 +265,15 @@ func MockWithPoints() GameStateOption {
 func MockWithRand(r *rand.Rand) GameStateOption {
 	return func(gs *GameState) {
 		gs.rand = r
+	}
+}
+
+func MockWithPeekDevCards(ptr *func() []*types.DevelopmentCard) GameStateOption {
+	return func(gs *GameState) {
+		f := func() []*types.DevelopmentCard {
+			return gs.developmentCards
+		}
+		*ptr = f
 	}
 }
 

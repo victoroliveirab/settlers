@@ -128,7 +128,11 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		resourcesLeft[resourceIndex]--
 
 		resourceName = definitions.Resources[resourceIndex].Name
-		token := definitions.Tokens[i+desertShift]
+		token := 0
+		// Prevents index out of range error when Desert is the last tile
+		if i+desertShift < len(definitions.Tokens) {
+			token = definitions.Tokens[i+desertShift]
+		}
 		block := &coreT.MapBlock{
 			Resource: resourceName,
 			Token:    token,
