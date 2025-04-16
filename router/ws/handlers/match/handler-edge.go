@@ -31,7 +31,7 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 		return true, wsErr
 	}
 
-	logs := []string{fmt.Sprintf("%s has built a new road.", player.ID)}
+	logs := []string{fmt.Sprintf("%s has built a new road.", player.Username)}
 
 	if room.Status == "setup" {
 		handleEdgeClickSetupResponse(room, logs)
