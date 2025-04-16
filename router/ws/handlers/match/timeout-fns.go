@@ -42,7 +42,7 @@ func OnSetupRoundTimeoutCurry(room *entities.Room) func() {
 			availableRoads, _ := game.AvailableEdges(currentRoundPlayer)
 			edgeID := utils.SliceGetRandom(availableRoads, room.Rand)
 			game.BuildRoad(currentRoundPlayer, edgeID)
-			handleEdgeClickSetupResponse(room, currentRoundPlayer)
+			handleEdgeClickSetupResponse(room, []string{fmt.Sprintf("%s built a new road.", currentRoundPlayer)})
 		}
 	}
 }
