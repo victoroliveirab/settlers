@@ -69,6 +69,8 @@ func handleMoveRobberResponse(room *entities.Room) {
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,
 		UpdateMapState,
+		UpdatePlayerHand,
+		UpdateResourceCount,
 		UpdateRobberMovement,
 		UpdateRobbablePlayers,
 		UpdatePlayerDevHandPermissions,

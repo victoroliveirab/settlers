@@ -86,6 +86,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 			UpdateLogs([]string{fmt.Sprintf("%s used Monopoly card", player.Username)}),
 		)
 	} else if game.RoundType() == core.BuildRoad1Development || game.RoundType() == core.BuildRoad2Development {
+		room.StartSubRound(game.RoundType())
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdateEdgeState,

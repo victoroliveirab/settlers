@@ -47,13 +47,14 @@ func UpdateEdgeState(room *entities.Room, username string) *types.WebSocketServe
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-edges", room.Status)
 	availableEdges, err := game.AvailableEdges(username)
+	isRoadBuilding := game.RoundType() == core.BuildRoad1Development || game.RoundType() == core.BuildRoad2Development
 	// TODO: perhaps highlight during road building phases as well
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: edgesStateUpdateResponsePayload{
 			AvailableEdges: availableEdges,
 			Enabled:        err == nil,
-			Highlight:      room.Status == "setup",
+			Highlight:      room.Status == "setup" || isRoadBuilding,
 		},
 	}
 }

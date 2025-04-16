@@ -108,6 +108,7 @@ func OnBuildRoadDevelopmentTimeoutCurry(room *entities.Room) func() {
 			numberOfRoadsToBuild = 1
 		}
 
+		logs := make([]string, 0)
 		for i := 0; i < numberOfRoadsToBuild; i++ {
 			availableRoads, err := game.AvailableEdges(currentRoundPlayer)
 			if err != nil {
@@ -116,20 +117,11 @@ func OnBuildRoadDevelopmentTimeoutCurry(room *entities.Room) func() {
 			}
 			edgeID := utils.SliceGetRandom(availableRoads, room.Rand)
 			game.BuildRoad(currentRoundPlayer, edgeID)
+			logs = append(logs, fmt.Sprintf("%s has built a new road.", currentRoundPlayer))
 		}
 
-		room.ResumeRound()
-		room.EnqueueBulkUpdate(
-			UpdateCurrentRoundPlayerState,
-			UpdateMapState,
-			UpdateVertexState,
-			UpdateEdgeState,
-			UpdatePlayerHand,
-			UpdateBuyDevelopmentCard,
-			UpdateLongestRoadSize,
-			UpdatePoints,
-		)
-
+		// Force it back to regular round count
+		handleEdgeClickMatchResponse(room, core.BuildRoad2Development, logs)
 	}
 }
 
