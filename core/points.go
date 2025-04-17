@@ -85,3 +85,12 @@ func (state *GameState) updatePoints() {
 func (state *GameState) Points() map[string]int {
 	return maps.Clone(state.points)
 }
+
+func (state *GameState) PublicPoints() map[string]int {
+	points := state.Points()
+	for player := range points {
+		numberOfVictoryPoints := state.DevelopmentHandByPlayer(player)["Victory Point"]
+		points[player] -= numberOfVictoryPoints
+	}
+	return points
+}

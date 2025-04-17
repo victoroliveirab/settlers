@@ -252,7 +252,7 @@ func UpdatePoints(room *entities.Room, username string) *types.WebSocketServerRe
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: pointsStateUpdate{
-			Points: game.Points(),
+			Points: game.PublicPoints(),
 		},
 	}
 }

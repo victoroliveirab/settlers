@@ -11,6 +11,7 @@ interface IPlayerProps {
   numberOfDevCards: number;
   numberOfResources: number;
   points: number;
+  extraPoints?: number;
 }
 
 export const Player = ({
@@ -22,6 +23,7 @@ export const Player = ({
   numberOfDevCards,
   numberOfResources,
   points,
+  extraPoints = 0,
 }: IPlayerProps) => {
   const playerName = data.name;
   const playerColor = data.color;
@@ -46,7 +48,9 @@ export const Player = ({
             <li>#D: {numberOfDevCards}</li>
             <li>LG: {longestRoad}</li>
             <li>#K: {knightsUsed}</li>
-            <li>#P: {points}</li>
+            <li>
+              #P: {points} {extraPoints > 0 && <span>({points + extraPoints})</span>}
+            </li>
             {numberOfCardsToDiscard > 0 && <li>{emojis.misc.discarding}</li>}
           </ul>
         </CardContent>
