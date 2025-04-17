@@ -2,11 +2,9 @@ package match
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-)
 
-var resourcesOrder [5]string = [5]string{"Lumber", "Brick", "Sheep", "Grain", "Ore"}
+	"github.com/victoroliveirab/settlers/router/ws/utils"
+)
 
 func diffResourceHands(before, after map[string]int) (map[string]int, error) {
 	diff := map[string]int{}
@@ -30,30 +28,7 @@ func hasDiff(diff map[string]int) bool {
 	return false
 }
 
-func serializeHandDiff(hand map[string]int) string {
-	var sb strings.Builder
-	first := true
-	for resource, quantity := range hand {
-		if quantity != 0 {
-			if !first {
-				sb.WriteString(", ")
-			}
-			sb.WriteString(strconv.FormatInt(int64(quantity), 10))
-			sb.WriteString(" ")
-			sb.WriteString(resource)
-		}
-	}
-	return sb.String()
-}
-
+// TODO: get rid of this and use the utils fn directly
 func formatResourceCollection(collection map[string]int) string {
-	var sb strings.Builder
-	for _, resource := range resourcesOrder {
-		quantity, ok := collection[resource]
-		if !ok || quantity == 0 {
-			continue
-		}
-		sb.WriteString(fmt.Sprintf(" [res q=%d]%s[/res]", quantity, resource))
-	}
-	return strings.Trim(sb.String(), " ")
+	return utils.FormatResources(collection)
 }

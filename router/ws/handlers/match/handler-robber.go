@@ -33,7 +33,7 @@ func handlePickRobbedPlayer(player *entities.GamePlayer, message *types.WebSocke
 }
 
 func handlePickRobbedResponse(room *entities.Room, robber, robbed string) {
-	logs := []string{fmt.Sprintf("%s robbed [res][/res] from %s", robber, robbed)}
+	logs := []string{fmt.Sprintf("%s robbed [res q=1 v=?] from %s", robber, robbed)}
 	room.ResumeRound()
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,

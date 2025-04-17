@@ -44,8 +44,8 @@ export const Actions = () => {
         })}
         onClick={onDiceClick}
       >
-        <Die active={diceState.enabled} value={lastDice[0]} />
-        <Die active={diceState.enabled} value={lastDice[1]} />
+        <Die as="li" active={diceState.enabled} value={lastDice[0]} />
+        <Die as="li" active={diceState.enabled} value={lastDice[1]} />
       </ul>
     </section>
   );

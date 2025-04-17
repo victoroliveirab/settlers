@@ -39,7 +39,7 @@ func handleBuyDevCard(player *entities.GamePlayer, message *types.WebSocketClien
 		UpdatePlayerDevHand,
 		UpdatePlayerDevHandPermissions,
 		UpdateBuyDevelopmentCard,
-		UpdateLogs([]string{fmt.Sprintf("%s bought a [dev][/dev] card", player.Username)}),
+		UpdateLogs([]string{fmt.Sprintf("%s bought a [dev q=1 v=?] card", player.Username)}),
 	)
 	return true, nil
 }
@@ -149,7 +149,7 @@ func handleMonopolyResourceResponse(room *entities.Room, resourceStolen string, 
 	resourceCountAfter := game.NumberOfResourcesByPlayer()[currentRoundPlayer]
 	resourceDiff := resourceCountAfter - resourceCountBefore
 
-	logs := []string{fmt.Sprintf("%s stole %d [res]%s[/res] from the other players", currentRoundPlayer, resourceDiff, resourceStolen)}
+	logs := []string{fmt.Sprintf("%s stole [res q=%d v=%s] from the other players", currentRoundPlayer, resourceDiff, resourceStolen)}
 	room.ResumeRound()
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,
@@ -183,7 +183,7 @@ func handlePickYearOfPlentyResourcesResponse(room *entities.Room, resource1, res
 	game := room.Game
 	currentRoundPlayer := game.CurrentRoundPlayer().ID
 
-	logs := []string{fmt.Sprintf("%s picked [res]%s[/res] and [res]%s[/res]", currentRoundPlayer, resource1, resource2)}
+	logs := []string{fmt.Sprintf("%s picked [res q=1 v=%s] and [res q=1 v=%s]", currentRoundPlayer, resource1, resource2)}
 	room.ResumeRound()
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,

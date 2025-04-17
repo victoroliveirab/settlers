@@ -1,17 +1,20 @@
 package utils
 
 import (
+	"fmt"
 	"strings"
 )
 
-func FormatResources(resources map[string]int) string {
-	var builder strings.Builder
-	for resource, quantity := range resources {
-		for i := 0; i < quantity; i++ {
-			builder.WriteString("[res]")
-			builder.WriteString(resource)
-			builder.WriteString("[/res]")
+var resourcesOrder [5]string = [5]string{"Lumber", "Brick", "Sheep", "Grain", "Ore"}
+
+func FormatResources(collection map[string]int) string {
+	var sb strings.Builder
+	for _, resource := range resourcesOrder {
+		quantity, ok := collection[resource]
+		if !ok || quantity == 0 {
+			continue
 		}
+		sb.WriteString(fmt.Sprintf("[res q=%d v=%s] ", quantity, resource))
 	}
-	return builder.String()
+	return strings.Trim(sb.String(), " ")
 }

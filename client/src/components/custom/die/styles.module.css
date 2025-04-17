@@ -10,8 +10,8 @@
 .die-4 > span:nth-of-type(1),
 .die-5 > span:nth-of-type(1),
 .die-6 > span:nth-of-type(1) {
-  top: 16px;
-  left: calc(100% - 16px);
+  top: 16.6667%;
+  left: 83.3333%;
 }
 
 .die-2 > span:nth-of-type(2),
@@ -19,32 +19,32 @@
 .die-4 > span:nth-of-type(3),
 .die-5 > span:nth-of-type(4),
 .die-6 > span:nth-of-type(5) {
-  top: calc(100% - 16px);
-  left: 16px;
+  top: 83.3333%;
+  left: 16.6667%;
 }
 
 .die-4 > span:nth-of-type(2),
 .die-5 > span:nth-of-type(2),
 .die-6 > span:nth-of-type(2) {
-  top: 16px;
-  left: 16px;
+  top: 16.6667%;
+  left: 16.6667%;
 }
 
 .die-4 > span:nth-of-type(4),
 .die-5 > span:nth-of-type(5),
 .die-6 > span:nth-of-type(6) {
-  top: calc(100% - 16px);
-  left: calc(100% - 16px);
+  top: 83.3333%;
+  left: 83.3333%;
 }
 
 .die-6 > span:nth-of-type(3) {
   top: 50%;
-  left: calc(100% - 16px);
+  left: 83.3333%;
 }
 
 .die-6 > span:nth-of-type(4) {
   top: 50%;
-  left: 16px;
+  left: 16.6667%;
 }
 
 .die-0 > span {

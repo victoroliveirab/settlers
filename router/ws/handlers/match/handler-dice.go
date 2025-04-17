@@ -37,7 +37,7 @@ func handleDiceRollResponse(room *entities.Room, prevResourceHands map[string]ma
 	dice2 := dices[1]
 
 	logs := make([]string, 1)
-	logs[0] = fmt.Sprintf("%s rolled [dice]%d[/dice] [dice]%d[/dice]", currentRoundPlayer, dice1, dice2)
+	logs[0] = fmt.Sprintf("%s rolled [dice v=%d][dice v=%d]", currentRoundPlayer, dice1, dice2)
 
 	for _, player := range game.Players() {
 		diff, err := diffResourceHands(prevResourceHands[player.ID], game.ResourceHandByPlayer(player.ID))
@@ -46,7 +46,7 @@ func handleDiceRollResponse(room *entities.Room, prevResourceHands map[string]ma
 			continue
 		}
 		if hasDiff(diff) {
-			logs = append(logs, fmt.Sprintf("%s got %s", player.ID, serializeHandDiff(diff)))
+			logs = append(logs, fmt.Sprintf("%s got %s", player.ID, formatResourceCollection(diff)))
 		}
 	}
 

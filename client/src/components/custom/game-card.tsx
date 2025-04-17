@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 
 import { emojis, resourcesOrder } from "@/core/constants";
 
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
+
 export type GameCardProps<T extends keyof React.JSX.IntrinsicElements = "div"> =
   React.ComponentProps<T> &
     VariantProps<typeof cardsVariants> & {
@@ -62,16 +64,23 @@ function GameCard<T extends keyof React.JSX.IntrinsicElements>({
           innerClassName,
         )}
       >
-        <span
-          className={cn("select-none", {
-            "text-xs": size === "xs",
-            "text-sm": size === "sm",
-            "text-md": size === "md",
-            "text-lg": size === "lg",
-          })}
-        >
-          {emoji}
-        </span>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <span
+                className={cn("select-none", {
+                  "text-xs": size === "xs",
+                  "text-sm": size === "sm",
+                  "text-md": size === "md",
+                  "text-lg": size === "lg",
+                })}
+              >
+                {emoji}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>{value}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     ),
     ...props,
