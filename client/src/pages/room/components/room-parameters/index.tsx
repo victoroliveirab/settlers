@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useRoomStore } from "@/state/room";
@@ -21,8 +21,6 @@ export function RoomParameters() {
   useEffect(() => {
     setIsLoading(false);
   }, [params]);
-
-  console.log({ isLoading, roomOwner: room.owner, username });
 
   return (
     <div className="grid grid-cols-3 gap-4 pr-4">

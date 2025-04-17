@@ -11,17 +11,16 @@ import { Monopoly } from "@/features/monopoly";
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useMatchStore } from "@/state/match";
 
-export const PickRobbedModal = () => {
+export const MonopolyModal = () => {
   const { sendMessage } = useWebSocket();
-  const robbablePlayersState = useMatchStore((state) => state.robbablePlayers);
-  const players = useMatchStore((state) => state.players);
+  const monopolyState = useMatchStore((state) => state.monopoly);
 
   const onResourceClick = (resource: SettlersCore.Resource) => {
     sendMessage({ type: "match.monopoly", payload: { resource } });
   };
 
   return (
-    <Dialog open={robbablePlayersState.enabled}>
+    <Dialog open={monopolyState.enabled}>
       <DialogContent className="w-fit min-w-60">
         <DialogHeader>
           <DialogTitle>Pick Resource</DialogTitle>
