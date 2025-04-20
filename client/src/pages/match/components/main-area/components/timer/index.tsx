@@ -1,35 +1,13 @@
-import { useEffect, useState } from "react";
-
 import { cn } from "@/lib/utils";
 
+import { useCountdownTimer } from "@/hooks/useCountdownTimer";
 import { useMatchStore } from "@/state/match";
-
-// Parses to ms
-const parseTime = (isoDate: string) => new Date(isoDate).getTime();
 
 export const Timer = () => {
   const currentRoundPlayer = useMatchStore((state) => state.currentRoundPlayer);
-  const [timeLeft, setTimeLeft] = useState(0);
-
-  useEffect(() => {
-    if (!currentRoundPlayer) return;
-    const { deadline, serverNow, subDeadline } = currentRoundPlayer;
-    const diff = parseTime(subDeadline || deadline) - parseTime(serverNow);
-    setTimeLeft(Math.max(0, Math.floor(diff / 1000)));
-  }, [currentRoundPlayer]);
-
-  useEffect(() => {
-    if (timeLeft <= 0) return;
-
-    const interval = setInterval(() => {
-      setTimeLeft((prev) => {
-        const next = prev - 1;
-        return next > 0 ? next : 0;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timeLeft]);
+  const deadline = currentRoundPlayer?.subDeadline || currentRoundPlayer?.deadline || null;
+  const serverNow = currentRoundPlayer?.serverNow || null;
+  const timeLeft = useCountdownTimer(deadline, serverNow);
 
   if (!currentRoundPlayer) return null;
 
