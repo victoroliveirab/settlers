@@ -27,6 +27,7 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 	if room.Status == "prematch" {
 		if alreadyPartOfRoom {
 			player, err := prematch.ReconnectPlayer(room, playerID, conn, func(player *entities.GamePlayer) {
+				player.Connection.Close()
 				room.RemovePlayer(playerID)
 			})
 			if err != nil {

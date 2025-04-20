@@ -65,9 +65,7 @@ func SetupRoutes(db *sql.DB) {
 				return
 			}
 
-			wsConn := &types.WebSocketConnection{
-				Instance: conn,
-			}
+			wsConn := types.NewWebSocketConnection(conn)
 
 			player, err := connect.HandleConnection(wsConn, user, room)
 			if err != nil {
@@ -75,6 +73,9 @@ func SetupRoutes(db *sql.DB) {
 			}
 			go player.ListenIncomingMessages(func(msg *types.WebSocketClientRequest) {
 				room.EnqueueIncomingMessage(player, msg)
+			})
+			wsConn.StartHeartBeat(func() {
+				wsConn.Close()
 			})
 		}),
 		withSessionMiddleware(db),
