@@ -51,6 +51,12 @@ export const SettlersMap = () => {
     if (!renderer) return;
     renderer.render(map, ports);
     setInstance(renderer);
+
+    const main = document.getElementsByTagName("main")[0];
+    const observer = new ResizeObserver(() => {
+      renderer.render(map, ports);
+    });
+    observer.observe(main);
   }, [instance, map, mapName, onEdgeClick, onTileClick, onVertexClick]);
 
   useUpdateCities(instance);

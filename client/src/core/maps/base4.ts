@@ -1,135 +1,6 @@
 import BaseMapRenderer, { EventHandlers } from "./_base";
 import type { HexCoordinate, Point } from "./types";
 
-// function getTrianglePolygonPointsFromMids(point1: Point, point2: Point, legWidth = 4) {
-//   const { x: x1, y: y1 } = point1;
-//   const { x: x2, y: y2 } = point2;
-//   // 1. Get the apex point using the original function
-//   const apex = getIsoscelesApexPoint(point1, point2);
-//
-//   // 2. Vector from A to B
-//   const dx = x2 - x1;
-//   const dy = y2 - y1;
-//   const length = Math.hypot(dx, dy);
-//
-//   // 3. Perpendicular unit vector to AB
-//   const perpX = -dy / length;
-//   const perpY = dx / length;
-//
-//   // 4. Half-thickness for base offset
-//   const offsetX = perpX * (legWidth / 2);
-//   const offsetY = perpY * (legWidth / 2);
-//
-//   // 5. Base edge points from the midpoints
-//   const base1 = { x: x1 + offsetX, y: y1 + offsetY };
-//   const base2 = { x: x2 + offsetX, y: y2 + offsetY };
-//   const base3 = { x: x2 - offsetX, y: y2 - offsetY };
-//   const base4 = { x: x1 - offsetX, y: y1 - offsetY };
-//
-//   // 6. Return polygon points in a clockwise or counterclockwise order
-//   return [base1, base2, apex, base4];
-// }
-
-// function getEdgePolygonPoints(midX, midY, apexX, apexY, width = 4) {
-//   // Vector from midpoint to apex
-//   const dx = apexX - midX;
-//   const dy = apexY - midY;
-//   const length = Math.hypot(dx, dy);
-//
-//   // Unit perpendicular vector
-//   const perpX = -dy / length;
-//   const perpY = dx / length;
-//
-//   // Offset for width
-//   const offsetX = perpX * (width / 2);
-//   const offsetY = perpY * (width / 2);
-//
-//   // Create the 4 corner points of the edge polygon
-//   return [
-//     { x: midX + offsetX, y: midY + offsetY },
-//     { x: apexX + offsetX, y: apexY + offsetY },
-//     { x: apexX - offsetX, y: apexY - offsetY },
-//     { x: midX - offsetX, y: midY - offsetY },
-//   ];
-// }
-
-function getIsoscelesApexPoint(point1: Point, point2: Point) {
-  const { x: x1, y: y1 } = point1;
-  const { x: x2, y: y2 } = point2;
-  // Calculate the midpoint of AB
-  const mx = (x1 + x2) / 2;
-  const my = (y1 + y2) / 2;
-
-  // Compute the vector from A to B
-  const dx = x2 - x1;
-  const dy = y2 - y1;
-
-  // Length of AB
-  const length = Math.hypot(dx, dy);
-
-  // Height = 0.5 * length
-  const h = length / 2;
-
-  // Perpendicular direction vector (normalized)
-  const perpDx = -dy / length;
-  const perpDy = dx / length;
-
-  // Coordinates of the apex point C
-  const cx = mx - perpDx * h;
-  const cy = my - perpDy * h;
-
-  return { x: cx, y: cy };
-}
-
-// function generateArc(pointA: Point, pointB: Point): string {
-//   const dx = pointB.x - pointA.x;
-//   const dy = pointB.y - pointA.y;
-//   const distance = Math.hypot(dx, dy);
-//   const radius = distance; // Since arc diameter is 2 * distance between points
-//
-//   // Large arc flag = 0 (use smaller arc), sweep flag = 1 (clockwise)
-//   const largeArcFlag = 0;
-//   const sweepFlag = 1;
-//
-//   // SVG path string (from pointA to pointB, with given radius)
-//   const arcPath = `M ${pointA.x} ${pointA.y} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${pointB.x} ${pointB.y}`;
-//
-//   return arcPath;
-// }
-
-function generateArc(pointA: Point, pointB: Point, spacing: number = 0): string {
-  const dx = pointB.x - pointA.x;
-  const dy = pointB.y - pointA.y;
-  const distance = Math.hypot(dx, dy);
-
-  if (distance === 0 || spacing * 2 >= distance) {
-    throw new Error("Spacing is too large or points are identical.");
-  }
-
-  // Unit direction vector from A to B
-  const ux = dx / distance;
-  const uy = dy / distance;
-
-  // Shrink both points toward each other
-  const paddedA: Point = {
-    x: pointA.x + ux * spacing,
-    y: pointA.y + uy * spacing,
-  };
-
-  const paddedB: Point = {
-    x: pointB.x - ux * spacing,
-    y: pointB.y - uy * spacing,
-  };
-
-  const paddedDistance = Math.hypot(paddedB.x - paddedA.x, paddedB.y - paddedA.y);
-  const radius = paddedDistance; // Arc diameter is twice this, so radius = distance
-
-  const largeArcFlag = 0;
-  const sweepFlag = 1;
-
-  return `M ${paddedA.x} ${paddedA.y} A ${radius} ${radius} 0 ${largeArcFlag} ${sweepFlag} ${paddedB.x} ${paddedB.y}`;
-}
-
 function generateHexagonGrid() {
   const grid: HexCoordinate[] = [];
 
@@ -160,9 +31,13 @@ export default class Base4MapRenderer extends BaseMapRenderer {
     eventHandlers: EventHandlers,
   ) {
     super(root, generateHexagonGrid(), colorByPlayer, username, eventHandlers);
+    this.outerPadding = 40;
   }
 
   render(map: SettlersCore.Map, ports: { vertices: [number, number]; type: string }[]): void {
+    const container = this.root.parentElement as HTMLElement;
+    this.hexSize = Math.min(0.07 * container.clientWidth, 0.09 * container.clientHeight);
+    this.spacingProportion = this.hexSize < 60 ? 1 / 10 : 1 / 8;
     const hexSize = this.hexSize;
     const spacing = hexSize * this.spacingProportion;
 
