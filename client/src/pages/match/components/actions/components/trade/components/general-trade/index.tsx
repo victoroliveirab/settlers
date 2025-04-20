@@ -25,25 +25,23 @@ export const GeneralTrade = ({ isBankTrade, step }: { isBankTrade: boolean; step
     <Trade className="flex flex-col gap-4 py-2" givenResourcesAvailable={hand} givenStep={step}>
       {({ dirty, given, requested, totalGiven, totalRequested }) => {
         return (
-          <div className="flex items-center w-full">
-            <ul className="flex items-center justify-end gap-1">
-              <li>
-                <DialogClose asChild>
-                  <Button>Close</Button>
-                </DialogClose>
-              </li>
-              <li>
-                <DialogClose asChild>
-                  <Button
-                    disabled={!dirty || totalGiven !== step || totalRequested !== 1}
-                    onClick={() => submitTrade(given, requested)}
-                  >
-                    Submit
-                  </Button>
-                </DialogClose>
-              </li>
-            </ul>
-          </div>
+          <ul className="flex items-center justify-end gap-1">
+            <li>
+              <DialogClose asChild>
+                <Button>Close</Button>
+              </DialogClose>
+            </li>
+            <li>
+              <DialogClose asChild>
+                <Button
+                  disabled={!dirty || totalGiven !== step || totalRequested !== 1}
+                  onClick={() => submitTrade(given, requested)}
+                >
+                  Submit
+                </Button>
+              </DialogClose>
+            </li>
+          </ul>
         );
       }}
     </Trade>
