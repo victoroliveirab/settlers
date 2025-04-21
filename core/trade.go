@@ -2,23 +2,10 @@ package core
 
 import (
 	"fmt"
-	"time"
 
+	"github.com/victoroliveirab/settlers/core/packages/trade"
 	"github.com/victoroliveirab/settlers/utils"
 )
-
-func equalResourceMaps(a, b map[string]int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for key, valA := range a {
-		valB, ok := b[key]
-		if !ok || valB != valA {
-			return false
-		}
-	}
-	return true
-}
 
 func (state *GameState) MakeBankTrade(playerID string, givenResources, requestedResources map[string]int) error {
 	if playerID != state.currentPlayer().ID {
@@ -31,6 +18,7 @@ func (state *GameState) MakeBankTrade(playerID string, givenResources, requested
 		return err
 	}
 
+	// REFACTOR: perhaps should be moved to the trade manager
 	ownedPorts := state.PortsByPlayer(playerID)
 	if utils.SliceContains(ownedPorts, "General") {
 		err := fmt.Errorf("Cannot trade with bank: owns General port")
@@ -38,42 +26,12 @@ func (state *GameState) MakeBankTrade(playerID string, givenResources, requested
 	}
 
 	playerState := state.playersStates[playerID]
-	availableResourcesToRequest := 0
-	for resource, quantity := range givenResources {
-		if quantity == 0 {
-			continue
-		}
-		if quantity%state.bankTradeAmount != 0 {
-			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.bankTradeAmount)
-			return err
-		}
-		if playerState.Resources[resource] < quantity {
-			err := fmt.Errorf("Cannot trade %d of %s with bank: doesn't have that quantity available", quantity, resource)
-			return err
-		}
-		availableResourcesToRequest += quantity / state.bankTradeAmount
-	}
-
-	for resource, quantity := range requestedResources {
-		givenQuantity, ok := givenResources[resource]
-		if ok && givenQuantity > 0 && quantity > 0 {
-			err := fmt.Errorf("Cannot complete bank trade: giving and requesting %s", resource)
-			return err
-		}
-		availableResourcesToRequest -= quantity
-	}
-	if availableResourcesToRequest != 0 {
-		err := fmt.Errorf("Cannot complete bank trade: wrong proportion of given and requested resorces")
-		return err
-	}
-
-	for resource, quantity := range givenResources {
-		playerState.RemoveResource(resource, quantity)
-	}
-	for resource, quantity := range requestedResources {
-		playerState.AddResource(resource, quantity)
-	}
-	return nil
+	return state.trade.MakeBankTrade(
+		playerState,
+		state.bankTradeAmount,
+		givenResources,
+		requestedResources,
+	)
 }
 
 func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, requestedResources map[string]int) error {
@@ -87,53 +45,13 @@ func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, re
 		return err
 	}
 
-	ownedPorts := state.PortsByPlayer(playerID)
-	if !utils.SliceContains(ownedPorts, "General") {
-		err := fmt.Errorf("Cannot trade in port General: doesn't own port")
-		return err
-	}
-
 	playerState := state.playersStates[playerID]
-	availableResourcesToRequest := 0
-	for resource, quantity := range givenResources {
-		if quantity == 0 {
-			continue
-		}
-		if utils.SliceContains(ownedPorts, resource) {
-			err := fmt.Errorf("Cannot trade %s in General port: owns specific port", resource)
-			return err
-		}
-		if quantity%state.generalPortCost != 0 {
-			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.generalPortCost)
-			return err
-		}
-		if playerState.Resources[resource] < quantity {
-			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
-			return err
-		}
-		availableResourcesToRequest += quantity / state.generalPortCost
-	}
-
-	for resource, quantity := range requestedResources {
-		givenQuantity, ok := givenResources[resource]
-		if ok && givenQuantity > 0 && quantity > 0 {
-			err := fmt.Errorf("Cannot complete port trade: giving and requesting %s", resource)
-			return err
-		}
-		availableResourcesToRequest -= quantity
-	}
-	if availableResourcesToRequest != 0 {
-		err := fmt.Errorf("Cannot complete port trade: wrong proportion of given and requested resorces")
-		return err
-	}
-
-	for resource, quantity := range givenResources {
-		playerState.RemoveResource(resource, quantity)
-	}
-	for resource, quantity := range requestedResources {
-		playerState.AddResource(resource, quantity)
-	}
-	return nil
+	return state.trade.MakeGeneralPortTrade(
+		playerState,
+		state.generalPortCost,
+		givenResources,
+		requestedResources,
+	)
 }
 
 func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, requestedResources map[string]int) error {
@@ -148,48 +66,12 @@ func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, r
 	}
 
 	playerState := state.playersStates[playerID]
-	ownedPorts := state.PortsByPlayer(playerID)
-	availableResourcesToRequest := 0
-
-	for resource, quantity := range givenResources {
-		if quantity == 0 {
-			continue
-		}
-		if !utils.SliceContains(ownedPorts, resource) {
-			err := fmt.Errorf("Cannot trade in port %s: doesn't own port", resource)
-			return err
-		}
-		if quantity%state.resourcePortCost != 0 {
-			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.resourcePortCost)
-			return err
-		}
-		if playerState.Resources[resource] < quantity {
-			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
-			return err
-		}
-		availableResourcesToRequest += quantity / state.resourcePortCost
-	}
-
-	for resource, quantity := range requestedResources {
-		givenQuantity, ok := givenResources[resource]
-		if ok && givenQuantity > 0 && quantity > 0 {
-			err := fmt.Errorf("Cannot complete port trade: giving and requesting %s", resource)
-			return err
-		}
-		availableResourcesToRequest -= quantity
-	}
-	if availableResourcesToRequest != 0 {
-		err := fmt.Errorf("Cannot complete port trade: wrong proportion of given and requested resorces")
-		return err
-	}
-
-	for resource, quantity := range givenResources {
-		playerState.RemoveResource(resource, quantity)
-	}
-	for resource, quantity := range requestedResources {
-		playerState.AddResource(resource, quantity)
-	}
-	return nil
+	return state.trade.MakeResourcePortTrade(
+		playerState,
+		state.resourcePortCost,
+		givenResources,
+		requestedResources,
+	)
 }
 
 func (state *GameState) MakeTradeOffer(playerID string, givenResources, requestedResources map[string]int, blockedPlayers []string) (int, error) {
@@ -204,309 +86,52 @@ func (state *GameState) MakeTradeOffer(playerID string, givenResources, requeste
 	}
 
 	playerState := state.playersStates[playerID]
-	for resource, quantity := range givenResources {
-		totalFromOfferedResource := playerState.Resources[resource]
-		if totalFromOfferedResource < quantity {
-			err := fmt.Errorf("Cannot make such offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
-			return -1, err
-		}
-	}
-
-	tradeID := state.playerTradeId
-	state.playerTradeId++
-
-	responses := make(map[string]*TradePlayerEntry)
-
-	for _, player := range state.players {
-		if player.ID == playerID {
-			continue
-		}
-		responses[player.ID] = &TradePlayerEntry{
-			Status:  NoResponse,
-			Blocked: utils.SliceContains(blockedPlayers, player.ID),
-		}
-	}
-
-	state.playersTrades[tradeID] = &Trade{
-		ID:        tradeID,
-		Requester: playerID,
-		Creator:   playerID,
-		Responses: responses,
-		Offer:     givenResources,
-		Request:   requestedResources,
-		Status:    TradeOpen,
-		ParentID:  -1,
-		Finalized: false,
-		Timestamp: time.Now().UnixMilli(),
-	}
-
-	return tradeID, nil
+	return state.trade.MakeTradeOffer(
+		playerState,
+		givenResources,
+		requestedResources,
+		state.players,
+		blockedPlayers,
+	)
 }
 
 func (state *GameState) MakeCounterTradeOffer(playerID string, tradeID int, givenResources, requestedResources map[string]int) (int, error) {
-	parentTrade, exists := state.playersTrades[tradeID]
-	if !exists {
-		err := fmt.Errorf("Invalid tradeID %d", tradeID)
-		return -1, err
-	}
-
-	if parentTrade.Status != TradeOpen {
-		err := fmt.Errorf("Cannot create counter offer: Trade#%d is not in Open status", tradeID)
-		return -1, err
-	}
-
-	if parentTrade.Creator == playerID {
-		err := fmt.Errorf("Cannot create counter offer to own offer")
-		return -1, err
-	}
-
-	if parentTrade.Responses[playerID] != nil && parentTrade.Responses[playerID].Blocked {
-		err := fmt.Errorf("Cannot create counter offer: blocked from Trade#%d", tradeID)
-		return -1, err
-	}
-
-	var offeredResources map[string]int
-
-	if playerID == parentTrade.Requester {
-		offeredResources = givenResources
-	} else {
-		offeredResources = requestedResources
-	}
-
 	playerState := state.playersStates[playerID]
-	for resource, quantity := range offeredResources {
-		totalFromOfferedResource := playerState.Resources[resource]
-		if totalFromOfferedResource < quantity {
-			err := fmt.Errorf("Cannot make such counter offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
-			return -1, err
-		}
-	}
-
-	if equalResourceMaps(givenResources, parentTrade.Offer) && equalResourceMaps(requestedResources, parentTrade.Request) {
-		return -1, fmt.Errorf("counter offer must be different from the original offer")
-	}
-
-	counterTradeID := state.playerTradeId
-	state.playerTradeId++
-
-	responses := make(map[string]*TradePlayerEntry)
-
-	for responsePlayer, responsePlayerParams := range parentTrade.Responses {
-		responses[responsePlayer] = &TradePlayerEntry{
-			Status:  NoResponse,
-			Blocked: responsePlayerParams.Blocked,
-		}
-		if responsePlayer == playerID {
-			responses[responsePlayer].Status = Accepted
-		}
-	}
-
-	counterTrade := &Trade{
-		ID:        counterTradeID,
-		Requester: parentTrade.Requester,
-		Creator:   playerID,
-		Responses: responses,
-		Offer:     givenResources,
-		Request:   requestedResources,
-		Status:    TradeOpen,
-		ParentID:  tradeID,
-		Finalized: false,
-		Timestamp: time.Now().UnixMilli(),
-	}
-
-	state.playersTrades[counterTradeID] = counterTrade
-	state.tradeParentToChild[tradeID] = append(state.tradeParentToChild[tradeID], counterTradeID)
-	return counterTradeID, nil
+	return state.trade.MakeCounterTradeOffer(
+		playerState,
+		tradeID,
+		givenResources,
+		requestedResources,
+		state.players,
+	)
 }
 
 func (state *GameState) AcceptTradeOffer(playerID string, tradeID int) error {
-	trade, exists := state.playersTrades[tradeID]
-
-	if !exists {
-		err := fmt.Errorf("Invalid tradeID %d", tradeID)
-		return err
-	}
-
-	if trade.Status != TradeOpen {
-		err := fmt.Errorf("Cannot create counter offer: Trade#%d is not in Open status", tradeID)
-		return err
-	}
-
-	if trade.Responses[playerID] == nil || trade.Responses[playerID].Blocked {
-		err := fmt.Errorf("Cannot accept offer: not part of trade#%d opponents", tradeID)
-		return err
-	}
-
 	playerState := state.playersStates[playerID]
-
-	for resource, quantity := range trade.Request {
-		if playerState.Resources[resource] < quantity {
-			err := fmt.Errorf("Cannot accept offer %d: not enough %s", tradeID, resource)
-			// state.RejectTradeOffer(playerID, tradeID)
-			return err
-		}
-	}
-
-	trade.Responses[playerID].Status = Accepted
-	return nil
+	return state.trade.AcceptTradeOffer(playerState, tradeID)
 }
 
 func (state *GameState) FinalizeTrade(playerID, accepterID string, tradeID int) error {
+	// REFACTOR: Probably unnecessary? -> will be cought below
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot finalize a trade during other player's round")
 		return err
 	}
-
-	trade, exists := state.playersTrades[tradeID]
-	if !exists {
-		err := fmt.Errorf("Invalid tradeID %d", tradeID)
-		return err
-	}
-
-	if trade.Status != TradeOpen {
-		err := fmt.Errorf("Cannot finalize offer: Trade#%d is not in Open status", tradeID)
-		return err
-	}
-
-	if trade.Requester != playerID {
-		err := fmt.Errorf("Cannot finalize a trade created by other player")
-		return err
-	}
-
-	if playerID == accepterID {
-		err := fmt.Errorf("Cannot finalize a trade between the same players")
-		return err
-	}
-
-	if trade.Responses[accepterID] == nil || trade.Responses[accepterID].Status != Accepted {
-		err := fmt.Errorf("Cannot finalize a trade with a player that didn't accept")
-		return err
-	}
-
-	originalOffererState := state.playersStates[playerID]
-
-	var err error
-	// Check if original offerer still has the available resources - could have accepted a different offer in the mean time
-	for resource, quantity := range trade.Offer {
-		totalFromOfferedResource := originalOffererState.Resources[resource]
-		if totalFromOfferedResource < quantity {
-			err = fmt.Errorf("Offer %d cannot be accepted at the moment: player %s wants to give %d %s, but only has %d", tradeID, trade.Requester, quantity, resource, totalFromOfferedResource)
-			break
-		}
-	}
-
-	if err != nil {
-		state.cancelOffer(trade)
-		return err
-	}
-
+	ownerState := state.playersStates[playerID]
 	accepterState := state.playersStates[accepterID]
-	// Check if accepter still has the available resources - could have accepted a different offer in the mean time
-	for resource, quantity := range trade.Request {
-		totalFromRequestedResource := accepterState.Resources[resource]
-		if totalFromRequestedResource < quantity {
-			err = fmt.Errorf("Offer %d cannot be accepted at the moment by player %s: they don't have %d %s", tradeID, accepterID, quantity, resource)
-			break
-		}
-	}
-
-	if err != nil {
-		trade.Responses[accepterID].Status = "Declined"
-		return err
-	}
-
-	for resource, quantity := range trade.Offer {
-		if quantity > 0 {
-			originalOffererState.RemoveResource(resource, quantity)
-			accepterState.AddResource(resource, quantity)
-		}
-	}
-
-	for resource, quantity := range trade.Request {
-		if quantity > 0 {
-			originalOffererState.AddResource(resource, quantity)
-			accepterState.RemoveResource(resource, quantity)
-		}
-	}
-
-	trade.Finalized = true
-	trade.Status = TradeFinalized
-
-	if trade.ParentID >= 0 {
-		// If finalizing a counter offer, close the parent and all siblings
-		parentID := trade.ParentID
-		if parentTrade, ok := state.playersTrades[parentID]; ok {
-			parentTrade.Status = TradeClosed
-		}
-		for _, siblingID := range state.tradeParentToChild[parentID] {
-			if siblingTrade, ok := state.playersTrades[siblingID]; ok {
-				siblingTrade.Status = TradeClosed
-			}
-		}
-	} else {
-		// If finalizing the parent trade, close all its children
-		for _, childID := range state.tradeParentToChild[tradeID] {
-			if childTrade, ok := state.playersTrades[childID]; ok {
-				childTrade.Status = TradeClosed
-			}
-		}
-	}
-
-	return nil
+	return state.trade.FinalizeTrade(ownerState, accepterState, tradeID)
 }
 
 func (state *GameState) RejectTradeOffer(playerID string, tradeID int) error {
-	trade, exists := state.playersTrades[tradeID]
-	if !exists {
-		err := fmt.Errorf("Invalid tradeID %d", tradeID)
-		return err
-	}
-
-	if trade.Status != TradeOpen {
-		err := fmt.Errorf("Cannot reject offer: Trade#%d is not in Open status", tradeID)
-		return err
-	}
-
-	if trade.Responses[playerID] != nil && trade.Responses[playerID].Blocked {
-		err := fmt.Errorf("Cannot reject offer: blocked from Trade#%d", tradeID)
-		return err
-	}
-
-	if trade.Requester == playerID {
-		_, ok := state.playersTrades[trade.ParentID]
-		if !ok {
-			err := fmt.Errorf("Cannot reject own offer")
-			return err
-		}
-		trade.Status = TradeClosed
-		return nil
-	}
-
-	trade.Responses[playerID].Status = Declined
-	return nil
+	playerState := state.playersStates[playerID]
+	return state.trade.RejectTradeOffer(playerState, tradeID)
 }
 
 func (state *GameState) CancelTradeOffer(playerID string, tradeID int) error {
-	trade, exists := state.playersTrades[tradeID]
-	if !exists {
-		err := fmt.Errorf("Invalid tradeID %d", tradeID)
-		return err
-	}
-
-	if playerID != state.playersTrades[tradeID].Creator {
-		err := fmt.Errorf("Cannot cancel offer: not owned trade")
-		return err
-	}
-
-	state.cancelOffer(trade)
-	return nil
+	playerState := state.playersStates[playerID]
+	return state.trade.CancelTradeOffer(playerState, tradeID)
 }
 
-func (state *GameState) cancelOffer(offer *Trade) {
-	offer.Finalized = true
-	offer.Status = TradeClosed
-}
-
-func (state *GameState) GetTradeByID(tradeID int) *Trade {
-	return state.playersTrades[tradeID]
+func (state *GameState) GetTradeByID(tradeID int) *trade.Trade {
+	return state.trade.GetTrade(tradeID)
 }

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"maps"
 	"math/rand"
-	"sort"
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
 	"github.com/victoroliveirab/settlers/core/packages/board"
 	"github.com/victoroliveirab/settlers/core/packages/development"
 	"github.com/victoroliveirab/settlers/core/packages/player"
+	"github.com/victoroliveirab/settlers/core/packages/trade"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -72,41 +72,6 @@ type MostKnights struct {
 	Quantity int
 }
 
-type ResponseStatus string
-
-const (
-	NoResponse ResponseStatus = "Open"
-	Accepted   ResponseStatus = "Accepted"
-	Declined   ResponseStatus = "Declined"
-	Countered  ResponseStatus = "Countered"
-)
-
-type TradePlayerEntry struct {
-	Status  ResponseStatus `json:"status"`
-	Blocked bool           `json:"blocked"`
-}
-
-type TradeStatus string
-
-const (
-	TradeOpen      TradeStatus = "Open"
-	TradeClosed    TradeStatus = "Closed"
-	TradeFinalized TradeStatus = "Finalized"
-)
-
-type Trade struct {
-	ID        int                          `json:"id"`
-	Requester string                       `json:"requester"`
-	Creator   string                       `json:"creator"`
-	Responses map[string]*TradePlayerEntry `json:"responses"`
-	Offer     map[string]int               `json:"offer"`
-	Request   map[string]int               `json:"request"`
-	Status    TradeStatus                  `json:"status"`
-	ParentID  int                          `json:"parent"`
-	Finalized bool                         `json:"finalized"`
-	Timestamp int64                        `json:"timestamp"`
-}
-
 type GameState struct {
 	board               *board.Instance
 	rand                *rand.Rand
@@ -121,6 +86,9 @@ type GameState struct {
 	// player
 	players       []coreT.Player
 	playersStates map[string]*player.Instance
+
+	// trade
+	trade *trade.Instance
 
 	// cost related
 	generalPortCost  int
@@ -149,12 +117,9 @@ type GameState struct {
 	development *development.Instance
 
 	// book keeping
-	cityMap            map[int]Building
-	roadMap            map[int]Building
-	settlementMap      map[int]Building
-	playersTrades      map[int]*Trade
-	tradeParentToChild map[int][]int
-	playerTradeId      int
+	cityMap       map[int]Building
+	roadMap       map[int]Building
+	settlementMap map[int]Building
 }
 
 type Params struct {
@@ -228,10 +193,6 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	state.roadMap = make(map[int]Building)
 	state.settlementMap = make(map[int]Building)
 
-	state.playersTrades = make(map[int]*Trade)
-	state.tradeParentToChild = make(map[int][]int)
-	state.playerTradeId = 0
-
 	for i, playerDefinition := range players {
 		state.players[i] = coreT.Player{
 			ID:    playerDefinition.ID,
@@ -252,6 +213,8 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 		state.playersStates[playerDefinition.ID].DevelopmentCards["Year of Plenty"] = make([]*coreT.DevelopmentCard, 0)
 		state.playersStates[playerDefinition.ID].DevelopmentCards["Monopoly"] = make([]*coreT.DevelopmentCard, 0)
 	}
+
+	state.trade = trade.New()
 
 	return nil
 }
@@ -458,32 +421,12 @@ func (state *GameState) DiscardAmounts() map[string]int {
 	return amounts
 }
 
-func (state *GameState) Trades() []Trade {
-	trades := make([]Trade, 0)
-	for _, trade := range state.playersTrades {
-		trades = append(trades, *trade)
-	}
-
-	sort.Slice(trades, func(i, j int) bool {
-		return trades[i].ID < trades[j].ID
-	})
-
-	return trades
+func (state *GameState) Trades() []trade.Trade {
+	return state.trade.Trades()
 }
 
-func (state *GameState) ActiveTradeOffers() []Trade {
-	activeTrades := make([]Trade, 0)
-	for _, trade := range state.playersTrades {
-		if trade.Status == TradeOpen {
-			activeTrades = append(activeTrades, *trade)
-		}
-	}
-
-	sort.Slice(activeTrades, func(i, j int) bool {
-		return activeTrades[i].ID < activeTrades[j].ID
-	})
-
-	return activeTrades
+func (state *GameState) ActiveTradeOffers() []trade.Trade {
+	return state.trade.ActiveTrades()
 }
 
 func (state *GameState) Round() int {

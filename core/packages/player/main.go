@@ -8,6 +8,7 @@ import (
 )
 
 type Instance struct {
+	ID                    string
 	Resources             map[string]int
 	DevelopmentCards      map[string][]*coreT.DevelopmentCard
 	UsedDevelopmentCards  map[string]int
@@ -15,6 +16,7 @@ type Instance struct {
 	Cities                []int
 	Roads                 []int
 	Ports                 []int
+	PortsTypes            []string
 	Points                int
 	KnightCount           int
 	LongestRoadSegments   []int
@@ -34,6 +36,7 @@ func New(player *coreT.Player) *Instance {
 		"Ore":    0,
 	}
 	return &Instance{
+		ID:                    player.ID,
 		Resources:             resources,
 		DevelopmentCards:      make(map[string][]*coreT.DevelopmentCard),
 		UsedDevelopmentCards:  make(map[string]int),
@@ -41,6 +44,7 @@ func New(player *coreT.Player) *Instance {
 		Cities:                make([]int, 0),
 		Roads:                 make([]int, 0),
 		Ports:                 make([]int, 0),
+		PortsTypes:            make([]string, 0),
 		Points:                0,
 		KnightCount:           0,
 		LongestRoadSegments:   make([]int, 0),
@@ -121,6 +125,7 @@ func (p *Instance) AddRoad(edgeID int) {
 	p.Roads = append(p.Roads, edgeID)
 }
 
-func (p *Instance) AddPort(vertexID int) {
+func (p *Instance) AddPort(vertexID int, kind string) {
 	p.Ports = append(p.Ports, vertexID)
+	p.PortsTypes = append(p.PortsTypes, kind)
 }

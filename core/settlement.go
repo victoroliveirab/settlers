@@ -77,9 +77,9 @@ func (state *GameState) handleNewSettlement(playerID string, vertexID int) {
 	state.settlementMap[vertexID] = entry
 	state.playersStates[playerID].AddSettlement(vertexID)
 
-	_, isPort := state.board.Ports[vertexID]
+	port, isPort := state.board.Ports[vertexID]
 	if isPort {
-		state.playersStates[playerID].Ports = append(state.playersStates[playerID].Ports, vertexID)
+		state.playersStates[playerID].AddPort(vertexID, port)
 	}
 
 	// Building a settlement may halt a path

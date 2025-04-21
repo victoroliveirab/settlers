@@ -150,10 +150,6 @@ func (state *GameState) EndRound(playerID string) error {
 	state.currentPlayerIndex = newIndex
 	state.roundType = BetweenTurns
 
-	for _, trade := range state.playersTrades {
-		if trade.Status == "Open" {
-			state.cancelOffer(trade)
-		}
-	}
+	state.trade.CancelActiveTrades()
 	return nil
 }

@@ -212,7 +212,7 @@ func MockWithPortsByPlayer(portsByPlayer map[string][]string) GameStateOption {
 					Owner: playerID,
 				}
 				playerState.AddSettlement(vertexID)
-				playerState.AddPort(vertexID)
+				playerState.AddPort(vertexID, gs.board.Ports[vertexID])
 			}
 		}
 	}
