@@ -55,10 +55,9 @@ type jsonStructure struct {
 }
 
 type generateMapReturnType struct {
-	Definition       MapDefinition
-	Tiles            []*coreT.MapBlock
-	Ports            map[int]string
-	DevelopmentCards []*coreT.DevelopmentCard
+	Tiles          []*coreT.MapBlock
+	RobberPosition int
+	Ports          map[int]string
 }
 
 var MapCollection map[string]jsonStructure = make(map[string]jsonStructure)
@@ -95,14 +94,17 @@ func LoadMap(name string) error {
 	return nil
 }
 
-func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
+func GetMapDefinitions(name string) (*MapDefinition, error) {
 	data, exists := MapCollection[name]
 	if !exists {
-		err := fmt.Errorf("cannot generate unknown map %s", name)
+		err := fmt.Errorf("unknown map: %s", name)
 		return nil, err
 	}
+	return &data.Data, nil
+}
 
-	definitions := data.Data
+func GenerateMap(definitions *MapDefinition, rand *rand.Rand) *generateMapReturnType {
+	robberPosition := -1
 
 	instance := make([]*coreT.MapBlock, 0)
 	resourcesLeft := make([]int, 0)
@@ -144,6 +146,7 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 			desertShift--
 			if !alreadyBlocked {
 				block.Blocked = true
+				robberPosition = i
 				alreadyBlocked = true
 			}
 		}
@@ -178,18 +181,11 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		ports[vertex2] = portsDefinitions[index]
 	}
 
-	developmentCards := MapToShuffledSlice[*coreT.DevelopmentCard](
-		definitions.DevelopmentCards,
-		func(el string) *coreT.DevelopmentCard { return &coreT.DevelopmentCard{Name: el} },
-		rand,
-	)
-
 	return &generateMapReturnType{
-		Definition:       definitions,
-		DevelopmentCards: developmentCards,
-		Ports:            ports,
-		Tiles:            instance,
-	}, nil
+		RobberPosition: robberPosition,
+		Ports:          ports,
+		Tiles:          instance,
+	}
 }
 
 func GetMetadata(mapName string) (*meta, error) {

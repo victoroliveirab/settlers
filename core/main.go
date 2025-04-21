@@ -7,7 +7,11 @@ import (
 	"sort"
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
+	"github.com/victoroliveirab/settlers/core/packages/board"
+	"github.com/victoroliveirab/settlers/core/packages/development"
+	"github.com/victoroliveirab/settlers/core/packages/player"
 	coreT "github.com/victoroliveirab/settlers/core/types"
+	"github.com/victoroliveirab/settlers/utils"
 )
 
 const (
@@ -104,12 +108,8 @@ type Trade struct {
 }
 
 type GameState struct {
-	definition          coreMaps.MapDefinition
-	mapName             string
-	tiles               []*coreT.MapBlock
-	ports               map[int]string
+	board               *board.Instance
 	rand                *rand.Rand
-	players             []coreT.Player
 	logs                []StateLog
 	maxCards            int
 	maxSettlements      int
@@ -117,6 +117,10 @@ type GameState struct {
 	maxRoads            int
 	maxDevCardsPerRound int
 	bankTradeAmount     int
+
+	// player
+	players       []coreT.Player
+	playersStates map[string]*player.Instance
 
 	// cost related
 	generalPortCost  int
@@ -135,30 +139,14 @@ type GameState struct {
 	longestRoadMinimum   int
 
 	// round related
-	roundType                           int
-	roundNumber                         int
-	currentPlayerIndex                  int
-	dice1                               int
-	dice2                               int
-	currentPlayerNumberOfPlayedDevCards int
-
-	// discard related
-	discardMap                     map[string]int
-	playerDiscardedCurrentRoundMap map[string]bool
+	roundType          int
+	roundNumber        int
+	currentPlayerIndex int
+	dice1              int
+	dice2              int
 
 	// cards related
-	playerResourceHandMap        map[string]map[string]int
-	playerDevelopmentHandMap     map[string]map[string][]*coreT.DevelopmentCard
-	developmentCards             []*coreT.DevelopmentCard
-	developmentCardHeadIndex     int
-	playerDevelopmentCardUsedMap map[string]map[string]int
-
-	// building related
-	playerSettlementMap map[string][]int
-	playerCityMap       map[string][]int
-	playerRoadMap       map[string][]int
-	playerPortMap       map[string][]int
-	playerLongestRoad   map[string][]int
+	development *development.Instance
 
 	// book keeping
 	cityMap            map[int]Building
@@ -188,18 +176,22 @@ type Params struct {
 
 func (state *GameState) New(players []*coreT.Player, mapName string, randGenerator *rand.Rand, params Params) error {
 	state.rand = randGenerator
-	data, err := coreMaps.GenerateMap(mapName, state.rand)
+	mapDefinitions, err := coreMaps.GetMapDefinitions(mapName)
 	if err != nil {
 		return err
 	}
 
-	state.definition = data.Definition
-	state.mapName = mapName
-	state.tiles = data.Tiles
-	state.ports = data.Ports
-	state.developmentCards = data.DevelopmentCards
-	state.developmentCardHeadIndex = 0
-	state.playerDevelopmentCardUsedMap = make(map[string]map[string]int)
+	state.board = board.New(mapName, mapDefinitions, randGenerator)
+
+	developmentCards := utils.MapToShuffledSlice[*coreT.DevelopmentCard](
+		mapDefinitions.DevelopmentCards,
+		func(el string) *coreT.DevelopmentCard { return &coreT.DevelopmentCard{Name: el} },
+		randGenerator,
+	)
+	state.development = development.New(developmentCards)
+
+	state.playersStates = make(map[string]*player.Instance)
+
 	state.players = make([]coreT.Player, len(players))
 	for i, player := range players {
 		state.players[i] = coreT.Player{
@@ -229,20 +221,8 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	state.roundType = SetupSettlement1
 	state.roundNumber = 0
 	state.currentPlayerIndex = 0
-	state.currentPlayerNumberOfPlayedDevCards = 0
 	state.dice1 = 0
 	state.dice2 = 0
-	state.discardMap = make(map[string]int)
-	state.playerDiscardedCurrentRoundMap = make(map[string]bool)
-
-	state.playerResourceHandMap = make(map[string]map[string]int)
-	state.playerDevelopmentHandMap = make(map[string]map[string][]*coreT.DevelopmentCard)
-
-	state.playerSettlementMap = make(map[string][]int)
-	state.playerCityMap = make(map[string][]int)
-	state.playerRoadMap = make(map[string][]int)
-	state.playerPortMap = make(map[string][]int)
-	state.playerLongestRoad = make(map[string][]int)
 
 	state.cityMap = make(map[int]Building)
 	state.roadMap = make(map[int]Building)
@@ -252,35 +232,25 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	state.tradeParentToChild = make(map[int][]int)
 	state.playerTradeId = 0
 
-	for _, player := range players {
-		state.discardMap[player.ID] = 0
-		state.playerSettlementMap[player.ID] = make([]int, 0)
-		state.playerCityMap[player.ID] = make([]int, 0)
-		state.playerRoadMap[player.ID] = make([]int, 0)
-		state.playerPortMap[player.ID] = make([]int, 0)
-		state.playerLongestRoad[player.ID] = make([]int, 0)
-		state.playerResourceHandMap[player.ID] = make(map[string]int)
-		state.playerDevelopmentHandMap[player.ID] = make(map[string][]*coreT.DevelopmentCard)
-		state.playerDevelopmentCardUsedMap[player.ID] = map[string]int{
+	for i, playerDefinition := range players {
+		state.players[i] = coreT.Player{
+			ID:    playerDefinition.ID,
+			Color: playerDefinition.Color,
+		}
+
+		state.playersStates[playerDefinition.ID] = player.New(playerDefinition)
+		state.playersStates[playerDefinition.ID].UsedDevelopmentCards = map[string]int{
 			"Knight":         0,
 			"Monopoly":       0,
 			"Road Building":  0,
 			"Year of Plenty": 0,
 		}
 
-		state.playerResourceHandMap[player.ID]["Lumber"] = 0
-		state.playerResourceHandMap[player.ID]["Brick"] = 0
-		state.playerResourceHandMap[player.ID]["Grain"] = 0
-		state.playerResourceHandMap[player.ID]["Sheep"] = 0
-		state.playerResourceHandMap[player.ID]["Ore"] = 0
-
-		state.playerDevelopmentHandMap[player.ID]["Knight"] = make([]*coreT.DevelopmentCard, 0)
-		state.playerDevelopmentHandMap[player.ID]["Victory Point"] = make([]*coreT.DevelopmentCard, 0)
-		state.playerDevelopmentHandMap[player.ID]["Road Building"] = make([]*coreT.DevelopmentCard, 0)
-		state.playerDevelopmentHandMap[player.ID]["Year of Plenty"] = make([]*coreT.DevelopmentCard, 0)
-		state.playerDevelopmentHandMap[player.ID]["Monopoly"] = make([]*coreT.DevelopmentCard, 0)
-
-		state.points[player.ID] = 0
+		state.playersStates[playerDefinition.ID].DevelopmentCards["Knight"] = make([]*coreT.DevelopmentCard, 0)
+		state.playersStates[playerDefinition.ID].DevelopmentCards["Victory Point"] = make([]*coreT.DevelopmentCard, 0)
+		state.playersStates[playerDefinition.ID].DevelopmentCards["Road Building"] = make([]*coreT.DevelopmentCard, 0)
+		state.playersStates[playerDefinition.ID].DevelopmentCards["Year of Plenty"] = make([]*coreT.DevelopmentCard, 0)
+		state.playersStates[playerDefinition.ID].DevelopmentCards["Monopoly"] = make([]*coreT.DevelopmentCard, 0)
 	}
 
 	return nil
@@ -303,26 +273,26 @@ func (state *GameState) findPlayer(playerID string) *coreT.Player {
 
 func (state *GameState) Map() []*coreT.MapBlock {
 	// REFACTOR: return a copy
-	return state.tiles
+	return state.board.Tiles
 }
 
 func (state *GameState) MapName() string {
-	return state.mapName
+	return state.board.MapName
 }
 
 func (state *GameState) PortsByVertex() map[int]string {
-	return state.ports
+	return state.board.Ports
 }
 
 func (state *GameState) PortsLocations() [][2]int {
-	return state.definition.PortsLocations
+	return state.board.Definition.PortsLocations
 }
 
 func (state *GameState) Ports() []coreT.Port {
 	ports := make([]coreT.Port, 0)
-	for _, location := range state.definition.PortsLocations {
+	for _, location := range state.board.Definition.PortsLocations {
 		ports = append(ports, coreT.Port{
-			Type:     state.ports[location[0]],
+			Type:     state.board.Ports[location[0]],
 			Vertices: location,
 		})
 	}
@@ -331,7 +301,7 @@ func (state *GameState) Ports() []coreT.Port {
 
 func (state *GameState) PortsByPlayer(playerID string) []string {
 	ports := make([]string, 0)
-	for vertexID, kind := range state.ports {
+	for vertexID, kind := range state.board.Ports {
 		settlement, okSettlement := state.settlementMap[vertexID]
 		city, okCity := state.cityMap[vertexID]
 		if okSettlement && settlement.Owner == playerID {
@@ -366,14 +336,16 @@ func (state *GameState) RoundType() int {
 
 func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int {
 	devHand := make(map[string]int)
-	for name, cards := range state.playerDevelopmentHandMap[playerID] {
+	playerState := state.playersStates[playerID]
+	for name, cards := range playerState.DevelopmentCards {
 		devHand[name] = len(cards)
 	}
 	return devHand
 }
 
 func (state *GameState) ResourceHandByPlayer(playerID string) map[string]int {
-	return state.playerResourceHandMap[playerID]
+	playerState := state.playersStates[playerID]
+	return playerState.Resources
 }
 
 func (state *GameState) NumberOfCardsInHandByPlayer(playerID string) int {
@@ -386,7 +358,8 @@ func (state *GameState) NumberOfCardsInHandByPlayer(playerID string) int {
 }
 
 func (state *GameState) SettlementsByPlayer(playerID string) []int {
-	return state.playerSettlementMap[playerID]
+	playerState := state.playersStates[playerID]
+	return playerState.Settlements
 }
 
 func (state *GameState) AllSettlements() map[int]Building {
@@ -394,7 +367,8 @@ func (state *GameState) AllSettlements() map[int]Building {
 }
 
 func (state *GameState) CitiesByPlayer(playerID string) []int {
-	return state.playerCityMap[playerID]
+	playerState := state.playersStates[playerID]
+	return playerState.Cities
 }
 
 func (state *GameState) AllCities() map[int]Building {
@@ -402,7 +376,8 @@ func (state *GameState) AllCities() map[int]Building {
 }
 
 func (state *GameState) RoadsByPlayer(playerID string) []int {
-	return state.playerRoadMap[playerID]
+	playerState := state.playersStates[playerID]
+	return playerState.Roads
 }
 
 func (state *GameState) AllRoads() map[int]Building {
@@ -418,13 +393,15 @@ func (state *GameState) LongestRoadLengths() map[string]int {
 }
 
 func (state *GameState) LongestRoadLengthByPlayer(playerID string) int {
-	return len(state.playerLongestRoad[playerID])
+	playerState := state.playersStates[playerID]
+	return len(playerState.LongestRoadSegments)
 }
 
 func (state *GameState) KnightUses() map[string]int {
 	knightUses := make(map[string]int)
-	for playerID, uses := range state.playerDevelopmentCardUsedMap {
-		knightUses[playerID] = uses["Knight"]
+	for _, player := range state.players {
+		playerState := state.playersStates[player.ID]
+		knightUses[player.ID] = playerState.UsedDevelopmentCards["Knight"]
 	}
 	return knightUses
 }
@@ -443,9 +420,9 @@ func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
 	}
 
 	robbablePlayers := make(map[string]bool)
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.Tiles {
 		if tile.Blocked {
-			vertices := state.definition.VerticesByTile[tile.ID]
+			vertices := state.board.Definition.VerticesByTile[tile.ID]
 			for _, vertexID := range vertices {
 				settlement, hasSettlement := state.settlementMap[vertexID]
 				city, hasCity := state.cityMap[vertexID]

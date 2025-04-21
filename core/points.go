@@ -6,7 +6,10 @@ import (
 
 func (state *GameState) recountLongestRoad() bool {
 	var longestRoad LongestRoad
-	for playerID, playerLongestRoad := range state.playerLongestRoad {
+	for _, player := range state.players {
+		playerID := player.ID
+		playerState := state.playersStates[playerID]
+		playerLongestRoad := playerState.LongestRoadSegments
 		playerLongestRoadSize := len(playerLongestRoad)
 		// REFACTOR: this looks waaay more convoluted than I think it needs to be
 		// By the time I'm writing this, this is the best I came up with
@@ -43,16 +46,14 @@ func (state *GameState) recountLongestRoad() bool {
 
 func (state *GameState) recountKnights() bool {
 	changed := false
-	// NOTE: this loop is done by state.players instead of the map to ensure order
-	// Shouldn't matter in prod, but helps setting up predictable tests
 	for _, player := range state.players {
-		knightsUsed := state.playerDevelopmentCardUsedMap[player.ID]["Knight"]
+		playerState := state.playersStates[player.ID]
+		knightsUsed := playerState.UsedDevelopmentCards["Knight"]
 		if knightsUsed > state.mostKnights.Quantity && knightsUsed >= state.mostKnightsMinimum {
 			state.mostKnights.PlayerID = player.ID
 			state.mostKnights.Quantity = knightsUsed
 			changed = true
 		}
-
 	}
 	return changed
 }
@@ -61,10 +62,11 @@ func (state *GameState) updatePoints() {
 	var victoryPlayer string
 	for _, player := range state.players {
 		playerID := player.ID
+		playerState := state.playersStates[playerID]
 		sum := 0
-		sum += state.pointsPerSettlement * len(state.playerSettlementMap[playerID])
-		sum += state.pointsPerCity * len(state.playerCityMap[playerID])
-		sum += len(state.playerDevelopmentHandMap[playerID]["Victory Point"])
+		sum += state.pointsPerSettlement * len(playerState.Settlements)
+		sum += state.pointsPerCity * len(playerState.Cities)
+		sum += len(playerState.DevelopmentCards["Victory Point"])
 
 		if state.mostKnights.PlayerID == playerID {
 			sum += state.pointsPerMostKnights

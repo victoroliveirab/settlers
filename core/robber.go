@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"sort"
 
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -18,7 +17,7 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 		return err
 	}
 
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.Tiles {
 		if tile.Blocked {
 			if tile.ID == tileID {
 				err := fmt.Errorf("Cannot move robber to already blocked tile - %d", tileID)
@@ -28,7 +27,7 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 			break
 		}
 	}
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.Tiles {
 		if tile.ID == tileID {
 			tile.Blocked = true
 			state.roundType = PickRobbed
@@ -78,16 +77,11 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		state.roundType = Regular
 	}
 
-	// NOTE: this is done to enforce ordering for tests (math/random seed)
-	keys := make([]string, 0, len(state.playerResourceHandMap[robbedID]))
-	for kind := range state.playerResourceHandMap[robbedID] {
-		keys = append(keys, kind)
-	}
-	sort.Strings(keys)
+	robbedState := state.playersStates[robbedID]
 
 	resources := make([]string, 0)
-	for _, resourceName := range keys {
-		quantity := state.playerResourceHandMap[robbedID][resourceName]
+	for _, resourceName := range ResourcesOrder {
+		quantity := robbedState.Resources[resourceName]
 		for i := 0; i < quantity; i++ {
 			resources = append(resources, resourceName)
 		}
@@ -100,14 +94,14 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 
 	robbedResource := resources[state.rand.Intn(len(resources))]
 
-	state.playerResourceHandMap[robberID][robbedResource]++
-	state.playerResourceHandMap[robbedID][robbedResource]--
+	robbedState.RemoveResource(robbedResource, 1)
+	state.playersStates[robberID].AddResource(robbedResource, 1)
 	return nil
 }
 
 func (state *GameState) BlockedTiles() []int {
 	tileIDs := make([]int, 0)
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.Tiles {
 		if tile.Blocked {
 			tileIDs = append(tileIDs, tile.ID)
 		}
@@ -117,7 +111,7 @@ func (state *GameState) BlockedTiles() []int {
 
 func (state *GameState) UnblockedTiles() []int {
 	tileIDs := make([]int, 0)
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.Tiles {
 		if !tile.Blocked {
 			tileIDs = append(tileIDs, tile.ID)
 		}

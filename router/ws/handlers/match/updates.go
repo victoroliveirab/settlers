@@ -130,7 +130,9 @@ func UpdatePlayerDevHandPermissions(room *entities.Room, username string) *types
 		if quantity == 0 {
 			permissions[devHandKind] = false
 		} else {
-			permissions[devHandKind] = game.IsDevCardPlayable(username, devHandKind) == nil
+			// FIX ME
+			permissions[devHandKind] = false
+			// permissions[devHandKind] = game.IsDevCardPlayable(username, devHandKind) == nil
 		}
 	}
 	return &types.WebSocketServerResponse{
@@ -210,13 +212,13 @@ func UpdateTrade(room *entities.Room, username string) *types.WebSocketServerRes
 }
 
 func UpdateBuyDevelopmentCard(room *entities.Room, username string) *types.WebSocketServerResponse {
-	game := room.Game
+	// game := room.Game
 	messageType := fmt.Sprintf("%s.update-buy-dev-card", room.Status)
-	enabled := game.IsBuyDevelopmentCardAvailable(username) == nil
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: buyDevCardStateUpdateResponsePayload{
-			Enabled: enabled,
+			// FIXME
+			Enabled: false,
 		},
 	}
 }

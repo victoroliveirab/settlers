@@ -341,14 +341,17 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.RobPlayer("4", "1")
 		game.EndRound("4")
 		expectedHand(map[string]string{
-			"1": "GGOOO",
+			"1": "LGOOO",
 			"2": "GGGO",
 			"3": "",
-			"4": "LGGOO",
+			"4": "GGGOO",
 		})
 
 		game.RollDice("1") // 2
 		expectedDice(2)
+		tradeID, _ = game.MakeTradeOffer("1", map[string]int{"Lumber": 1}, map[string]int{"Grain": 1}, []string{})
+		game.AcceptTradeOffer("4", tradeID)
+		game.FinalizeTrade("1", "4", tradeID)
 		err = game.BuildCity("1", 4)
 		if err != nil {
 			t.Error(err)
@@ -540,8 +543,16 @@ func TestBase4RegularFullGame(t *testing.T) {
 
 		game.RollDice("4") // 3
 		expectedDice(3)
-		game.MakeBankTrade("2", map[string]int{"Grain": 4}, map[string]int{"Brick": 1})
-		game.BuildRoad("4", 26)
+		err = game.MakeBankTrade("4", map[string]int{"Grain": 4}, map[string]int{"Brick": 1})
+		if err != nil {
+			t.Error(err)
+			return
+		}
+		err = game.BuildRoad("4", 26)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		game.EndRound("4")
 		expectedHand(map[string]string{
 			"1": "LSS",
@@ -580,8 +591,8 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.EndRound("2")
 		expectedHand(map[string]string{
 			"1": "LSS",
-			"2": "LSSO",
-			"3": "LLBG",
+			"2": "LSGO",
+			"3": "LLBS",
 			"4": "O",
 		})
 		expectedRoads(map[string][]int{
@@ -599,12 +610,16 @@ func TestBase4RegularFullGame(t *testing.T) {
 
 		game.RollDice("3") // 5
 		expectedDice(5)
-		game.BuildRoad("3", 16)
+		err = game.BuildRoad("3", 16)
+		if err != nil {
+			t.Error(err)
+			return
+		}
 		game.EndRound("3")
 		expectedHand(map[string]string{
 			"1": "LSS",
-			"2": "LSSGGO",
-			"3": "LGG",
+			"2": "LSGGGO",
+			"3": "LSG",
 			"4": "GGO",
 		})
 		expectedRoads(map[string][]int{
@@ -631,8 +646,8 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.EndRound("4")
 		expectedHand(map[string]string{
 			"1": "LSG",
-			"2": "LSSGGO",
-			"3": "LGG",
+			"2": "LSGGGO",
+			"3": "LSG",
 			"4": "",
 		})
 		expectedDevHand(map[string]string{
@@ -654,8 +669,8 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "",
-			"2": "LLSSGGO",
-			"3": "LLGG",
+			"2": "LLSGGGO",
+			"3": "LLSG",
 			"4": "",
 		})
 		expectedDevHand(map[string]string{
@@ -680,6 +695,9 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.RollDice("2") // 3
 		expectedDice(3)
 		game.BuyDevelopmentCard("2")
+		tradeID, _ = game.MakeTradeOffer("2", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
+		game.AcceptTradeOffer("3", tradeID)
+		game.FinalizeTrade("2", "3", tradeID)
 		game.EndRound("2")
 		expectedHand(map[string]string{
 			"1": "SS",
@@ -866,7 +884,7 @@ func TestBase4RegularFullGame(t *testing.T) {
 		tradeID, _ = game.MakeTradeOffer("4", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
 		counterTradeID, _ = game.MakeCounterTradeOffer("3", tradeID, map[string]int{"Grain": 2}, map[string]int{"Sheep": 1})
 		game.FinalizeTrade("4", "3", counterTradeID)
-		game.MakeBankTrade("2", map[string]int{"Grain": 4}, map[string]int{"Ore": 1})
+		err = game.MakeBankTrade("4", map[string]int{"Grain": 4}, map[string]int{"Ore": 1})
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
 		expectedHand(map[string]string{
@@ -1081,6 +1099,9 @@ func TestBase4RegularFullGame(t *testing.T) {
 		}
 		game.MoveRobber("1", 8)
 		game.RobPlayer("1", "2")
+		tradeID, _ = game.MakeTradeOffer("1", map[string]int{"Grain": 1}, map[string]int{"Sheep": 1}, []string{})
+		game.AcceptTradeOffer("2", tradeID)
+		game.FinalizeTrade("1", "2", tradeID)
 		game.EndRound("1")
 		expectedHand(map[string]string{
 			"1": "SSG",
@@ -1343,14 +1364,14 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.UseKnight("3")
 		game.MoveRobber("3", 8)
 		game.RobPlayer("3", "2")
-		tradeID, _ = game.MakeTradeOffer("3", map[string]int{"Brick": 1}, map[string]int{"Ore": 1}, []string{"2"})
+		tradeID, err = game.MakeTradeOffer("3", map[string]int{"Lumber": 1}, map[string]int{"Ore": 1}, []string{"2"})
 		game.AcceptTradeOffer("1", tradeID)
 		game.FinalizeTrade("3", "1", tradeID)
 		game.BuyDevelopmentCard("3")
 		game.EndRound("3")
 		expectedHand(map[string]string{
-			"1": "LB",
-			"2": "LB",
+			"1": "LL",
+			"2": "BB",
 			"3": "L",
 			"4": "SSGGGGOO",
 		})
@@ -1373,8 +1394,8 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.BuyDevelopmentCard("4")
 		game.EndRound("4")
 		expectedHand(map[string]string{
-			"1": "LBG",
-			"2": "LBGG",
+			"1": "LLG",
+			"2": "BBGG",
 			"3": "LG",
 			"4": "GGGG",
 		})
@@ -1399,8 +1420,8 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.BuildRoad("1", 6)
 		game.EndRound("1")
 		expectedHand(map[string]string{
-			"1": "GG",
-			"2": "LBG",
+			"1": "LG",
+			"2": "BGG",
 			"3": "LLLG",
 			"4": "GGGG",
 		})
@@ -1437,10 +1458,13 @@ func TestBase4RegularFullGame(t *testing.T) {
 		game.BuildCity("2", 35)
 		game.MakeResourcePortTrade("2", map[string]int{"Grain": 4}, map[string]int{"Lumber": 1, "Brick": 1})
 		game.BuildRoad("2", 36)
-		game.BuildRoad("2", 35)
+		tradeID, _ = game.MakeTradeOffer("2", map[string]int{"Grain": 1}, map[string]int{"Lumber": 1}, []string{})
+		game.AcceptTradeOffer("1", tradeID)
+		game.FinalizeTrade("2", "1", tradeID)
+		err = game.BuildRoad("2", 35)
 		expectedHand(map[string]string{
-			"1": "",
-			"2": "GG",
+			"1": "G",
+			"2": "G",
 			"3": "LLL",
 			"4": "OO",
 		})

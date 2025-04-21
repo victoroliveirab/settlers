@@ -39,15 +39,17 @@ func (state *GameState) handleChangeSetupRoundType() {
 }
 
 func (state *GameState) handOffInitialResources() {
-	for playerID, settlementsIDs := range state.playerSettlementMap {
+	for _, player := range state.players {
+		playerState := state.playersStates[player.ID]
+		settlementsIDs := playerState.Settlements
 		vertexID := settlementsIDs[1]
-		tilesIndexes := state.definition.TilesByVertex[vertexID]
+		tilesIndexes := state.board.Definition.TilesByVertex[vertexID]
 		for _, index := range tilesIndexes {
-			tile := state.tiles[index]
+			tile := state.board.Tiles[index]
 			if tile.Resource == "Desert" {
 				continue
 			}
-			state.playerResourceHandMap[playerID][tile.Resource]++
+			playerState.AddResource(tile.Resource, 1)
 		}
 	}
 }
@@ -78,19 +80,20 @@ func (state *GameState) RollDice(playerID string) error {
 		return nil
 	}
 
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.Tiles {
 		if tile.Token != sum || tile.Blocked || tile.Resource == "Desert" {
 			continue
 		}
 		for _, vertice := range tile.Vertices {
-			for player, settlementVertice := range state.playerSettlementMap {
-				if utils.SliceContains(settlementVertice, vertice) {
-					state.playerResourceHandMap[player][tile.Resource]++
+			for _, player := range state.players {
+				playerState := state.playersStates[player.ID]
+				settlements := playerState.Settlements
+				if utils.SliceContains(settlements, vertice) {
+					playerState.AddResource(tile.Resource, 1)
 				}
-			}
-			for player, cityVertice := range state.playerCityMap {
-				if utils.SliceContains(cityVertice, vertice) {
-					state.playerResourceHandMap[player][tile.Resource] += 2
+				cities := playerState.Cities
+				if utils.SliceContains(cities, vertice) {
+					playerState.AddResource(tile.Resource, 2)
 				}
 			}
 		}
@@ -135,14 +138,17 @@ func (state *GameState) EndRound(playerID string) error {
 	state.roundNumber += 1
 	state.dice1 = 0
 	state.dice2 = 0
-	state.playerDiscardedCurrentRoundMap = make(map[string]bool)
+	for _, player := range state.players {
+		playerState := state.playersStates[player.ID]
+		playerState.HasDiscardedThisRound = false
+		playerState.NumDevCardsPlayedTurn = 0
+	}
 	newIndex := state.currentPlayerIndex + 1
 	if newIndex >= len(state.players) {
 		newIndex = 0
 	}
 	state.currentPlayerIndex = newIndex
 	state.roundType = BetweenTurns
-	state.currentPlayerNumberOfPlayedDevCards = 0
 
 	for _, trade := range state.playersTrades {
 		if trade.Status == "Open" {

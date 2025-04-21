@@ -37,6 +37,7 @@ func (state *GameState) MakeBankTrade(playerID string, givenResources, requested
 		return err
 	}
 
+	playerState := state.playersStates[playerID]
 	availableResourcesToRequest := 0
 	for resource, quantity := range givenResources {
 		if quantity == 0 {
@@ -46,7 +47,7 @@ func (state *GameState) MakeBankTrade(playerID string, givenResources, requested
 			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.bankTradeAmount)
 			return err
 		}
-		if state.playerResourceHandMap[playerID][resource] < quantity {
+		if playerState.Resources[resource] < quantity {
 			err := fmt.Errorf("Cannot trade %d of %s with bank: doesn't have that quantity available", quantity, resource)
 			return err
 		}
@@ -67,10 +68,10 @@ func (state *GameState) MakeBankTrade(playerID string, givenResources, requested
 	}
 
 	for resource, quantity := range givenResources {
-		state.playerResourceHandMap[playerID][resource] -= quantity
+		playerState.RemoveResource(resource, quantity)
 	}
 	for resource, quantity := range requestedResources {
-		state.playerResourceHandMap[playerID][resource] += quantity
+		playerState.AddResource(resource, quantity)
 	}
 	return nil
 }
@@ -92,6 +93,7 @@ func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, re
 		return err
 	}
 
+	playerState := state.playersStates[playerID]
 	availableResourcesToRequest := 0
 	for resource, quantity := range givenResources {
 		if quantity == 0 {
@@ -105,7 +107,7 @@ func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, re
 			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.generalPortCost)
 			return err
 		}
-		if state.playerResourceHandMap[playerID][resource] < quantity {
+		if playerState.Resources[resource] < quantity {
 			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
 			return err
 		}
@@ -126,10 +128,10 @@ func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, re
 	}
 
 	for resource, quantity := range givenResources {
-		state.playerResourceHandMap[playerID][resource] -= quantity
+		playerState.RemoveResource(resource, quantity)
 	}
 	for resource, quantity := range requestedResources {
-		state.playerResourceHandMap[playerID][resource] += quantity
+		playerState.AddResource(resource, quantity)
 	}
 	return nil
 }
@@ -145,6 +147,7 @@ func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, r
 		return err
 	}
 
+	playerState := state.playersStates[playerID]
 	ownedPorts := state.PortsByPlayer(playerID)
 	availableResourcesToRequest := 0
 
@@ -160,7 +163,7 @@ func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, r
 			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, state.resourcePortCost)
 			return err
 		}
-		if state.playerResourceHandMap[playerID][resource] < quantity {
+		if playerState.Resources[resource] < quantity {
 			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
 			return err
 		}
@@ -181,10 +184,10 @@ func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, r
 	}
 
 	for resource, quantity := range givenResources {
-		state.playerResourceHandMap[playerID][resource] -= quantity
+		playerState.RemoveResource(resource, quantity)
 	}
 	for resource, quantity := range requestedResources {
-		state.playerResourceHandMap[playerID][resource] += quantity
+		playerState.AddResource(resource, quantity)
 	}
 	return nil
 }
@@ -200,8 +203,9 @@ func (state *GameState) MakeTradeOffer(playerID string, givenResources, requeste
 		return -1, err
 	}
 
+	playerState := state.playersStates[playerID]
 	for resource, quantity := range givenResources {
-		totalFromOfferedResource := state.playerResourceHandMap[playerID][resource]
+		totalFromOfferedResource := playerState.Resources[resource]
 		if totalFromOfferedResource < quantity {
 			err := fmt.Errorf("Cannot make such offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
 			return -1, err
@@ -269,8 +273,9 @@ func (state *GameState) MakeCounterTradeOffer(playerID string, tradeID int, give
 		offeredResources = requestedResources
 	}
 
+	playerState := state.playersStates[playerID]
 	for resource, quantity := range offeredResources {
-		totalFromOfferedResource := state.playerResourceHandMap[playerID][resource]
+		totalFromOfferedResource := playerState.Resources[resource]
 		if totalFromOfferedResource < quantity {
 			err := fmt.Errorf("Cannot make such counter offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
 			return -1, err
@@ -332,8 +337,10 @@ func (state *GameState) AcceptTradeOffer(playerID string, tradeID int) error {
 		return err
 	}
 
+	playerState := state.playersStates[playerID]
+
 	for resource, quantity := range trade.Request {
-		if state.playerResourceHandMap[playerID][resource] < quantity {
+		if playerState.Resources[resource] < quantity {
 			err := fmt.Errorf("Cannot accept offer %d: not enough %s", tradeID, resource)
 			// state.RejectTradeOffer(playerID, tradeID)
 			return err
@@ -376,10 +383,12 @@ func (state *GameState) FinalizeTrade(playerID, accepterID string, tradeID int) 
 		return err
 	}
 
+	originalOffererState := state.playersStates[playerID]
+
 	var err error
 	// Check if original offerer still has the available resources - could have accepted a different offer in the mean time
 	for resource, quantity := range trade.Offer {
-		totalFromOfferedResource := state.playerResourceHandMap[playerID][resource]
+		totalFromOfferedResource := originalOffererState.Resources[resource]
 		if totalFromOfferedResource < quantity {
 			err = fmt.Errorf("Offer %d cannot be accepted at the moment: player %s wants to give %d %s, but only has %d", tradeID, trade.Requester, quantity, resource, totalFromOfferedResource)
 			break
@@ -391,9 +400,10 @@ func (state *GameState) FinalizeTrade(playerID, accepterID string, tradeID int) 
 		return err
 	}
 
+	accepterState := state.playersStates[accepterID]
 	// Check if accepter still has the available resources - could have accepted a different offer in the mean time
 	for resource, quantity := range trade.Request {
-		totalFromRequestedResource := state.playerResourceHandMap[accepterID][resource]
+		totalFromRequestedResource := accepterState.Resources[resource]
 		if totalFromRequestedResource < quantity {
 			err = fmt.Errorf("Offer %d cannot be accepted at the moment by player %s: they don't have %d %s", tradeID, accepterID, quantity, resource)
 			break
@@ -407,15 +417,15 @@ func (state *GameState) FinalizeTrade(playerID, accepterID string, tradeID int) 
 
 	for resource, quantity := range trade.Offer {
 		if quantity > 0 {
-			state.playerResourceHandMap[playerID][resource] -= quantity
-			state.playerResourceHandMap[accepterID][resource] += quantity
+			originalOffererState.RemoveResource(resource, quantity)
+			accepterState.AddResource(resource, quantity)
 		}
 	}
 
 	for resource, quantity := range trade.Request {
 		if quantity > 0 {
-			state.playerResourceHandMap[playerID][resource] += quantity
-			state.playerResourceHandMap[accepterID][resource] -= quantity
+			originalOffererState.AddResource(resource, quantity)
+			accepterState.RemoveResource(resource, quantity)
 		}
 	}
 

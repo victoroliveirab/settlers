@@ -47,22 +47,23 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 		return err
 	}
 
-	resources := state.playerResourceHandMap[playerID]
+	playerState := state.playersStates[playerID]
+	resources := playerState.Resources
 	if resources["Lumber"] < 1 || resources["Brick"] < 1 || resources["Grain"] < 1 || resources["Sheep"] < 1 {
 		err := fmt.Errorf("Insufficient resources to build a settlement")
 		return err
 	}
 
-	numberOfSettlements := len(state.playerSettlementMap[playerID])
+	numberOfSettlements := len(playerState.Settlements)
 	if numberOfSettlements >= state.maxSettlements {
 		err := fmt.Errorf("Cannot have more than %d settlements at once", state.maxSettlements)
 		return err
 	}
 
-	state.playerResourceHandMap[playerID]["Lumber"]--
-	state.playerResourceHandMap[playerID]["Brick"]--
-	state.playerResourceHandMap[playerID]["Sheep"]--
-	state.playerResourceHandMap[playerID]["Grain"]--
+	playerState.RemoveResource("Lumber", 1)
+	playerState.RemoveResource("Brick", 1)
+	playerState.RemoveResource("Sheep", 1)
+	playerState.RemoveResource("Grain", 1)
 	state.handleNewSettlement(playerID, vertexID)
 
 	return nil
@@ -74,11 +75,11 @@ func (state *GameState) handleNewSettlement(playerID string, vertexID int) {
 		Owner: playerID,
 	}
 	state.settlementMap[vertexID] = entry
-	state.playerSettlementMap[playerID] = append(state.playerSettlementMap[playerID], vertexID)
+	state.playersStates[playerID].AddSettlement(vertexID)
 
-	_, isPort := state.ports[vertexID]
+	_, isPort := state.board.Ports[vertexID]
 	if isPort {
-		state.playerPortMap[playerID] = append(state.playerPortMap[playerID], vertexID)
+		state.playersStates[playerID].Ports = append(state.playersStates[playerID].Ports, vertexID)
 	}
 
 	// Building a settlement may halt a path
@@ -103,7 +104,7 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 
 	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
 		availableVertices := make([]int, 0)
-		for vertexID := range state.definition.TilesByVertex {
+		for vertexID := range state.board.Definition.TilesByVertex {
 			_, existsSettlement := state.settlementMap[vertexID]
 			_, existsCity := state.cityMap[vertexID]
 			if existsSettlement || existsCity {
@@ -121,8 +122,8 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 	}
 
 	vertexSet := utils.NewSet[int]()
-	for _, edgeID := range state.playerRoadMap[playerID] {
-		for _, vertexID := range state.definition.VerticesByEdge[edgeID] {
+	for _, edgeID := range state.playersStates[playerID].Roads {
+		for _, vertexID := range state.board.Definition.VerticesByEdge[edgeID] {
 			_, settlementExists := state.settlementMap[vertexID]
 			_, cityExists := state.cityMap[vertexID]
 			if settlementExists || cityExists {
