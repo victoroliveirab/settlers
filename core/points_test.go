@@ -997,57 +997,57 @@ func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
 	})
 }
 
-// func TestGameOverOnTargetPointAchievedByBuyingVictoryPoint(t *testing.T) {
-// 	game := CreateTestGame(
-// 		MockWithRoundType(Regular),
-// 		MockWithResourcesByPlayer(map[string]map[string]int{
-// 			"1": {
-// 				"Lumber": 10,
-// 				"Brick":  10,
-// 				"Sheep":  10,
-// 				"Grain":  10,
-// 				"Ore":    10,
-// 			},
-// 		}),
-// 		MockWithSettlementsByPlayer(map[string][]int{
-// 			"1": {17},
-// 			"2": {22, 24},
-// 			"3": {44},
-// 			"4": {26, 28},
-// 		}),
-// 		MockWithCitiesByPlayer(map[string][]int{
-// 			"1": {1, 3, 5, 10},
-// 			"3": {42},
-// 		}),
-// 		MockWithRoadsByPlayer(map[string][]int{
-// 			"1": {1, 2, 3, 4},
-// 			"2": {27, 30},
-// 			"3": {54, 69},
-// 			"4": {32, 33},
-// 		}),
-// 		// MockWithNextDevelopmentCard("Victory Point"),
-// 		MockWithPoints(),
-// 	)
-//
-// 	t.Run("points - reaching target point after buying victory point", func(t *testing.T) {
-// 		points := game.Points()
-// 		if points["1"] != 9 {
-// 			t.Errorf("expected player#1 to have 9 points before buying victory point, but actually got %d", points["1"])
-// 		}
-//
-// 		err := game.BuyDevelopmentCard("1")
-// 		if err != nil {
-// 			t.Errorf("expected player#1 to buy development card just fine, but actually got error %s", err.Error())
-// 		}
-//
-// 		points = game.Points()
-// 		if points["1"] != 10 {
-// 			t.Errorf("expected player#1 to have 10 points after buying victory point, but actually got %d", points["1"])
-// 		}
-//
-// 		roundType := game.RoundType()
-// 		if roundType != GameOver {
-// 			t.Errorf("expected game to be over after player#1 achieved most knights, but actually it isn't")
-// 		}
-// 	})
-// }
+func TestGameOverOnTargetPointAchievedByBuyingVictoryPoint(t *testing.T) {
+	game := CreateTestGame(
+		MockWithRoundType(Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 10,
+				"Brick":  10,
+				"Sheep":  10,
+				"Grain":  10,
+				"Ore":    10,
+			},
+		}),
+		MockWithSettlementsByPlayer(map[string][]int{
+			"1": {17},
+			"2": {22, 24},
+			"3": {44},
+			"4": {26, 28},
+		}),
+		MockWithCitiesByPlayer(map[string][]int{
+			"1": {1, 3, 5, 10},
+			"3": {42},
+		}),
+		MockWithRoadsByPlayer(map[string][]int{
+			"1": {1, 2, 3, 4},
+			"2": {27, 30},
+			"3": {54, 69},
+			"4": {32, 33},
+		}),
+		MockWithNextDevelopmentCard("Victory Point"),
+		MockWithPoints(),
+	)
+
+	t.Run("points - reaching target point after buying victory point", func(t *testing.T) {
+		points := game.Points()
+		if points["1"] != 9 {
+			t.Errorf("expected player#1 to have 9 points before buying victory point, but actually got %d", points["1"])
+		}
+
+		err := game.BuyDevelopmentCard("1")
+		if err != nil {
+			t.Errorf("expected player#1 to buy development card just fine, but actually got error %s", err.Error())
+		}
+
+		points = game.Points()
+		if points["1"] != 10 {
+			t.Errorf("expected player#1 to have 10 points after buying victory point, but actually got %d", points["1"])
+		}
+
+		roundType := game.RoundType()
+		if roundType != GameOver {
+			t.Errorf("expected game to be over after player#1 achieved most knights, but actually it isn't")
+		}
+	})
+}

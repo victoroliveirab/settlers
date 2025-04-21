@@ -55,8 +55,8 @@ func (state *GameState) hasBuildingAtSameEdge(vertexID int) int {
 			vertex = vertex1
 		}
 
-		_, hasSettlement := state.settlementMap[vertex]
-		_, hasCity := state.cityMap[vertex]
+		_, hasSettlement := state.board.Settlements[vertex]
+		_, hasCity := state.board.Cities[vertex]
 		if hasSettlement || hasCity {
 			return edgeID
 		}
@@ -97,7 +97,7 @@ func (state *GameState) ownsBuildingApproaching(playerID string, edgeID int) boo
 func (state *GameState) ownsRoadApproaching(playerID string, vertexID int) bool {
 	edges := state.board.Definition.EdgesByVertex[vertexID]
 	for _, edgeID := range edges {
-		road, exists := state.roadMap[edgeID]
+		road, exists := state.board.Roads[edgeID]
 		if exists && road.Owner == playerID {
 			return true
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/victoroliveirab/settlers/core/packages/board"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -64,7 +65,7 @@ func TestBuildRoadRegularPhaseTouchingSettlementSuccess(t *testing.T) {
 
 		roads := game.AllRoads()
 		newRoad := roads[65]
-		var emptyBuilding = Building{
+		var emptyBuilding = board.Building{
 			Owner: "",
 			ID:    0,
 		}
@@ -121,7 +122,7 @@ func TestBuildRoadRegularPhaseTouchingRoadSuccess(t *testing.T) {
 
 		roads := game.AllRoads()
 		newRoad := roads[65]
-		var emptyBuilding = Building{
+		var emptyBuilding = board.Building{
 			Owner: "",
 			ID:    0,
 		}

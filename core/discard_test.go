@@ -269,52 +269,56 @@ func TestDiscardPlayerSuccess(t *testing.T) {
 	})
 }
 
-// func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *testing.T) {
-// 	rand := StubRand(7)
-// 	game := CreateTestGame(
-// 		MockWithRoundType(BetweenTurns),
-// 		MockWithResourcesByPlayer(map[string]map[string]int{
-// 			"1": {
-// 				"Lumber": 3,
-// 				"Brick":  3,
-// 				"Sheep":  3,
-// 				"Grain":  3,
-// 				"Ore":    3,
-// 			},
-// 			"2": {
-// 				"Lumber": 3,
-// 				"Brick":  3,
-// 				"Sheep":  3,
-// 				"Grain":  3,
-// 				"Ore":    3,
-// 			},
-// 		}),
-// 		MockWithRand(rand),
-// 	)
-// 	t.Run("discard phase, over only after all required players discard", func(t *testing.T) {
-// 		game.RollDice("1")
-// 		err := game.DiscardPlayerCards("1", map[string]int{
-// 			"Lumber": 3,
-// 			"Brick":  3,
-// 			"Sheep":  1,
-// 		})
-// 		if err != nil {
-// 			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
-// 		}
-// 		if game.RoundType() != DiscardPhase {
-// 			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[DiscardPhase], RoundTypeTranslation[game.RoundType()])
-// 		}
-//
-// 		err = game.DiscardPlayerCards("2", map[string]int{
-// 			"Lumber": 3,
-// 			"Brick":  3,
-// 			"Sheep":  1,
-// 		})
-// 		if err != nil {
-// 			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
-// 		}
-// 		if game.RoundType() != MoveRobberDue7 {
-// 			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[MoveRobberDue7], RoundTypeTranslation[game.RoundType()])
-// 		}
-// 	})
-// }
+func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *testing.T) {
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 3,
+				"Brick":  3,
+				"Sheep":  3,
+				"Grain":  3,
+				"Ore":    3,
+			},
+			"2": {
+				"Lumber": 3,
+				"Brick":  3,
+				"Sheep":  3,
+				"Grain":  3,
+				"Ore":    3,
+			},
+		}),
+		MockWithRand(rand),
+	)
+	t.Run("discard phase, over only after all required players discard", func(t *testing.T) {
+		game.RollDice("1")
+		t.Log("Player1", game.DiscardAmountByPlayer("1"))
+		t.Log("Player2", game.DiscardAmountByPlayer("2"))
+		t.Log("Player3", game.DiscardAmountByPlayer("3"))
+		t.Log("Player4", game.DiscardAmountByPlayer("4"))
+		err := game.DiscardPlayerCards("1", map[string]int{
+			"Lumber": 3,
+			"Brick":  3,
+			"Sheep":  1,
+		})
+		if err != nil {
+			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
+		}
+		if game.RoundType() != DiscardPhase {
+			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[DiscardPhase], RoundTypeTranslation[game.RoundType()])
+		}
+
+		err = game.DiscardPlayerCards("2", map[string]int{
+			"Lumber": 3,
+			"Brick":  3,
+			"Sheep":  1,
+		})
+		if err != nil {
+			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
+		}
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[MoveRobberDue7], RoundTypeTranslation[game.RoundType()])
+		}
+	})
+}

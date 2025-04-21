@@ -17,14 +17,14 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 		return err
 	}
 
-	vertice, exists := state.settlementMap[vertexID]
+	vertice, exists := state.board.Settlements[vertexID]
 	if exists {
 		owner := state.findPlayer(vertice.Owner)
 		err := fmt.Errorf("Player %s already has settlement at vertex #%d", owner.ID, vertexID)
 		return err
 	}
 
-	vertice, exists = state.cityMap[vertexID]
+	vertice, exists = state.board.Cities[vertexID]
 	if exists {
 		owner := state.findPlayer(vertice.Owner)
 		err := fmt.Errorf("Player %s already has city at vertex #%d", owner.ID, vertexID)
@@ -70,11 +70,7 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 }
 
 func (state *GameState) handleNewSettlement(playerID string, vertexID int) {
-	entry := Building{
-		ID:    vertexID,
-		Owner: playerID,
-	}
-	state.settlementMap[vertexID] = entry
+	state.board.AddSettlement(playerID, vertexID)
 	state.playersStates[playerID].AddSettlement(vertexID)
 
 	port, isPort := state.board.Ports[vertexID]
@@ -105,8 +101,8 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
 		availableVertices := make([]int, 0)
 		for vertexID := range state.board.Definition.TilesByVertex {
-			_, existsSettlement := state.settlementMap[vertexID]
-			_, existsCity := state.cityMap[vertexID]
+			_, existsSettlement := state.board.Settlements[vertexID]
+			_, existsCity := state.board.Cities[vertexID]
 			if existsSettlement || existsCity {
 				continue
 			}
@@ -124,8 +120,8 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 	vertexSet := utils.NewSet[int]()
 	for _, edgeID := range state.playersStates[playerID].Roads {
 		for _, vertexID := range state.board.Definition.VerticesByEdge[edgeID] {
-			_, settlementExists := state.settlementMap[vertexID]
-			_, cityExists := state.cityMap[vertexID]
+			_, settlementExists := state.board.Settlements[vertexID]
+			_, cityExists := state.board.Cities[vertexID]
 			if settlementExists || cityExists {
 				continue
 			}

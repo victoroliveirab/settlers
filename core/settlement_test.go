@@ -3,6 +3,7 @@ package core
 import (
 	"testing"
 
+	"github.com/victoroliveirab/settlers/core/packages/board"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -42,8 +43,9 @@ func TestBuildSettlementRegularPhaseSuccess(t *testing.T) {
 		}
 
 		settlements := game.AllSettlements()
+		t.Log(settlements)
 		newSettlement := settlements[42]
-		var emptyBuilding = Building{Owner: "", ID: 0}
+		var emptyBuilding = board.Building{Owner: "", ID: 0}
 		if newSettlement == emptyBuilding {
 			t.Errorf("expected new settlement to show up in settlements map, but it didn't")
 		}

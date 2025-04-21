@@ -73,7 +73,9 @@ func (tm *Instance) Trades() []Trade {
 func (tm *Instance) ActiveTrades() []Trade {
 	trades := make([]Trade, 0)
 	for _, trade := range tm.trades {
-		trades = append(trades, *trade)
+		if trade.Status == TradeOpen {
+			trades = append(trades, *trade)
+		}
 	}
 
 	sort.Slice(trades, func(i, j int) bool {

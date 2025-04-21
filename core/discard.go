@@ -4,20 +4,19 @@ import "fmt"
 
 func (state *GameState) DiscardPlayerCards(playerID string, resources map[string]int) error {
 	if state.roundType != DiscardPhase {
-		err := fmt.Errorf("Cannot discard during %s", RoundTypeTranslation[state.roundType])
-		return err
-	}
-
-	playerDiscardAmount := state.discardAmountByPlayer(playerID)
-	if playerDiscardAmount == 0 {
-		err := fmt.Errorf("Player mustn't discard")
+		err := fmt.Errorf("Cannot discard cards during %s", RoundTypeTranslation[state.roundType])
 		return err
 	}
 
 	playerState := state.playersStates[playerID]
+	playerDiscardAmount := playerState.DiscardAmount
+	if playerDiscardAmount == 0 {
+		err := fmt.Errorf("Cannot discard cards: player mustn't discard")
+		return err
+	}
 
 	if playerState.HasDiscardedThisRound {
-		err := fmt.Errorf("Player already discarded this round")
+		err := fmt.Errorf("Cannot discard cards: player already discarded this round")
 		return err
 	}
 

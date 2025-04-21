@@ -272,8 +272,8 @@ func (tm *Instance) RejectTradeOffer(playerState *player.Instance, tradeID int) 
 		return err
 	}
 
-	if trade.Responses[playerID] == nil || trade.Responses[playerID].Blocked {
-		err := fmt.Errorf("Cannot reject offer: not part of trade#%d opponents", tradeID)
+	if trade.Responses[playerID] != nil && trade.Responses[playerID].Blocked {
+		err := fmt.Errorf("Cannot reject trade offer: not part of trade#%d", tradeID)
 		return err
 	}
 

@@ -117,6 +117,11 @@ func CreateTestGameWithRand(randGenerator *rand.Rand, opts ...GameStateOption) *
 func MockWithRoundType(roundType int) GameStateOption {
 	return func(gs *GameState) {
 		gs.roundType = roundType
+		// Hack to have a dice set since the round type is already regular
+		if roundType == Regular {
+			gs.dice1 = 1
+			gs.dice2 = 1
+		}
 	}
 }
 
@@ -160,14 +165,8 @@ func MockWithSettlementsByPlayer(settlementsByPlayer map[string][]int) GameState
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
 			playerState.Settlements = settlementsByPlayer[player.ID]
-		}
-		gs.settlementMap = make(map[int]Building)
-		for playerID, settlements := range settlementsByPlayer {
-			for _, vertexID := range settlements {
-				gs.settlementMap[vertexID] = Building{
-					ID:    vertexID,
-					Owner: playerID,
-				}
+			for _, vertexID := range settlementsByPlayer[player.ID] {
+				gs.board.AddSettlement(player.ID, vertexID)
 			}
 		}
 	}
@@ -178,14 +177,8 @@ func MockWithCitiesByPlayer(citiesByPlayer map[string][]int) GameStateOption {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
 			playerState.Cities = citiesByPlayer[player.ID]
-		}
-		gs.cityMap = make(map[int]Building)
-		for playerID, cities := range citiesByPlayer {
-			for _, vertexID := range cities {
-				gs.cityMap[vertexID] = Building{
-					ID:    vertexID,
-					Owner: playerID,
-				}
+			for _, vertexID := range citiesByPlayer[player.ID] {
+				gs.board.AddCity(player.ID, vertexID)
 			}
 		}
 	}
@@ -207,10 +200,7 @@ func MockWithPortsByPlayer(portsByPlayer map[string][]string) GameStateOption {
 				if vertexID == -1 {
 					panic(portsByPlayer)
 				}
-				gs.settlementMap[vertexID] = Building{
-					ID:    vertexID,
-					Owner: playerID,
-				}
+				gs.board.AddSettlement(playerID, vertexID)
 				playerState.AddSettlement(vertexID)
 				playerState.AddPort(vertexID, gs.board.Ports[vertexID])
 			}
@@ -223,16 +213,10 @@ func MockWithRoadsByPlayer(roadsByPlayer map[string][]int) GameStateOption {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
 			playerState.Roads = roadsByPlayer[player.ID]
-		}
-		gs.roadMap = make(map[int]Building)
-		for playerID, roads := range roadsByPlayer {
-			for _, edgeID := range roads {
-				gs.roadMap[edgeID] = Building{
-					ID:    edgeID,
-					Owner: playerID,
-				}
+			for _, edgeID := range roadsByPlayer[player.ID] {
+				gs.board.AddRoad(player.ID, edgeID)
 			}
-			gs.computeLongestRoad(playerID)
+			gs.computeLongestRoad(player.ID)
 		}
 	}
 }
@@ -271,6 +255,12 @@ func MockWithPoints() GameStateOption {
 func MockWithRand(r *rand.Rand) GameStateOption {
 	return func(gs *GameState) {
 		gs.rand = r
+	}
+}
+
+func MockWithNextDevelopmentCard(name string) GameStateOption {
+	return func(gs *GameState) {
+		gs.development.SetCardByIndex(0, name)
 	}
 }
 

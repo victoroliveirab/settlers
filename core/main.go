@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"maps"
 	"math/rand"
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
@@ -115,11 +114,6 @@ type GameState struct {
 
 	// cards related
 	development *development.Instance
-
-	// book keeping
-	cityMap       map[int]Building
-	roadMap       map[int]Building
-	settlementMap map[int]Building
 }
 
 type Params struct {
@@ -188,10 +182,6 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	state.currentPlayerIndex = 0
 	state.dice1 = 0
 	state.dice2 = 0
-
-	state.cityMap = make(map[int]Building)
-	state.roadMap = make(map[int]Building)
-	state.settlementMap = make(map[int]Building)
 
 	for i, playerDefinition := range players {
 		state.players[i] = coreT.Player{
@@ -263,17 +253,7 @@ func (state *GameState) Ports() []coreT.Port {
 }
 
 func (state *GameState) PortsByPlayer(playerID string) []string {
-	ports := make([]string, 0)
-	for vertexID, kind := range state.board.Ports {
-		settlement, okSettlement := state.settlementMap[vertexID]
-		city, okCity := state.cityMap[vertexID]
-		if okSettlement && settlement.Owner == playerID {
-			ports = append(ports, kind)
-		} else if okCity && city.Owner == playerID {
-			ports = append(ports, kind)
-		}
-	}
-	return ports
+	return state.playersStates[playerID].PortsTypes
 }
 
 func (state *GameState) Players() []coreT.Player {
@@ -325,8 +305,8 @@ func (state *GameState) SettlementsByPlayer(playerID string) []int {
 	return playerState.Settlements
 }
 
-func (state *GameState) AllSettlements() map[int]Building {
-	return maps.Clone(state.settlementMap)
+func (state *GameState) AllSettlements() map[int]board.Building {
+	return state.board.Settlements
 }
 
 func (state *GameState) CitiesByPlayer(playerID string) []int {
@@ -334,8 +314,8 @@ func (state *GameState) CitiesByPlayer(playerID string) []int {
 	return playerState.Cities
 }
 
-func (state *GameState) AllCities() map[int]Building {
-	return maps.Clone(state.cityMap)
+func (state *GameState) AllCities() map[int]board.Building {
+	return state.board.Cities
 }
 
 func (state *GameState) RoadsByPlayer(playerID string) []int {
@@ -343,8 +323,8 @@ func (state *GameState) RoadsByPlayer(playerID string) []int {
 	return playerState.Roads
 }
 
-func (state *GameState) AllRoads() map[int]Building {
-	return maps.Clone(state.roadMap)
+func (state *GameState) AllRoads() map[int]board.Building {
+	return state.board.Roads
 }
 
 func (state *GameState) LongestRoadLengths() map[string]int {
@@ -387,8 +367,8 @@ func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
 		if tile.Blocked {
 			vertices := state.board.Definition.VerticesByTile[tile.ID]
 			for _, vertexID := range vertices {
-				settlement, hasSettlement := state.settlementMap[vertexID]
-				city, hasCity := state.cityMap[vertexID]
+				settlement, hasSettlement := state.board.Settlements[vertexID]
+				city, hasCity := state.board.Cities[vertexID]
 				if hasSettlement {
 					robbablePlayers[settlement.Owner] = true
 				}

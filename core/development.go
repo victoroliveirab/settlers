@@ -146,7 +146,7 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 	}
 
 	// REFACTOR: this is repeating road.go code
-	edge, exists := state.roadMap[edgeID]
+	edge, exists := state.board.Roads[edgeID]
 	if exists {
 		owner := state.findPlayer(edge.Owner)
 		err := fmt.Errorf("Player %s already has road at edge #%d", owner, edgeID)
@@ -232,6 +232,11 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 	cards, exists := playerState.DevelopmentCards[devCardType]
 	if !exists {
 		err := fmt.Errorf("Cannot use %s card: not owned", devCardType)
+		return err
+	}
+
+	if playerState.NumDevCardsPlayedTurn >= state.maxDevCardsPerRound {
+		err := fmt.Errorf("Cannot use %s card: can only play %d development card(s) per turn", devCardType, state.maxDevCardsPerRound)
 		return err
 	}
 

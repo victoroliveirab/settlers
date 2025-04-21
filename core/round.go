@@ -108,7 +108,7 @@ func (state *GameState) handle7() {
 		toDiscard := state.discardAmountByPlayer(player.ID)
 		if toDiscard > 0 {
 			shouldMoveToDiscardPhase = true
-			break
+			state.playersStates[player.ID].DiscardAmount = toDiscard
 		}
 	}
 
@@ -142,6 +142,7 @@ func (state *GameState) EndRound(playerID string) error {
 		playerState := state.playersStates[player.ID]
 		playerState.HasDiscardedThisRound = false
 		playerState.NumDevCardsPlayedTurn = 0
+		playerState.DiscardAmount = 0
 	}
 	newIndex := state.currentPlayerIndex + 1
 	if newIndex >= len(state.players) {

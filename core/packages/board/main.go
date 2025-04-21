@@ -37,3 +37,16 @@ func New(mapName string, definitions *coreMaps.MapDefinition, randGenerator *ran
 	}
 	return b
 }
+
+func (b *Instance) AddCity(playerID string, vertexID int) {
+	delete(b.Settlements, vertexID)
+	b.Cities[vertexID] = Building{Owner: playerID, ID: vertexID}
+}
+
+func (b *Instance) AddRoad(playerID string, edgeID int) {
+	b.Roads[edgeID] = Building{Owner: playerID, ID: edgeID}
+}
+
+func (b *Instance) AddSettlement(playerID string, vertexID int) {
+	b.Settlements[vertexID] = Building{Owner: playerID, ID: vertexID}
+}
