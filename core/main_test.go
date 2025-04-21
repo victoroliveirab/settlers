@@ -1,21 +1,20 @@
-package tests
+package core
 
 import (
 	"fmt"
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
 // TODO: will have to add more tests when FriendlyRobber is active
 func TestRobbablePlayers(t *testing.T) {
-	createGame := func(settlementMap, cityMap map[string][]int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(testUtils.PickRobbed),
-			testUtils.MockWithBlockedTile(17),
-			testUtils.MockWithSettlementsByPlayer(settlementMap),
-			testUtils.MockWithCitiesByPlayer(cityMap),
+	createGame := func(settlementMap, cityMap map[string][]int) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(PickRobbed),
+			MockWithBlockedTile(17),
+			MockWithSettlementsByPlayer(settlementMap),
+			MockWithCitiesByPlayer(cityMap),
 		)
 		return game
 	}
@@ -75,10 +74,10 @@ func TestRobbablePlayers(t *testing.T) {
 }
 
 func TestDiscardAmountByPlayer(t *testing.T) {
-	createGame := func(resourceMap map[string]map[string]int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(testUtils.DiscardPhase),
-			testUtils.MockWithResourcesByPlayer(resourceMap),
+	createGame := func(resourceMap map[string]map[string]int) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(DiscardPhase),
+			MockWithResourcesByPlayer(resourceMap),
 		)
 		return game
 	}

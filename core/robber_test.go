@@ -1,20 +1,18 @@
-package tests
+package core
 
 import (
 	"testing"
-
-	testUtils "github.com/victoroliveirab/settlers/core"
 )
 
 func TestHandleDice7TilePlayerHasCards(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -30,13 +28,13 @@ func TestHandleDice7TilePlayerHasCards(t *testing.T) {
 				"Ore":    1,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, will try to rob player with cards", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.MoveRobberDue7, game.RoundType())
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %d, but it's actually %d", MoveRobberDue7, game.RoundType())
 		}
 
 		err := game.MoveRobber("1", 17)
@@ -50,8 +48,8 @@ func TestHandleDice7TilePlayerHasCards(t *testing.T) {
 		}
 
 		roundType := game.RoundType()
-		if roundType != testUtils.Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.Regular, game.RoundType())
+		if roundType != Regular {
+			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -66,14 +64,14 @@ func TestHandleDice7TilePlayerHasCards(t *testing.T) {
 }
 
 func TestHandleDice7TilePlayerHasNoCards(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -89,13 +87,13 @@ func TestHandleDice7TilePlayerHasNoCards(t *testing.T) {
 				"Ore":    0,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, will try to rob player with no cards", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.MoveRobberDue7, game.RoundType())
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %d, but it's actually %d", MoveRobberDue7, game.RoundType())
 		}
 
 		err := game.MoveRobber("1", 17)
@@ -109,8 +107,8 @@ func TestHandleDice7TilePlayerHasNoCards(t *testing.T) {
 		}
 
 		roundType := game.RoundType()
-		if roundType != testUtils.Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.Regular, game.RoundType())
+		if roundType != Regular {
+			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -125,14 +123,14 @@ func TestHandleDice7TilePlayerHasNoCards(t *testing.T) {
 }
 
 func TestHandleDice7TilePlayerRobsItself(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -141,13 +139,13 @@ func TestHandleDice7TilePlayerRobsItself(t *testing.T) {
 				"Ore":    1,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, will try to rob itself", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.MoveRobberDue7, game.RoundType())
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %d, but it's actually %d", MoveRobberDue7, game.RoundType())
 		}
 
 		err := game.MoveRobber("1", 1)
@@ -161,8 +159,8 @@ func TestHandleDice7TilePlayerRobsItself(t *testing.T) {
 		}
 
 		roundType := game.RoundType()
-		if roundType != testUtils.Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.Regular, game.RoundType())
+		if roundType != Regular {
+			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -173,14 +171,14 @@ func TestHandleDice7TilePlayerRobsItself(t *testing.T) {
 }
 
 func TestHandleDice7MoveRobberToNotOwnedTile(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -196,13 +194,13 @@ func TestHandleDice7MoveRobberToNotOwnedTile(t *testing.T) {
 				"Ore":    1,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, will move robber to tile not owned by anyone", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.MoveRobberDue7, game.RoundType())
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %d, but it's actually %d", MoveRobberDue7, game.RoundType())
 		}
 
 		err := game.MoveRobber("1", 10)
@@ -211,8 +209,8 @@ func TestHandleDice7MoveRobberToNotOwnedTile(t *testing.T) {
 		}
 
 		roundType := game.RoundType()
-		if roundType != testUtils.Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.Regular, game.RoundType())
+		if roundType != Regular {
+			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -227,14 +225,14 @@ func TestHandleDice7MoveRobberToNotOwnedTile(t *testing.T) {
 }
 
 func TestHandleDice7MoveRobberToTileOnlyOwnedByPlayer(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -250,13 +248,13 @@ func TestHandleDice7MoveRobberToTileOnlyOwnedByPlayer(t *testing.T) {
 				"Ore":    1,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, will move robber to tile only owned by itself", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.MoveRobberDue7, game.RoundType())
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %d, but it's actually %d", MoveRobberDue7, game.RoundType())
 		}
 
 		err := game.MoveRobber("1", 1)
@@ -265,22 +263,22 @@ func TestHandleDice7MoveRobberToTileOnlyOwnedByPlayer(t *testing.T) {
 		}
 
 		roundType := game.RoundType()
-		if roundType != testUtils.Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", testUtils.Regular, game.RoundType())
+		if roundType != Regular {
+			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
 		}
 	})
 }
 
 func TestHandleDice7MoveRobberToOwnedTileButTriesToRobUnaffectedPlayer(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
 			"3": {3},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -303,13 +301,13 @@ func TestHandleDice7MoveRobberToOwnedTileButTriesToRobUnaffectedPlayer(t *testin
 				"Ore":    1,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, will try to rob player that doesn't own new blocked tile", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.MoveRobberDue7], testUtils.RoundTypeTranslation[game.RoundType()])
+		if game.RoundType() != MoveRobberDue7 {
+			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[MoveRobberDue7], RoundTypeTranslation[game.RoundType()])
 		}
 
 		err := game.MoveRobber("1", 17)
@@ -323,8 +321,8 @@ func TestHandleDice7MoveRobberToOwnedTileButTriesToRobUnaffectedPlayer(t *testin
 		}
 
 		roundType := game.RoundType()
-		if roundType != testUtils.PickRobbed {
-			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.PickRobbed], testUtils.RoundTypeTranslation[game.RoundType()])
+		if roundType != PickRobbed {
+			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[PickRobbed], RoundTypeTranslation[game.RoundType()])
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")

@@ -7,3 +7,7 @@ test:
 	go test -c ./core/tests/settlement_test.go ./core/tests/constants.go -o core.test
 	./core.test -test.v
 
+test-coverage:
+	go test -tags=test -c -cover -coverpkg=./... -o core.test ./core
+	./core.test -test.v -test.coverprofile=coverage.out
+	go tool cover -html=coverage.out

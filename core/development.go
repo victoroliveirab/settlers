@@ -243,7 +243,7 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 		}
 	}
 	if cardToUse == nil {
-		err := fmt.Errorf("Cannot use %s card: bought this turn")
+		err := fmt.Errorf("Cannot use %s card: bought this turn", devCardType)
 		return err
 	}
 	playerState.ConsumeDevelopmentCard(cardToUse)
