@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
@@ -75,21 +76,21 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 	onYearOfPlentyPickResourcesTimeout := match.OnYearOfPlentyPickResourcesTimeoutCurry(room)
 	onDiscardPhaseTimeout := match.OnDiscardPhaseTimeoutCurry(room)
 
-	room.CreateRoundManager(onRegularRoundTimeout, map[int]func(){
-		core.SetupSettlement1:          onSetupRoundTimeout,
-		core.SetupRoad1:                onSetupRoundTimeout,
-		core.SetupSettlement2:          onSetupRoundTimeout,
-		core.SetupRoad2:                onSetupRoundTimeout,
-		core.FirstRound:                onBetweenTurnsTimeout,
-		core.MoveRobberDue7:            onMoveRobberTimeout,
-		core.MoveRobberDueKnight:       onMoveRobberTimeout,
-		core.PickRobbed:                onPickRobbedTimeout,
-		core.BetweenTurns:              onBetweenTurnsTimeout,
-		core.BuildRoad1Development:     onBuildRoadDevelopmentTimeout,
-		core.BuildRoad2Development:     onBuildRoadDevelopmentTimeout,
-		core.MonopolyPickResource:      onMonopolyPickResourceTimeout,
-		core.YearOfPlentyPickResources: onYearOfPlentyPickResourcesTimeout,
-		core.DiscardPhase:              onDiscardPhaseTimeout,
+	room.CreateRoundManager(onRegularRoundTimeout, map[round.Type]func(){
+		round.SetupSettlement1:          onSetupRoundTimeout,
+		round.SetupRoad1:                onSetupRoundTimeout,
+		round.SetupSettlement2:          onSetupRoundTimeout,
+		round.SetupRoad2:                onSetupRoundTimeout,
+		round.FirstRound:                onBetweenTurnsTimeout,
+		round.MoveRobberDue7:            onMoveRobberTimeout,
+		round.MoveRobberDueKnight:       onMoveRobberTimeout,
+		round.PickRobbed:                onPickRobbedTimeout,
+		round.BetweenTurns:              onBetweenTurnsTimeout,
+		round.BuildRoad1Development:     onBuildRoadDevelopmentTimeout,
+		round.BuildRoad2Development:     onBuildRoadDevelopmentTimeout,
+		round.MonopolyPickResource:      onMonopolyPickResourceTimeout,
+		round.YearOfPlentyPickResources: onYearOfPlentyPickResourcesTimeout,
+		round.DiscardPhase:              onDiscardPhaseTimeout,
 	})
 	return nil
 }

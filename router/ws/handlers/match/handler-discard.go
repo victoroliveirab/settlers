@@ -3,7 +3,7 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -37,9 +37,9 @@ func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketCli
 func handleDiscardCardsResponse(room *entities.Room, logs []string) {
 	game := room.Game
 
-	if game.RoundType() == core.MoveRobberDue7 {
+	if game.RoundType() == round.MoveRobberDue7 {
 		// last player that needed to discard has discarded
-		room.StartSubRound(core.MoveRobberDue7)
+		room.StartSubRound(round.MoveRobberDue7)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdatePlayerHand,

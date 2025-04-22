@@ -24,7 +24,7 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 		return err
 	}
 
-	edge, exists := state.board.Roads[edgeID]
+	edge, exists := state.board.GetRoads()[edgeID]
 	if exists {
 		owner := state.findPlayer(edge.Owner)
 		err := fmt.Errorf("Player %s already has road at edge #%d", owner, edgeID)
@@ -109,6 +109,8 @@ func (state *GameState) computeLongestRoad(playerID string) {
 
 	var maxPath []int
 	var dfs func(node int, visited map[int]bool, path []int)
+	settlements := state.board.GetSettlements()
+	cities := state.board.GetCities()
 
 	dfs = func(node int, visited map[int]bool, path []int) {
 		if len(path) > len(maxPath) {
@@ -125,8 +127,8 @@ func (state *GameState) computeLongestRoad(playerID string) {
 				} else {
 					panic(fmt.Sprintf("unknown edgeID %d", edgeID))
 				}
-				settlement, settlementExists := state.board.Settlements[vertex]
-				city, cityExists := state.board.Cities[vertex]
+				settlement, settlementExists := settlements[vertex]
+				city, cityExists := cities[vertex]
 				if (settlementExists && settlement.Owner != playerID) || (cityExists && city.Owner != playerID) {
 					continue
 				}
@@ -165,6 +167,7 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 		return allowedEdgesIDs, nil
 	}
 
+	roads := state.board.GetRoads()
 	edges := utils.NewSet[int]()
 
 	for _, edgeID := range playerState.Roads {
@@ -173,13 +176,13 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 		vertex2 := edge[1]
 
 		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex1] {
-			_, exists := state.board.Roads[candidateEdgeID]
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}
 		}
 		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex2] {
-			_, exists := state.board.Roads[candidateEdgeID]
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}
@@ -188,7 +191,7 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 
 	for _, vertexID := range playerState.Settlements {
 		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertexID] {
-			_, exists := state.board.Roads[candidateEdgeID]
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}
@@ -197,7 +200,7 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 
 	for _, vertexID := range playerState.Cities {
 		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertexID] {
-			_, exists := state.board.Roads[candidateEdgeID]
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}

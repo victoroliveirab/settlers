@@ -21,7 +21,7 @@ const (
 	GameOver
 )
 
-var roundTypeTranslation = [16]string{
+var RoundTypeTranslation = [16]string{
 	"SettlementSetup#1",
 	"RoadSetup#1",
 	"SettlementSetup#2",
@@ -63,11 +63,11 @@ func (r *Instance) GetRoundType() Type {
 }
 
 func (r *Instance) GetCurrentRoundTypeDescription() string {
-	return roundTypeTranslation[r.roundType]
+	return RoundTypeTranslation[r.roundType]
 }
 
 func (r *Instance) GetRoundTypeDescription(roundType Type) string {
-	return roundTypeTranslation[roundType]
+	return RoundTypeTranslation[roundType]
 }
 
 func (r *Instance) GetRoundNumber() int {

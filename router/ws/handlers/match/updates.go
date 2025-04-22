@@ -3,7 +3,6 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -47,14 +46,13 @@ func UpdateEdgeState(room *entities.Room, username string) *types.WebSocketServe
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-edges", room.Status)
 	availableEdges, err := game.AvailableEdges(username)
-	isRoadBuilding := game.RoundType() == core.BuildRoad1Development || game.RoundType() == core.BuildRoad2Development
-	// TODO: perhaps highlight during road building phases as well
+	isRoadBuilding := game.IsRoadBuilding()
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: edgesStateUpdateResponsePayload{
 			AvailableEdges: availableEdges,
 			Enabled:        err == nil,
-			Highlight:      room.Status == "setup" || isRoadBuilding,
+			Highlight:      isRoadBuilding,
 		},
 	}
 }
@@ -81,9 +79,9 @@ func UpdateMapState(room *entities.Room, username string) *types.WebSocketServer
 		Type: types.ResponseType(messageType),
 		Payload: mapStateUpdateResponsePayload{
 			BlockedTiles: game.BlockedTiles(),
-			Cities:       game.AllCities(),
-			Roads:        game.AllRoads(),
-			Settlements:  game.AllSettlements(),
+			Cities:       game.GetAllCities(),
+			Roads:        game.GetAllRoads(),
+			Settlements:  game.GetAllSettlements(),
 		},
 	}
 }
@@ -157,8 +155,9 @@ func UpdateResourceCount(room *entities.Room, username string) *types.WebSocketS
 func UpdateRobberMovement(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-robber-movement", room.Status)
-	enabled := game.RoundType() == core.MoveRobberDue7 || game.RoundType() == core.MoveRobberDueKnight
-	enabled = enabled && game.CurrentRoundPlayer().ID == username
+	isRobberTurn := game.IsRobberTurn()
+	isPlayerTurn := game.IsPlayerTurn(username)
+	enabled := isRobberTurn && isPlayerTurn
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: moveRobberStateUpdateResponsePayload{
@@ -184,14 +183,10 @@ func UpdateDiscardPhase(room *entities.Room, username string) *types.WebSocketSe
 func UpdatePass(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-pass", room.Status)
-	dice := game.Dice()
-	diceHasValue := dice[0] > 0 && dice[1] > 0
-	isPlayerRound := game.CurrentRoundPlayer().ID == username
-	isRoundStateToEnable := game.RoundType() == core.Regular
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: passStateUpdateResponsePayload{
-			Enabled: diceHasValue && isPlayerRound && isRoundStateToEnable,
+			Enabled: game.IsPassTurnAllowed(username),
 		},
 	}
 }
@@ -199,14 +194,10 @@ func UpdatePass(room *entities.Room, username string) *types.WebSocketServerResp
 func UpdateTrade(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-trade", room.Status)
-	dice := game.Dice()
-	diceHasValue := dice[0] > 0 && dice[1] > 0
-	isPlayerRound := game.CurrentRoundPlayer().ID == username
-	isRoundStateToEnable := game.RoundType() == core.Regular
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: startTradeStateUpdateResponsePayload{
-			Enabled: diceHasValue && isPlayerRound && isRoundStateToEnable,
+			Enabled: game.IsStartTradeAllowed(username),
 		},
 	}
 }
@@ -226,8 +217,11 @@ func UpdateBuyDevelopmentCard(room *entities.Room, username string) *types.WebSo
 func UpdateRobbablePlayers(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-pick-robbed", room.Status)
-	enabled := game.RoundType() == core.PickRobbed && game.CurrentRoundPlayer().ID == username
-	robbablePlayers, _ := game.RobbablePlayers(username)
+	enabled := game.IsPickingRobbedAllowed(username)
+	var robbablePlayers []string
+	if enabled {
+		robbablePlayers, _ = game.RobbablePlayers(username)
+	}
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: pickRobbedStateUpdate{
@@ -287,7 +281,7 @@ func UpdateMonopoly(room *entities.Room, username string) *types.WebSocketServer
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: monopolyStateUpdate{
-			Enabled: game.CurrentRoundPlayer().ID == username && game.RoundType() == core.MonopolyPickResource,
+			Enabled: game.IsPickingMonopolyAllowed(username),
 		},
 	}
 }
@@ -298,7 +292,7 @@ func UpdateYOP(room *entities.Room, username string) *types.WebSocketServerRespo
 	return &types.WebSocketServerResponse{
 		Type: types.ResponseType(messageType),
 		Payload: yearOfPlentyStateUpdate{
-			Enabled: game.CurrentRoundPlayer().ID == username && game.RoundType() == core.YearOfPlentyPickResources,
+			Enabled: game.IsPickingYOPAllowed(username),
 		},
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/victoroliveirab/settlers/utils"
 )
 
+// TODO: add prevTileID here
 func (state *GameState) MoveRobber(playerID string, tileID int) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot move robber during other player's turn")
@@ -19,19 +20,19 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 		return err
 	}
 
-	for _, tile := range state.board.Tiles {
+	for i, tile := range state.board.GetTiles() {
 		if tile.Blocked {
 			if tile.ID == tileID {
 				err := fmt.Errorf("Cannot move robber to already blocked tile - %d", tileID)
 				return err
 			}
-			tile.Blocked = false
+			state.board.UnblockTileByIndex(i)
 			break
 		}
 	}
-	for _, tile := range state.board.Tiles {
+	for i, tile := range state.board.GetTiles() {
 		if tile.ID == tileID {
-			tile.Blocked = true
+			state.board.BlockTileByIndex(i)
 			state.round.SetRoundType(round.PickRobbed)
 			robbablePlayers, _ := state.RobbablePlayers(playerID)
 			if len(robbablePlayers) == 0 {
@@ -104,21 +105,9 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 }
 
 func (state *GameState) BlockedTiles() []int {
-	tileIDs := make([]int, 0)
-	for _, tile := range state.board.Tiles {
-		if tile.Blocked {
-			tileIDs = append(tileIDs, tile.ID)
-		}
-	}
-	return tileIDs
+	return state.board.GetBlockedTilesIDs()
 }
 
 func (state *GameState) UnblockedTiles() []int {
-	tileIDs := make([]int, 0)
-	for _, tile := range state.board.Tiles {
-		if !tile.Blocked {
-			tileIDs = append(tileIDs, tile.ID)
-		}
-	}
-	return tileIDs
+	return state.board.GetUnblockedTilesIDs()
 }

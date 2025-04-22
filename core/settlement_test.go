@@ -43,7 +43,7 @@ func TestBuildSettlementRegularPhaseSuccess(t *testing.T) {
 			t.Errorf("expected to be able to build settlement in vertex#42 during regular phase, but found error %s", err.Error())
 		}
 
-		settlements := game.AllSettlements()
+		settlements := game.GetAllSettlements()
 		t.Log(settlements)
 		newSettlement := settlements[42]
 		var emptyBuilding = board.Building{Owner: "", ID: 0}

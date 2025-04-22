@@ -64,7 +64,7 @@ func TestBuildRoadRegularPhaseTouchingSettlementSuccess(t *testing.T) {
 			t.Errorf("expected to be able to build road in edge#65 during setup phase, but found error %s", err.Error())
 		}
 
-		roads := game.AllRoads()
+		roads := game.GetAllRoads()
 		newRoad := roads[65]
 		var emptyBuilding = board.Building{
 			Owner: "",
@@ -121,7 +121,7 @@ func TestBuildRoadRegularPhaseTouchingRoadSuccess(t *testing.T) {
 			t.Errorf("expected to be able to build road in edge#65 during setup phase, but found error %s", err.Error())
 		}
 
-		roads := game.AllRoads()
+		roads := game.GetAllRoads()
 		newRoad := roads[65]
 		var emptyBuilding = board.Building{
 			Owner: "",

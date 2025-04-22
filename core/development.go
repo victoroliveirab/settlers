@@ -148,7 +148,7 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 	}
 
 	// REFACTOR: this is repeating road.go code
-	edge, exists := state.board.Roads[edgeID]
+	edge, exists := state.board.GetRoads()[edgeID]
 	if exists {
 		owner := state.findPlayer(edge.Owner)
 		err := fmt.Errorf("Player %s already has road at edge #%d", owner, edgeID)

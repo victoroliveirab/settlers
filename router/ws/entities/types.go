@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -82,7 +83,7 @@ type roundManager struct {
 	deadline         *time.Time
 	subPhaseDeadline *time.Time
 	onTimeout        func()
-	onExpireFuncs    map[int]func()
+	onExpireFuncs    map[round.Type]func()
 }
 
 type GamePlayer struct {

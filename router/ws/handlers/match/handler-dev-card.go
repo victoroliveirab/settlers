@@ -3,7 +3,7 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -59,10 +59,10 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 		return true, wsErr
 	}
 
-	if game.RoundType() == core.GameOver {
+	if game.RoundType() == round.GameOver {
 		panic("HANDLE ME")
-	} else if game.RoundType() == core.MoveRobberDueKnight {
-		room.StartSubRound(core.MoveRobberDueKnight)
+	} else if game.RoundType() == round.MoveRobberDueKnight {
+		room.StartSubRound(round.MoveRobberDueKnight)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdateRobberMovement,
@@ -73,8 +73,8 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Knight card", player.Username)}),
 		)
-	} else if game.RoundType() == core.MonopolyPickResource {
-		room.StartSubRound(core.MonopolyPickResource)
+	} else if game.RoundType() == round.MonopolyPickResource {
+		room.StartSubRound(round.MonopolyPickResource)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdatePlayerDevHand,
@@ -85,7 +85,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Monopoly card", player.Username)}),
 		)
-	} else if game.RoundType() == core.BuildRoad1Development || game.RoundType() == core.BuildRoad2Development {
+	} else if game.RoundType() == round.BuildRoad1Development || game.RoundType() == round.BuildRoad2Development {
 		room.StartSubRound(game.RoundType())
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
@@ -97,8 +97,8 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 			UpdatePoints,
 			UpdateLogs([]string{fmt.Sprintf("%s used Road Building card", player.Username)}),
 		)
-	} else if game.RoundType() == core.YearOfPlentyPickResources {
-		room.StartSubRound(core.YearOfPlentyPickResources)
+	} else if game.RoundType() == round.YearOfPlentyPickResources {
+		room.StartSubRound(round.YearOfPlentyPickResources)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdatePlayerDevHand,

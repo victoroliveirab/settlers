@@ -14,11 +14,6 @@ import (
 	"github.com/victoroliveirab/settlers/utils"
 )
 
-type Building struct {
-	ID    int    `json:"id"`
-	Owner string `json:"owner"`
-}
-
 type StateLog struct {
 	Timestamp string
 	Message   string
@@ -181,11 +176,6 @@ func (state *GameState) findPlayer(playerID string) *coreT.Player {
 
 // Getters
 
-func (state *GameState) Map() []*coreT.MapBlock {
-	// REFACTOR: return a copy
-	return state.board.Tiles
-}
-
 func (state *GameState) MapName() string {
 	return state.board.MapName
 }
@@ -230,8 +220,8 @@ func (state *GameState) Dice() [2]int {
 	return state.round.GetDice()
 }
 
-func (state *GameState) RoundType() int {
-	return int(state.round.GetRoundType())
+func (state *GameState) RoundType() round.Type {
+	return state.round.GetRoundType()
 }
 
 func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int {
@@ -262,26 +252,14 @@ func (state *GameState) SettlementsByPlayer(playerID string) []int {
 	return playerState.Settlements
 }
 
-func (state *GameState) AllSettlements() map[int]board.Building {
-	return state.board.Settlements
-}
-
 func (state *GameState) CitiesByPlayer(playerID string) []int {
 	playerState := state.playersStates[playerID]
 	return playerState.Cities
 }
 
-func (state *GameState) AllCities() map[int]board.Building {
-	return state.board.Cities
-}
-
 func (state *GameState) RoadsByPlayer(playerID string) []int {
 	playerState := state.playersStates[playerID]
 	return playerState.Roads
-}
-
-func (state *GameState) AllRoads() map[int]board.Building {
-	return state.board.Roads
 }
 
 func (state *GameState) LongestRoadLengths() map[string]int {
@@ -320,12 +298,14 @@ func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
 	}
 
 	robbablePlayers := make(map[string]bool)
-	for _, tile := range state.board.Tiles {
+	settlements := state.board.GetSettlements()
+	cities := state.board.GetCities()
+	for _, tile := range state.board.GetTiles() {
 		if tile.Blocked {
 			vertices := state.board.Definition.VerticesByTile[tile.ID]
 			for _, vertexID := range vertices {
-				settlement, hasSettlement := state.board.Settlements[vertexID]
-				city, hasCity := state.board.Cities[vertexID]
+				settlement, hasSettlement := settlements[vertexID]
+				city, hasCity := cities[vertexID]
 				if hasSettlement {
 					robbablePlayers[settlement.Owner] = true
 				}

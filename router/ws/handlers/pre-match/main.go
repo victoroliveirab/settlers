@@ -3,7 +3,7 @@ package prematch
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
@@ -90,7 +90,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 
 		room.EnqueueOutgoingMessage(buildStartMatch(room), nil, func() {
 			room.StartRound()
-			room.StartSubRound(core.SetupSettlement1)
+			room.StartSubRound(round.SetupSettlement1)
 			room.EnqueueBulkUpdate(
 				match.UpdateCurrentRoundPlayerState,
 				match.UpdateVertexState,

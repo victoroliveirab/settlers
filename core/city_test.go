@@ -25,7 +25,7 @@ func TestBuildCitySuccess(t *testing.T) {
 	)
 
 	t.Run("city build success", func(t *testing.T) {
-		settlements := game.AllSettlements()
+		settlements := game.GetAllSettlements()
 		_, exists := settlements[42]
 		if !exists {
 			t.Errorf("expected settlement to exist at vertex#42 before city built, but it actually doesn't")
@@ -36,7 +36,7 @@ func TestBuildCitySuccess(t *testing.T) {
 			t.Errorf("expected to be able to build city in vertex#42 during regular phase, but found error %s", err.Error())
 		}
 
-		settlements = game.AllSettlements()
+		settlements = game.GetAllSettlements()
 		settlement := settlements[42]
 		emptyBuilding := board.Building{
 			Owner: "",
@@ -47,7 +47,7 @@ func TestBuildCitySuccess(t *testing.T) {
 			t.Error(settlement)
 		}
 
-		cities := game.AllCities()
+		cities := game.GetAllCities()
 		newCity := cities[42]
 		if newCity == emptyBuilding {
 			t.Errorf("expected new city to show up in cities map, but it didn't")

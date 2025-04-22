@@ -41,13 +41,14 @@ func (state *GameState) handleChangeSetupRoundType() {
 }
 
 func (state *GameState) handOffInitialResources() {
+	tiles := state.board.GetTiles()
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
 		settlementsIDs := playerState.Settlements
 		vertexID := settlementsIDs[1]
 		tilesIndexes := state.board.Definition.TilesByVertex[vertexID]
 		for _, index := range tilesIndexes {
-			tile := state.board.Tiles[index]
+			tile := tiles[index]
 			if tile.Resource == "Desert" {
 				continue
 			}
@@ -84,7 +85,7 @@ func (state *GameState) RollDice(playerID string) error {
 		return nil
 	}
 
-	for _, tile := range state.board.Tiles {
+	for _, tile := range state.board.GetTiles() {
 		if tile.Token != sum || tile.Blocked || tile.Resource == "Desert" {
 			continue
 		}

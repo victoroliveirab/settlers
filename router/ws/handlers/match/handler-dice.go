@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"maps"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
@@ -50,9 +50,9 @@ func handleDiceRollResponse(room *entities.Room, prevResourceHands map[string]ma
 		}
 	}
 
-	if game.RoundType() == core.MoveRobberDue7 {
+	if game.RoundType() == round.MoveRobberDue7 {
 		logs = append(logs, fmt.Sprintf("%s moving robber", currentRoundPlayer))
-		room.StartSubRound(core.MoveRobberDue7)
+		room.StartSubRound(round.MoveRobberDue7)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdateDiceState,
@@ -65,9 +65,9 @@ func handleDiceRollResponse(room *entities.Room, prevResourceHands map[string]ma
 			UpdatePlayerDevHandPermissions,
 			UpdateLogs(logs),
 		)
-	} else if game.RoundType() == core.DiscardPhase {
+	} else if game.RoundType() == round.DiscardPhase {
 		logs = append(logs, fmt.Sprintf("some players have to discard"))
-		room.StartSubRound(core.DiscardPhase)
+		room.StartSubRound(round.DiscardPhase)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdateDiceState,

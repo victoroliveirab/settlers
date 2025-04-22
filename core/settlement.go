@@ -19,14 +19,14 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 		return err
 	}
 
-	vertice, exists := state.board.Settlements[vertexID]
+	vertice, exists := state.board.GetSettlements()[vertexID]
 	if exists {
 		owner := state.findPlayer(vertice.Owner)
 		err := fmt.Errorf("Player %s already has settlement at vertex #%d", owner.ID, vertexID)
 		return err
 	}
 
-	vertice, exists = state.board.Cities[vertexID]
+	vertice, exists = state.board.GetCities()[vertexID]
 	if exists {
 		owner := state.findPlayer(vertice.Owner)
 		err := fmt.Errorf("Player %s already has city at vertex #%d", owner.ID, vertexID)
@@ -101,11 +101,13 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 		return []int{}, err
 	}
 
+	settlements := state.board.GetSettlements()
+	cities := state.board.GetCities()
 	if roundType == round.SetupSettlement1 || roundType == round.SetupSettlement2 {
 		availableVertices := make([]int, 0)
 		for vertexID := range state.board.Definition.TilesByVertex {
-			_, existsSettlement := state.board.Settlements[vertexID]
-			_, existsCity := state.board.Cities[vertexID]
+			_, existsSettlement := settlements[vertexID]
+			_, existsCity := cities[vertexID]
 			if existsSettlement || existsCity {
 				continue
 			}
@@ -123,8 +125,8 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 	vertexSet := utils.NewSet[int]()
 	for _, edgeID := range state.playersStates[playerID].Roads {
 		for _, vertexID := range state.board.Definition.VerticesByEdge[edgeID] {
-			_, settlementExists := state.board.Settlements[vertexID]
-			_, cityExists := state.board.Cities[vertexID]
+			_, settlementExists := settlements[vertexID]
+			_, cityExists := cities[vertexID]
 			if settlementExists || cityExists {
 				continue
 			}

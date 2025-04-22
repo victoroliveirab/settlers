@@ -208,11 +208,11 @@ func MockWithRoadsByPlayer(roadsByPlayer map[string][]int) GameStateOption {
 
 func MockWithBlockedTile(tileID int) GameStateOption {
 	return func(gs *GameState) {
-		for _, tile := range gs.board.Tiles {
+		for i, tile := range gs.board.GetTiles() {
 			if tile.ID == tileID {
-				tile.Blocked = true
+				gs.board.BlockTileByIndex(i)
 			} else {
-				tile.Blocked = false
+				gs.board.UnblockTileByIndex(i)
 			}
 		}
 	}

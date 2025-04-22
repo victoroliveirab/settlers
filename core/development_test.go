@@ -211,7 +211,7 @@ func TestPlayMultipleDevelopmentCardsSameRound(t *testing.T) {
 			t.Errorf("expected to have 1 knight cards after using one, but actually has %d", devCards2)
 		}
 
-		game.MoveRobber("1", 12)
+		err = game.MoveRobber("1", 12)
 		if game.round.GetRoundType() != round.Regular {
 			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}

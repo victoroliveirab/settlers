@@ -17,14 +17,14 @@ func (state *GameState) BuildCity(playerID string, vertexID int) error {
 		return err
 	}
 
-	vertice, exists := state.board.Settlements[vertexID]
+	vertice, exists := state.board.GetSettlements()[vertexID]
 	if exists && vertice.Owner != playerID {
 		owner := state.findPlayer(vertice.Owner)
 		err := fmt.Errorf("Player %s already has settlement at vertex #%d", owner.ID, vertexID)
 		return err
 	}
 
-	vertice, exists = state.board.Cities[vertexID]
+	vertice, exists = state.board.GetCities()[vertexID]
 	if exists {
 		owner := state.findPlayer(vertice.Owner)
 		err := fmt.Errorf("Player %s already has city at vertex #%d", owner.ID, vertexID)
