@@ -3,11 +3,13 @@ package core
 import (
 	"fmt"
 	"testing"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestTradeWithGeneralPortSuccess(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -55,7 +57,7 @@ func TestTradeWithGeneralPortSuccess(t *testing.T) {
 
 func TestTradeWithGeneralPortNotAvailablePort(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -101,7 +103,7 @@ func TestTradeWithGeneralPortNotAvailablePort(t *testing.T) {
 
 func TestTradeWithGeneralPortResourcePortAvailable(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -149,7 +151,7 @@ func TestTradeWithGeneralPortResourcePortAvailable(t *testing.T) {
 
 func TestTradeWithGeneralPortNotAvailableResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 2,
@@ -196,7 +198,7 @@ func TestTradeWithGeneralPortNotAvailableResources(t *testing.T) {
 }
 
 func TestTradeWithGeneralPortByRound(t *testing.T) {
-	createGame := func(roundType int) *GameState {
+	createGame := func(roundType round.Type) *GameState {
 		game := CreateTestGame(
 			MockWithRoundType(roundType),
 			MockWithResourcesByPlayer(map[string]map[string]int{
@@ -215,26 +217,26 @@ func TestTradeWithGeneralPortByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		SetupSettlement1:          true,
-		SetupRoad1:                true,
-		SetupSettlement2:          true,
-		SetupRoad2:                true,
-		FirstRound:                true,
-		Regular:                   false,
-		MoveRobberDue7:            true,
-		MoveRobberDueKnight:       true,
-		PickRobbed:                true,
-		BetweenTurns:              true,
-		BuildRoad1Development:     true,
-		BuildRoad2Development:     true,
-		MonopolyPickResource:      true,
-		YearOfPlentyPickResources: true,
-		DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.MakeGeneralPortTrade("1", map[string]int{"Lumber": 3}, map[string]int{"Ore": 1})
@@ -248,7 +250,7 @@ func TestTradeWithGeneralPortByRound(t *testing.T) {
 
 func TestTradeWithGeneralPortNotPlayerRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"2": {
 				"Lumber": 3,
@@ -277,7 +279,7 @@ func TestTradeWithGeneralPortNotPlayerRound(t *testing.T) {
 
 func TestTradeWithGeneralPortIncorrectNumberOfGivenResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -325,7 +327,7 @@ func TestTradeWithGeneralPortIncorrectNumberOfGivenResources(t *testing.T) {
 
 func TestTradeWithGeneralPortIncorrectNumberOfRequestedResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -372,7 +374,7 @@ func TestTradeWithGeneralPortIncorrectNumberOfRequestedResources(t *testing.T) {
 
 func TestTradeWithGeneralPortResourcePresentBothInGivenAndRequested(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -420,7 +422,7 @@ func TestTradeWithGeneralPortResourcePresentBothInGivenAndRequested(t *testing.T
 
 func TestTradeWithResourcePortSuccess(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -469,7 +471,7 @@ func TestTradeWithResourcePortSuccess(t *testing.T) {
 
 func TestTradeWithResourcePortNotAvailablePort(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -518,7 +520,7 @@ func TestTradeWithResourcePortNotAvailablePort(t *testing.T) {
 
 func TestTradeWithResourcePortNotAvailableResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -566,7 +568,7 @@ func TestTradeWithResourcePortNotAvailableResources(t *testing.T) {
 }
 
 func TestTradeWithResourcePortByRound(t *testing.T) {
-	createGame := func(roundType int) *GameState {
+	createGame := func(roundType round.Type) *GameState {
 		game := CreateTestGame(
 			MockWithRoundType(roundType),
 			MockWithResourcesByPlayer(map[string]map[string]int{
@@ -585,26 +587,26 @@ func TestTradeWithResourcePortByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		SetupSettlement1:          true,
-		SetupRoad1:                true,
-		SetupSettlement2:          true,
-		SetupRoad2:                true,
-		FirstRound:                true,
-		Regular:                   false,
-		MoveRobberDue7:            true,
-		MoveRobberDueKnight:       true,
-		PickRobbed:                true,
-		BetweenTurns:              true,
-		BuildRoad1Development:     true,
-		BuildRoad2Development:     true,
-		MonopolyPickResource:      true,
-		YearOfPlentyPickResources: true,
-		DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.MakeResourcePortTrade("1", map[string]int{"Lumber": 2}, map[string]int{"Ore": 1})
@@ -618,7 +620,7 @@ func TestTradeWithResourcePortByRound(t *testing.T) {
 
 func TestTradeWithResourcePortNotPlayerRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"2": {
 				"Lumber": 2,
@@ -643,7 +645,7 @@ func TestTradeWithResourcePortNotPlayerRound(t *testing.T) {
 
 func TestTradeWithResourcePortIncorrectNumberOfGivenResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -691,7 +693,7 @@ func TestTradeWithResourcePortIncorrectNumberOfGivenResources(t *testing.T) {
 
 func TestTradeWithResourcePortIncorrectNumberOfRequestedResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -739,7 +741,7 @@ func TestTradeWithResourcePortIncorrectNumberOfRequestedResources(t *testing.T) 
 
 func TestTradeWithResourcePortResourcePresentBothInGivenAndRequested(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,

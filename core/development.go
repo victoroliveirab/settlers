@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 )
 
@@ -12,8 +13,8 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot buy development card during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot buy development card during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -27,7 +28,7 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 	if err != nil {
 		return err
 	}
-	card.RoundBought = state.roundNumber
+	card.RoundBought = state.round.GetRoundNumber()
 
 	playerState.RemoveResource("Sheep", 1)
 	playerState.RemoveResource("Grain", 1)
@@ -71,8 +72,8 @@ func (state *GameState) UseKnight(playerID string) error {
 		state.updatePoints()
 	}
 	// If game is over, no need to make the player move robber
-	if state.roundType != GameOver {
-		state.roundType = MoveRobberDueKnight
+	if state.round.GetRoundType() != round.GameOver {
+		state.round.SetRoundType(round.MoveRobberDueKnight)
 	}
 	return nil
 }
@@ -83,7 +84,7 @@ func (state *GameState) UseMonopoly(playerID string) error {
 		return err
 	}
 
-	state.roundType = MonopolyPickResource
+	state.round.SetRoundType(round.MonopolyPickResource)
 	return nil
 }
 
@@ -93,8 +94,8 @@ func (state *GameState) PickMonopolyResource(playerID, resourceName string) erro
 		return err
 	}
 
-	if state.roundType != MonopolyPickResource {
-		err := fmt.Errorf("Cannot pick monopoly resource during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.MonopolyPickResource {
+		err := fmt.Errorf("Cannot pick monopoly resource during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -113,7 +114,7 @@ func (state *GameState) PickMonopolyResource(playerID, resourceName string) erro
 		}
 	}
 
-	state.roundType = Regular
+	state.round.SetRoundType(round.Regular)
 
 	return nil
 }
@@ -130,7 +131,7 @@ func (state *GameState) UseRoadBuilding(playerID string) error {
 		return err
 	}
 
-	state.roundType = BuildRoad1Development
+	state.round.SetRoundType(round.BuildRoad1Development)
 	return nil
 }
 
@@ -140,8 +141,9 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 		return err
 	}
 
-	if state.roundType != BuildRoad1Development && state.roundType != BuildRoad2Development {
-		err := fmt.Errorf("Cannot pick road building spot during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.BuildRoad1Development && roundType != round.BuildRoad2Development {
+		err := fmt.Errorf("Cannot pick road building spot during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -166,18 +168,18 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 	// END REFACTOR
 	state.handleNewRoad(playerID, edgeID)
 
-	if state.roundType == BuildRoad2Development {
-		state.roundType = Regular
+	if state.round.GetRoundType() == round.BuildRoad2Development {
+		state.round.SetRoundType(round.Regular)
 		return nil
 	}
 
 	// Player built last available road during the first build phase of development card
 	if len(playerState.Roads) >= state.maxCards {
-		state.roundType = Regular
+		state.round.SetRoundType(round.Regular)
 		return nil
 	}
 
-	state.roundType = BuildRoad2Development
+	state.round.SetRoundType(round.BuildRoad2Development)
 	return nil
 }
 
@@ -187,7 +189,7 @@ func (state *GameState) UseYearOfPlenty(playerID string) error {
 		return err
 	}
 
-	state.roundType = YearOfPlentyPickResources
+	state.round.SetRoundType(round.YearOfPlentyPickResources)
 	return nil
 }
 
@@ -197,15 +199,15 @@ func (state *GameState) PickYearOfPlentyResources(playerID, resource1, resource2
 		return err
 	}
 
-	if state.roundType != YearOfPlentyPickResources {
-		err := fmt.Errorf("Cannot pick year of plenty resources during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.YearOfPlentyPickResources {
+		err := fmt.Errorf("Cannot pick year of plenty resources during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
 	playerState := state.playersStates[playerID]
 	playerState.AddResource(resource1, 1)
 	playerState.AddResource(resource2, 1)
-	state.roundType = Regular
+	state.round.SetRoundType(round.Regular)
 	return nil
 }
 
@@ -215,15 +217,16 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 		return err
 	}
 
+	roundType := state.round.GetRoundType()
 	switch devCardType {
 	case "Knight":
-		if state.roundType != FirstRound && state.roundType != Regular && state.roundType != BetweenTurns {
-			err := fmt.Errorf("Cannot use knight card during %s", RoundTypeTranslation[state.roundType])
+		if roundType != round.FirstRound && roundType != round.Regular && roundType != round.BetweenTurns {
+			err := fmt.Errorf("Cannot use knight card during %s", state.round.GetCurrentRoundTypeDescription())
 			return err
 		}
 	default:
-		if state.roundType != Regular {
-			err := fmt.Errorf("Cannot use %s card during %s", devCardType, RoundTypeTranslation[state.roundType])
+		if roundType != round.Regular {
+			err := fmt.Errorf("Cannot use %s card during %s", devCardType, state.round.GetCurrentRoundTypeDescription())
 			return err
 		}
 	}
@@ -242,7 +245,7 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 
 	var cardToUse *coreT.DevelopmentCard
 	for _, card := range cards {
-		if card.RoundBought < state.roundNumber {
+		if card.RoundBought < state.round.GetRoundNumber() {
 			cardToUse = card
 			break
 		}

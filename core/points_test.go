@@ -3,13 +3,14 @@ package core
 import (
 	"testing"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 )
 
 func TestPointsMultipleConfigurations(t *testing.T) {
 	createGame := func(settlementMap, cityMap, roadMap map[string][]int, developmentCardsByPlayer map[string]map[string][]*coreT.DevelopmentCard, usedDevelopmentCardsByPlayer map[string]map[string]int) *GameState {
 		game := CreateTestGame(
-			MockWithRoundType(Regular),
+			MockWithRoundType(round.Regular),
 			MockWithRoundNumber(25),
 			MockWithSettlementsByPlayer(settlementMap),
 			MockWithCitiesByPlayer(cityMap),
@@ -218,7 +219,7 @@ func TestPointsMultipleConfigurations(t *testing.T) {
 
 func TestPointsIncreaseOnSettlementBuild(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -284,7 +285,7 @@ func TestPointsIncreaseOnSettlementBuild(t *testing.T) {
 
 func TestPointsIncreaseOnCityBuild(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -350,7 +351,7 @@ func TestPointsIncreaseOnCityBuild(t *testing.T) {
 
 func TestPointsIncreaseOnLongestRoadAchieved(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -416,7 +417,7 @@ func TestPointsIncreaseOnLongestRoadAchieved(t *testing.T) {
 
 func TestPointsIncreaseOnLongestRoadStolen(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -501,7 +502,7 @@ func TestPointsIncreaseOnLongestRoadStolen(t *testing.T) {
 
 func TestPointsDecreaseOnLongestRoadRevoked(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -574,7 +575,7 @@ func TestPointsDecreaseOnLongestRoadRevoked(t *testing.T) {
 
 func TestPointsIncreaseOnFirstMostKnights(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -650,7 +651,7 @@ func TestPointsIncreaseOnFirstMostKnights(t *testing.T) {
 
 func TestPointsIncreaseOnStolenMostKnights(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithCurrentRoundPlayer("2"),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"2": {
@@ -737,7 +738,7 @@ func TestPointsIncreaseOnStolenMostKnights(t *testing.T) {
 
 func TestGameOverOnTargetPointAchievedByBuildingSettlement(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -800,8 +801,8 @@ func TestGameOverOnTargetPointAchievedByBuildingSettlement(t *testing.T) {
 			t.Errorf("expected player#1 to have 10 points after building settlement, but actually got %d", points["1"])
 		}
 
-		roundType := game.RoundType()
-		if roundType != GameOver {
+		roundType := game.round.GetRoundType()
+		if roundType != round.GameOver {
 			t.Errorf("expected game to be over after player#1 built settlement, but actually it isn't")
 		}
 	})
@@ -809,7 +810,7 @@ func TestGameOverOnTargetPointAchievedByBuildingSettlement(t *testing.T) {
 
 func TestGameOverOnTargetPointAchievedByBuildingCity(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -868,8 +869,8 @@ func TestGameOverOnTargetPointAchievedByBuildingCity(t *testing.T) {
 			t.Errorf("expected player#1 to have 10 points after building city, but actually got %d", points["1"])
 		}
 
-		roundType := game.RoundType()
-		if roundType != GameOver {
+		roundType := game.round.GetRoundType()
+		if roundType != round.GameOver {
 			t.Errorf("expected game to be over after player#1 built city, but actually it isn't")
 		}
 	})
@@ -877,7 +878,7 @@ func TestGameOverOnTargetPointAchievedByBuildingCity(t *testing.T) {
 
 func TestGameOverOnTargetPointAchievedByBuildingLongestRoad(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -921,8 +922,8 @@ func TestGameOverOnTargetPointAchievedByBuildingLongestRoad(t *testing.T) {
 			t.Errorf("expected player#1 to have 10 points after achieving longest road, but actually got %d", points["1"])
 		}
 
-		roundType := game.RoundType()
-		if roundType != GameOver {
+		roundType := game.round.GetRoundType()
+		if roundType != round.GameOver {
 			t.Errorf("expected game to be over after player#1 achieved longest road, but actually it isn't")
 		}
 	})
@@ -930,7 +931,7 @@ func TestGameOverOnTargetPointAchievedByBuildingLongestRoad(t *testing.T) {
 
 func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -990,8 +991,8 @@ func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
 			t.Errorf("expected player#1 to have 10 points after achieving most knights, but actually got %d", points["1"])
 		}
 
-		roundType := game.RoundType()
-		if roundType != GameOver {
+		roundType := game.round.GetRoundType()
+		if roundType != round.GameOver {
 			t.Errorf("expected game to be over after player#1 achieved most knights, but actually it isn't")
 		}
 	})
@@ -999,7 +1000,7 @@ func TestGameOverOnTargetPointAchievedByAcquiringMostKnightsUse(t *testing.T) {
 
 func TestGameOverOnTargetPointAchievedByBuyingVictoryPoint(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 10,
@@ -1045,8 +1046,8 @@ func TestGameOverOnTargetPointAchievedByBuyingVictoryPoint(t *testing.T) {
 			t.Errorf("expected player#1 to have 10 points after buying victory point, but actually got %d", points["1"])
 		}
 
-		roundType := game.RoundType()
-		if roundType != GameOver {
+		roundType := game.round.GetRoundType()
+		if roundType != round.GameOver {
 			t.Errorf("expected game to be over after player#1 achieved most knights, but actually it isn't")
 		}
 	})

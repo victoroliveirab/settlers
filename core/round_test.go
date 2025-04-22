@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"maps"
 	"testing"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestRollDiceNotPlayerRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithCurrentRoundPlayer("2"),
 	)
 	t.Run("dice roll attempt out of player's round", func(t *testing.T) {
@@ -20,28 +22,32 @@ func TestRollDiceNotPlayerRound(t *testing.T) {
 }
 
 func TestRollDiceAcrossAllRoundTypes(t *testing.T) {
-	createGame := func(roundType int) *GameState {
+	createGame := func(roundType round.Type) *GameState {
 		game := CreateTestGame(
 			MockWithRoundType(roundType),
 		)
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		SetupSettlement1: true,
-		SetupRoad1:       true,
-		SetupSettlement2: true,
-		SetupRoad2:       true,
-		FirstRound:       false,
-		Regular:          true,
-		MoveRobberDue7:   true,
-		PickRobbed:       true,
-		BetweenTurns:     false,
-		DiscardPhase:     true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                false,
+		round.Regular:                   true,
+		round.MoveRobberDue7:            true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              false,
+		round.DiscardPhase:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.RollDice("1")
@@ -57,7 +63,7 @@ func TestHandleDiceNot7NotBlocked(t *testing.T) {
 	createGame := func(sum int) *GameState {
 		rand := StubRand(sum)
 		game := CreateTestGame(
-			MockWithRoundType(BetweenTurns),
+			MockWithRoundType(round.BetweenTurns),
 			MockWithSettlementsByPlayer(map[string][]int{
 				"1": {40, 11, 6},
 			}),
@@ -200,7 +206,7 @@ func TestHandleDiceNot7NotBlocked(t *testing.T) {
 func TestHandleDiceNot7Blocked(t *testing.T) {
 	rand := StubRand(4)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {40, 11, 6},
 		}),

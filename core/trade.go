@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/core/packages/trade"
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -13,8 +14,8 @@ func (state *GameState) MakeBankTrade(playerID string, givenResources, requested
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot trade with bank during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot trade with bank during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -40,8 +41,8 @@ func (state *GameState) MakeGeneralPortTrade(playerID string, givenResources, re
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot trade with port during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot trade with port during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -60,8 +61,8 @@ func (state *GameState) MakeResourcePortTrade(playerID string, givenResources, r
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot trade with port during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot trade with port during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -80,8 +81,8 @@ func (state *GameState) MakeTradeOffer(playerID string, givenResources, requeste
 		return -1, err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot create trade offer during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot create trade offer during %s", state.round.GetCurrentRoundTypeDescription())
 		return -1, err
 	}
 

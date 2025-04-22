@@ -3,11 +3,13 @@ package core
 import (
 	"fmt"
 	"testing"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestTradeWithBankWithAvailableResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
@@ -37,7 +39,7 @@ func TestTradeWithBankWithAvailableResources(t *testing.T) {
 
 func TestTradeWithBankWithNoAvailableResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -66,7 +68,7 @@ func TestTradeWithBankWithNoAvailableResources(t *testing.T) {
 }
 
 func TestTradeWithBankByRound(t *testing.T) {
-	createGame := func(roundType int) *GameState {
+	createGame := func(roundType round.Type) *GameState {
 		game := CreateTestGame(
 			MockWithRoundType(roundType),
 			MockWithResourcesByPlayer(map[string]map[string]int{
@@ -82,26 +84,26 @@ func TestTradeWithBankByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		SetupSettlement1:          true,
-		SetupRoad1:                true,
-		SetupSettlement2:          true,
-		SetupRoad2:                true,
-		FirstRound:                true,
-		Regular:                   false,
-		MoveRobberDue7:            true,
-		MoveRobberDueKnight:       true,
-		PickRobbed:                true,
-		BetweenTurns:              true,
-		BuildRoad1Development:     true,
-		BuildRoad2Development:     true,
-		MonopolyPickResource:      true,
-		YearOfPlentyPickResources: true,
-		DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.MakeBankTrade("1", map[string]int{"Lumber": 4}, map[string]int{"Ore": 1})
@@ -115,7 +117,7 @@ func TestTradeWithBankByRound(t *testing.T) {
 
 func TestTradeWithBankNotPlayerRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"2": {
 				"Lumber": 1,

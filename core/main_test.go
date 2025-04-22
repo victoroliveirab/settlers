@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -11,7 +12,7 @@ import (
 func TestRobbablePlayers(t *testing.T) {
 	createGame := func(settlementMap, cityMap map[string][]int) *GameState {
 		game := CreateTestGame(
-			MockWithRoundType(PickRobbed),
+			MockWithRoundType(round.PickRobbed),
 			MockWithBlockedTile(17),
 			MockWithSettlementsByPlayer(settlementMap),
 			MockWithCitiesByPlayer(cityMap),
@@ -76,7 +77,7 @@ func TestRobbablePlayers(t *testing.T) {
 func TestDiscardAmountByPlayer(t *testing.T) {
 	createGame := func(resourceMap map[string]map[string]int) *GameState {
 		game := CreateTestGame(
-			MockWithRoundType(DiscardPhase),
+			MockWithRoundType(round.DiscardPhase),
 			MockWithResourcesByPlayer(resourceMap),
 		)
 		return game

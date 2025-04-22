@@ -2,12 +2,14 @@ package core
 
 import (
 	"testing"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestEnterDiscardPhaseAfter7AndAPlayerHasTooMuchCards(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -22,8 +24,8 @@ func TestEnterDiscardPhaseAfter7AndAPlayerHasTooMuchCards(t *testing.T) {
 
 	t.Run("dice 7, must enter discard phase", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != DiscardPhase {
-			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[DiscardPhase], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.DiscardPhase {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.DiscardPhase), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
@@ -35,7 +37,7 @@ func TestEnterDiscardPhaseAfter7AndAPlayerHasTooMuchCards(t *testing.T) {
 func TestDiscardPlayerCardsDoesntNeedToDiscardError(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
@@ -69,7 +71,7 @@ func TestDiscardPlayerCardsDoesntNeedToDiscardError(t *testing.T) {
 func TestDiscardPlayerAlreadyDiscardedError(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -107,7 +109,7 @@ func TestDiscardPlayerAlreadyDiscardedError(t *testing.T) {
 func TestDiscardPlayerTryToDiscardMoreResourceThanPossessedError(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -135,7 +137,7 @@ func TestDiscardPlayerTryToDiscardMoreResourceThanPossessedError(t *testing.T) {
 func TestDiscardPlayerTryToDiscardLessResourcesThanRequiredError(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -163,7 +165,7 @@ func TestDiscardPlayerTryToDiscardLessResourcesThanRequiredError(t *testing.T) {
 func TestDiscardPlayerTryToDiscardMoreResourcesThanRequiredError(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -192,7 +194,7 @@ func TestDiscardPlayerTryToDiscardMoreResourcesThanRequiredError(t *testing.T) {
 func TestDiscardPlayerTryToDiscardMoreR(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -221,7 +223,7 @@ func TestDiscardPlayerTryToDiscardMoreR(t *testing.T) {
 func TestDiscardPlayerSuccess(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -263,8 +265,8 @@ func TestDiscardPlayerSuccess(t *testing.T) {
 			t.Errorf("expected player#1 to have 3 Ore, actually got %d", player1Resources["Ore"])
 		}
 
-		if game.RoundType() != MoveRobberDue7 {
-			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[MoveRobberDue7], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDue7 {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.MoveRobberDue7), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
@@ -272,7 +274,7 @@ func TestDiscardPlayerSuccess(t *testing.T) {
 func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *testing.T) {
 	rand := StubRand(7)
 	game := CreateTestGame(
-		MockWithRoundType(BetweenTurns),
+		MockWithRoundType(round.BetweenTurns),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
@@ -305,8 +307,8 @@ func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *
 		if err != nil {
 			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != DiscardPhase {
-			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[DiscardPhase], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.DiscardPhase {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.DiscardPhase), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.DiscardPlayerCards("2", map[string]int{
@@ -317,8 +319,8 @@ func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *
 		if err != nil {
 			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != MoveRobberDue7 {
-			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[MoveRobberDue7], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDue7 {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.MoveRobberDue7), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }

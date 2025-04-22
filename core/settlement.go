@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -12,8 +13,9 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 		return err
 	}
 
-	if state.roundType != SetupSettlement1 && state.roundType != SetupSettlement2 && state.roundType != Regular {
-		err := fmt.Errorf("Cannot build settlement during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.SetupSettlement1 && roundType != round.SetupSettlement2 && roundType != round.Regular {
+		err := fmt.Errorf("Cannot build settlement during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -36,7 +38,7 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 		return err
 	}
 
-	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
+	if state.round.GetRoundType() == round.SetupSettlement1 || state.round.GetRoundType() == round.SetupSettlement2 {
 		state.handleNewSettlement(playerID, vertexID)
 		state.handleChangeSetupRoundType()
 		return nil
@@ -93,12 +95,13 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 		return []int{}, err
 	}
 
-	if state.roundType != SetupSettlement1 && state.roundType != SetupSettlement2 && state.roundType != Regular {
-		err := fmt.Errorf("Cannot check available vertices during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.SetupSettlement1 && roundType != round.SetupSettlement2 && roundType != round.Regular {
+		err := fmt.Errorf("Cannot check available vertices during %s", state.round.GetCurrentRoundTypeDescription())
 		return []int{}, err
 	}
 
-	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
+	if roundType == round.SetupSettlement1 || roundType == round.SetupSettlement2 {
 		availableVertices := make([]int, 0)
 		for vertexID := range state.board.Definition.TilesByVertex {
 			_, existsSettlement := state.board.Settlements[vertexID]

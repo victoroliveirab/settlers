@@ -1,10 +1,14 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
+)
 
 func (state *GameState) DiscardPlayerCards(playerID string, resources map[string]int) error {
-	if state.roundType != DiscardPhase {
-		err := fmt.Errorf("Cannot discard cards during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.DiscardPhase {
+		err := fmt.Errorf("Cannot discard cards during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -51,6 +55,6 @@ func (state *GameState) DiscardPlayerCards(playerID string, resources map[string
 		}
 	}
 
-	state.roundType = MoveRobberDue7
+	state.round.SetRoundType(round.MoveRobberDue7)
 	return nil
 }

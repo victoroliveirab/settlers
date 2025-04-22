@@ -2,6 +2,8 @@ package core
 
 import (
 	"maps"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func (state *GameState) recountLongestRoad() bool {
@@ -80,7 +82,7 @@ func (state *GameState) updatePoints() {
 		}
 	}
 	if victoryPlayer != "" {
-		state.roundType = GameOver
+		state.round.SetRoundType(round.GameOver)
 	}
 }
 

@@ -8,48 +8,11 @@ import (
 	"github.com/victoroliveirab/settlers/core/packages/board"
 	"github.com/victoroliveirab/settlers/core/packages/development"
 	"github.com/victoroliveirab/settlers/core/packages/player"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/core/packages/trade"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
 )
-
-const (
-	SetupSettlement1 int = iota
-	SetupRoad1
-	SetupSettlement2
-	SetupRoad2
-	FirstRound
-	Regular
-	MoveRobberDue7
-	MoveRobberDueKnight
-	PickRobbed
-	BetweenTurns
-	BuildRoad1Development
-	BuildRoad2Development
-	MonopolyPickResource
-	YearOfPlentyPickResources
-	DiscardPhase
-	GameOver
-)
-
-var RoundTypeTranslation = [16]string{
-	"SettlementSetup#1",
-	"RoadSetup#1",
-	"SettlementSetup#2",
-	"RoadSetup#2",
-	"FirstRound",
-	"Regular",
-	"MoveRobber(7)",
-	"MoveRobber(Knight)",
-	"ChooseRobbedPlayer",
-	"BetweenRounds",
-	"BuildRoadDevelopment(1)",
-	"BuildRoadDevelopment(2)",
-	"MonopolyPickResource",
-	"YearOfPlentyPickResources",
-	"DiscardPhase",
-	"GameOver",
-}
 
 type Building struct {
 	ID    int    `json:"id"`
@@ -106,11 +69,8 @@ type GameState struct {
 	longestRoadMinimum   int
 
 	// round related
-	roundType          int
-	roundNumber        int
+	round              *round.Instance
 	currentPlayerIndex int
-	dice1              int
-	dice2              int
 
 	// cards related
 	development *development.Instance
@@ -177,11 +137,8 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	state.targetPoint = params.TargetPoint
 	state.points = make(map[string]int)
 
-	state.roundType = SetupSettlement1
-	state.roundNumber = 0
+	state.round = round.New()
 	state.currentPlayerIndex = 0
-	state.dice1 = 0
-	state.dice2 = 0
 
 	for i, playerDefinition := range players {
 		state.players[i] = coreT.Player{
@@ -270,11 +227,11 @@ func (state *GameState) CurrentRoundPlayerIndex() int {
 }
 
 func (state *GameState) Dice() [2]int {
-	return [2]int{state.dice1, state.dice2}
+	return state.round.GetDice()
 }
 
 func (state *GameState) RoundType() int {
-	return state.roundType
+	return int(state.round.GetRoundType())
 }
 
 func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int {
@@ -357,7 +314,7 @@ func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
 		return keys, err
 	}
 
-	if state.roundType != PickRobbed {
+	if state.round.GetRoundType() != round.PickRobbed {
 		err := fmt.Errorf("Cannot check robbable players outside PickRobbed round type")
 		return keys, err
 	}
@@ -387,7 +344,7 @@ func (state *GameState) RobbablePlayers(playerID string) ([]string, error) {
 }
 
 func (state *GameState) DiscardAmountByPlayer(playerID string) int {
-	if state.roundType != DiscardPhase {
+	if state.round.GetRoundType() != round.DiscardPhase {
 		return 0
 	}
 	return state.discardAmountByPlayer(playerID)
@@ -410,5 +367,5 @@ func (state *GameState) ActiveTradeOffers() []trade.Trade {
 }
 
 func (state *GameState) Round() int {
-	return state.roundNumber
+	return state.round.GetRoundNumber()
 }

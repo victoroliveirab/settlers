@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 )
 
 func TestBuyDevelopmentCardNotPlayerRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithCurrentRoundPlayer("2"),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
@@ -31,7 +32,7 @@ func TestBuyDevelopmentCardNotPlayerRound(t *testing.T) {
 
 func TestBuyDevelopmentCardNotEnoughResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 2,
@@ -53,7 +54,7 @@ func TestBuyDevelopmentCardNotEnoughResources(t *testing.T) {
 
 func TestPlayDevelopmentCardSameRoundBought(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -90,15 +91,15 @@ func TestPlayDevelopmentCardSameRoundBought(t *testing.T) {
 		if err == nil {
 			t.Errorf("expected to not be able to use knight card same turn bought, but actually used just fine")
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
 
 func TestPlayDevelopmentCardWithMultipleInHand(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -144,8 +145,8 @@ func TestPlayDevelopmentCardWithMultipleInHand(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to use knight card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != MoveRobberDueKnight {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[MoveRobberDueKnight], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.MoveRobberDueKnight), game.round.GetCurrentRoundTypeDescription())
 		}
 		devCardsAfter := game.DevelopmentHandByPlayer("1")["Knight"]
 		if devCardsAfter != 1 {
@@ -156,7 +157,7 @@ func TestPlayDevelopmentCardWithMultipleInHand(t *testing.T) {
 
 func TestPlayMultipleDevelopmentCardsSameRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -198,14 +199,12 @@ func TestPlayMultipleDevelopmentCardsSameRound(t *testing.T) {
 		if devCards1 != 2 {
 			t.Errorf("expected to have 2 knight cards before trying to use one, but actually has %d", devCards1)
 		}
-		t.Log(RoundTypeTranslation[game.RoundType()])
 		err := game.UseKnight("1")
-		t.Log(RoundTypeTranslation[game.RoundType()])
 		if err != nil {
 			t.Errorf("expected to use knight card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != MoveRobberDueKnight {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[MoveRobberDueKnight], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.MoveRobberDueKnight), game.round.GetCurrentRoundTypeDescription())
 		}
 		devCards2 := game.DevelopmentHandByPlayer("1")["Knight"]
 		if devCards2 != 1 {
@@ -213,15 +212,15 @@ func TestPlayMultipleDevelopmentCardsSameRound(t *testing.T) {
 		}
 
 		game.MoveRobber("1", 12)
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 		err = game.UseKnight("1")
 		if err == nil {
 			t.Errorf("expected to not be able to use second knight card, but actually used just fine")
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		devCards3 := game.DevelopmentHandByPlayer("1")["Knight"]
@@ -233,7 +232,7 @@ func TestPlayMultipleDevelopmentCardsSameRound(t *testing.T) {
 
 func TestPlayKnightDevelopmentCardRobOpponentWithCards(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -270,24 +269,24 @@ func TestPlayKnightDevelopmentCardRobOpponentWithCards(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to use knight card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != MoveRobberDueKnight {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[MoveRobberDueKnight], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.MoveRobberDueKnight), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.MoveRobber("1", 17)
 		if err != nil {
 			t.Errorf("expected to move robber to tile#17 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != PickRobbed {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[PickRobbed], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.PickRobbed {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.PickRobbed), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.RobPlayer("1", "2")
 		if err != nil {
 			t.Errorf("expected to let player#1 rob player#2 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -303,7 +302,7 @@ func TestPlayKnightDevelopmentCardRobOpponentWithCards(t *testing.T) {
 
 func TestPlayKnightDevelopmentCardRobOpponentWithNoCards(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -340,24 +339,24 @@ func TestPlayKnightDevelopmentCardRobOpponentWithNoCards(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to use knight just fine, but actyally got error %s", err.Error())
 		}
-		if game.RoundType() != MoveRobberDueKnight {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[MoveRobberDueKnight], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.MoveRobberDueKnight), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.MoveRobber("1", 17)
 		if err != nil {
 			t.Errorf("expected to move robber to tile#17 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != PickRobbed {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[PickRobbed], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.PickRobbed {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.PickRobbed), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.RobPlayer("1", "2")
 		if err == nil {
 			t.Errorf("expected to have error since player#2 has no cards, but actually no error was found")
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %d, but it's actually %d", Regular, game.RoundType())
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -373,7 +372,7 @@ func TestPlayKnightDevelopmentCardRobOpponentWithNoCards(t *testing.T) {
 
 func TestPlayKnightDevelopmentCardRobPlayerNotOnTile(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -403,24 +402,24 @@ func TestPlayKnightDevelopmentCardRobPlayerNotOnTile(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to use knight just fine, but actyally got error %s", err.Error())
 		}
-		if game.RoundType() != MoveRobberDueKnight {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[MoveRobberDueKnight], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.MoveRobberDueKnight), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.MoveRobber("1", 17)
 		if err != nil {
 			t.Errorf("expected to move robber to tile#17 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != PickRobbed {
-			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[PickRobbed], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.PickRobbed {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.PickRobbed), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.RobPlayer("1", "4")
 		if err == nil {
 			t.Errorf("expected to have error since player #4 isn't on tile#17, but actually no error was found")
 		}
-		if game.RoundType() != PickRobbed {
-			t.Errorf("expected round type to be %s, but it's actually %s", RoundTypeTranslation[PickRobbed], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.PickRobbed {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.PickRobbed), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -430,60 +429,60 @@ func TestPlayKnightDevelopmentCardRobPlayerNotOnTile(t *testing.T) {
 	})
 }
 
-// func TestPlayKnightDevelopmentCardMoveRobberToTileOnlyOwnedByPlayer(t *testing.T) {
-// 	game := CreateTestGame(
-// 		MockWithRoundType(Regular),
-// 		MockWithSettlementsByPlayer(map[string][]int{
-// 			"1": {1},
-// 			"2": {42},
-// 		}),
-// 		MockWithRoundNumber(5),
-// 		MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
-// 			"1": {
-// 				"Knight": {&coreT.DevelopmentCard{
-// 					Name:        "Knight",
-// 					RoundBought: 1,
-// 				}},
-// 			},
-// 		}),
-// 		MockWithResourcesByPlayer(map[string]map[string]int{
-// 			"1": {
-// 				"Lumber": 1,
-// 				"Brick":  1,
-// 				"Sheep":  1,
-// 				"Grain":  1,
-// 				"Ore":    1,
-// 			},
-// 		}),
-// 	)
-//
-// 	t.Run("player has knight card, will move robber to tile which only itself on it", func(t *testing.T) {
-// 		err := game.UseKnight("1")
-// 		if err != nil {
-// 			t.Errorf("expected to use knight just fine, but actyally got error %s", err.Error())
-// 		}
-// 		if game.RoundType() != MoveRobberDueKnight {
-// 			t.Errorf("expected round type to be %s after knight use, but got %s", RoundTypeTranslation[MoveRobberDueKnight], RoundTypeTranslation[game.RoundType()])
-// 		}
-//
-// 		err = game.MoveRobber("1", 1)
-// 		if err != nil {
-// 			t.Errorf("expected to move robber to tile#1 just fine, but actually got error %s", err.Error())
-// 		}
-// 		if game.RoundType() != Regular {
-// 			t.Errorf("expected round type to be %s after knight use to tile owned only by player, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
-// 		}
-//
-// 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
-// 		if player1NumberOfResources != 5 {
-// 			t.Errorf("expected player#1 to have 5 cards after robbing, but actually has %d", player1NumberOfResources)
-// 		}
-// 	})
-// }
+func TestPlayKnightDevelopmentCardMoveRobberToTileOnlyOwnedByPlayer(t *testing.T) {
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithSettlementsByPlayer(map[string][]int{
+			"1": {1},
+			"2": {42},
+		}),
+		MockWithRoundNumber(5),
+		MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+			"1": {
+				"Knight": {&coreT.DevelopmentCard{
+					Name:        "Knight",
+					RoundBought: 1,
+				}},
+			},
+		}),
+		MockWithResourcesByPlayer(map[string]map[string]int{
+			"1": {
+				"Lumber": 1,
+				"Brick":  1,
+				"Sheep":  1,
+				"Grain":  1,
+				"Ore":    1,
+			},
+		}),
+	)
+
+	t.Run("player has knight card, will move robber to tile which only itself on it", func(t *testing.T) {
+		err := game.UseKnight("1")
+		if err != nil {
+			t.Errorf("expected to use knight just fine, but actyally got error %s", err.Error())
+		}
+		if game.round.GetRoundType() != round.MoveRobberDueKnight {
+			t.Errorf("expected round type to be %s after knight use, but got %s", game.round.GetRoundTypeDescription(round.MoveRobberDueKnight), game.round.GetCurrentRoundTypeDescription())
+		}
+
+		err = game.MoveRobber("1", 1)
+		if err != nil {
+			t.Errorf("expected to move robber to tile#1 just fine, but actually got error %s", err.Error())
+		}
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after knight use to tile owned only by player, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
+		}
+
+		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
+		if player1NumberOfResources != 5 {
+			t.Errorf("expected player#1 to have 5 cards after robbing, but actually has %d", player1NumberOfResources)
+		}
+	})
+}
 
 func TestPlayKnightDevelopmentCardWithoutHavingOne(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 			"2": {42},
@@ -513,7 +512,7 @@ func TestPlayKnightDevelopmentCardWithoutHavingOne(t *testing.T) {
 }
 
 func TestPlayKnightDevelopmentCardByRound(t *testing.T) {
-	createGame := func(roundType int) *GameState {
+	createGame := func(roundType round.Type) *GameState {
 		game := CreateTestGame(
 			MockWithRoundType(roundType),
 			MockWithRoundNumber(5),
@@ -529,26 +528,26 @@ func TestPlayKnightDevelopmentCardByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		SetupSettlement1:          true,
-		SetupRoad1:                true,
-		SetupSettlement2:          true,
-		SetupRoad2:                true,
-		FirstRound:                false,
-		Regular:                   false,
-		MoveRobberDue7:            true,
-		MoveRobberDueKnight:       true,
-		PickRobbed:                true,
-		BetweenTurns:              false,
-		BuildRoad1Development:     true,
-		BuildRoad2Development:     true,
-		MonopolyPickResource:      true,
-		YearOfPlentyPickResources: true,
-		DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                false,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              false,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.UseKnight("1")
@@ -562,7 +561,7 @@ func TestPlayKnightDevelopmentCardByRound(t *testing.T) {
 
 func TestPlayMonopolyDevelopmentCardOpponentsHaveResource(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -603,16 +602,16 @@ func TestPlayMonopolyDevelopmentCardOpponentsHaveResource(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to use monopoly card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != MonopolyPickResource {
-			t.Errorf("expected round type to be %s after monopoly use, but got %s", RoundTypeTranslation[MonopolyPickResource], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MonopolyPickResource {
+			t.Errorf("expected round type to be %s after monopoly use, but got %s", game.round.GetRoundTypeDescription(round.MonopolyPickResource), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickMonopolyResource("1", "Ore")
 		if err != nil {
 			t.Errorf("expected to monopolyze resource just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after picking monopoly resource, but it's actually %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after picking monopoly resource, but it's actually %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -636,7 +635,7 @@ func TestPlayMonopolyDevelopmentCardOpponentsHaveResource(t *testing.T) {
 
 func TestPlayMonopolyDevelopmentCardOpponentsDontHaveResource(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -677,15 +676,15 @@ func TestPlayMonopolyDevelopmentCardOpponentsDontHaveResource(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to rob all Ore just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != MonopolyPickResource {
-			t.Errorf("expected round type to be %s after monopoly use, but got %s", RoundTypeTranslation[MonopolyPickResource], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MonopolyPickResource {
+			t.Errorf("expected round type to be %s after monopoly use, but got %s", game.round.GetRoundTypeDescription(round.MonopolyPickResource), game.round.GetCurrentRoundTypeDescription())
 		}
 		err = game.PickMonopolyResource("1", "Ore")
 		if err != nil {
 			t.Errorf("expected to monopolyze resource just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after picking monopoly resource, but it's actually %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after picking monopoly resource, but it's actually %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		player1NumberOfResources := game.NumberOfCardsInHandByPlayer("1")
@@ -709,7 +708,7 @@ func TestPlayMonopolyDevelopmentCardOpponentsDontHaveResource(t *testing.T) {
 
 func TestPlayMonopolyDevelopmentCardWithoutHavingOne(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -729,57 +728,57 @@ func TestPlayMonopolyDevelopmentCardWithoutHavingOne(t *testing.T) {
 	})
 }
 
-// func TestPlayMonopolyDevelopmentCardByRound(t *testing.T) {
-// 	createGame := func(roundType int) *GameState {
-// 		game := CreateTestGame(
-// 			MockWithRoundType(roundType),
-// 			MockWithRoundNumber(5),
-// 			MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
-// 				"1": {
-// 					"Monopoly": {&coreT.DevelopmentCard{
-// 						Name:        "Monopoly",
-// 						RoundBought: 1,
-// 					}},
-// 				},
-// 			}),
-// 		)
-// 		return game
-// 	}
-//
-// 	willHaveErrorByRoundType := map[int]bool{
-// 		SetupSettlement1:          true,
-// 		SetupRoad1:                true,
-// 		SetupSettlement2:          true,
-// 		SetupRoad2:                true,
-// 		FirstRound:                false,
-// 		Regular:                   false,
-// 		MoveRobberDue7:            true,
-// 		MoveRobberDueKnight:       true,
-// 		PickRobbed:                true,
-// 		BetweenTurns:              false,
-// 		BuildRoad1Development:     true,
-// 		BuildRoad2Development:     true,
-// 		MonopolyPickResource:      true,
-// 		YearOfPlentyPickResources: true,
-// 		DiscardPhase:              true,
-// 	}
-//
-// 	for roundType, willHaveError := range willHaveErrorByRoundType {
-// 		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
-// 		t.Run(testname, func(t *testing.T) {
-// 			game := createGame(roundType)
-// 			err := game.UseMonopoly("1")
-// 			hasErr := err != nil
-// 			if hasErr != willHaveError {
-// 				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
-// 			}
-// 		})
-// 	}
-// }
+func TestPlayMonopolyDevelopmentCardByRound(t *testing.T) {
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithRoundNumber(5),
+			MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+				"1": {
+					"Monopoly": {&coreT.DevelopmentCard{
+						Name:        "Monopoly",
+						RoundBought: 1,
+					}},
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			err := game.UseMonopoly("1")
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}
 
 func TestPlayRoadBuildingDevelopmentCardAvailablePathAvailableRoads(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -802,31 +801,31 @@ func TestPlayRoadBuildingDevelopmentCardAvailablePathAvailableRoads(t *testing.T
 		if err != nil {
 			t.Errorf("expected to use road building card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != BuildRoad1Development {
-			t.Errorf("expected round type to be %s after road building use, but got %s", RoundTypeTranslation[BuildRoad1Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad1Development {
+			t.Errorf("expected round type to be %s after road building use, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad1Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 8)
 		if err != nil {
 			t.Errorf("expected to build road on edge#8 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != BuildRoad2Development {
-			t.Errorf("expected round type to be %s after 1st road building spot picked, but got %s", RoundTypeTranslation[BuildRoad2Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad2Development {
+			t.Errorf("expected round type to be %s after 1st road building spot picked, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad2Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 3)
 		if err != nil {
 			t.Errorf("expected to build road on edge#3 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after 2nd road building spot picked, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after 2nd road building spot picked, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
 
 func TestPlayRoadBuildingDevelopmentCardUnavailablePathAvailableRoads(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -850,79 +849,79 @@ func TestPlayRoadBuildingDevelopmentCardUnavailablePathAvailableRoads(t *testing
 		if err != nil {
 			t.Errorf("expected to use road building card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != BuildRoad1Development {
-			t.Errorf("expected round type to be %s after road building use, but got %s", RoundTypeTranslation[BuildRoad1Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad1Development {
+			t.Errorf("expected round type to be %s after road building use, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad1Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 2)
 		if err == nil {
 			t.Errorf("expected to not be able to road building pick edge#2, but it picked just fine")
 		}
-		if game.RoundType() != BuildRoad1Development {
-			t.Errorf("expected round type to be %s after road building pick failure, but got %s", RoundTypeTranslation[BuildRoad1Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad1Development {
+			t.Errorf("expected round type to be %s after road building pick failure, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad1Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 8)
 		if err == nil {
 			t.Errorf("expected to not be able to road building pick edge#8, but it picked just fine")
 		}
-		if game.RoundType() != BuildRoad1Development {
-			t.Errorf("expected round type to be %s after road building pick failure, but got %s", RoundTypeTranslation[BuildRoad1Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad1Development {
+			t.Errorf("expected round type to be %s after road building pick failure, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad1Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 72)
 		if err == nil {
 			t.Errorf("expected to not be able to road building pick edge#72, but it picked just fine")
 		}
-		if game.RoundType() != BuildRoad1Development {
-			t.Errorf("expected round type to be %s after road building pick failure, but got %s", RoundTypeTranslation[BuildRoad1Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad1Development {
+			t.Errorf("expected round type to be %s after road building pick failure, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad1Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 3)
 		if err != nil {
 			t.Errorf("expected to build road on edge#3 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != BuildRoad2Development {
-			t.Errorf("expected round type to be %s after 1st road building spot picked, but got %s", RoundTypeTranslation[BuildRoad2Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad2Development {
+			t.Errorf("expected round type to be %s after 1st road building spot picked, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad2Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 3)
 		if err == nil {
 			t.Errorf("expected to not be able to road building pick edge#3, but it picked just fine")
 		}
-		if game.RoundType() != BuildRoad2Development {
-			t.Errorf("expected round type to be %s after road building pick failure, but got %s", RoundTypeTranslation[BuildRoad2Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad2Development {
+			t.Errorf("expected round type to be %s after road building pick failure, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad2Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 8)
 		if err == nil {
 			t.Errorf("expected to not be able to road building pick edge#8, but it picked just fine")
 		}
-		if game.RoundType() != BuildRoad2Development {
-			t.Errorf("expected round type to be %s after road building pick failure, but got %s", RoundTypeTranslation[BuildRoad2Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad2Development {
+			t.Errorf("expected round type to be %s after road building pick failure, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad2Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 72)
 		if err == nil {
 			t.Errorf("expected to not be able to road building pick edge#72, but it picked just fine")
 		}
-		if game.RoundType() != BuildRoad2Development {
-			t.Errorf("expected round type to be %s after road building pick failure, but got %s", RoundTypeTranslation[BuildRoad2Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad2Development {
+			t.Errorf("expected round type to be %s after road building pick failure, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad2Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 4)
 		if err != nil {
 			t.Errorf("expected to build road on edge#4 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after 2nd road building spot picked, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after 2nd road building spot picked, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
 
 func TestPlayRoadBuildingDevelopmentCardAvailablePathUnavailableRoads(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -951,7 +950,7 @@ func TestPlayRoadBuildingDevelopmentCardAvailablePathUnavailableRoads(t *testing
 
 func TestPlayRoadBuildingDevelopmentCardAvailablePathOnly1AvailableRoad(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -975,23 +974,23 @@ func TestPlayRoadBuildingDevelopmentCardAvailablePathOnly1AvailableRoad(t *testi
 		if err != nil {
 			t.Errorf("expected to use road building card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != BuildRoad1Development {
-			t.Errorf("expected round type to be %s after road building use, but got %s", RoundTypeTranslation[BuildRoad1Development], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.BuildRoad1Development {
+			t.Errorf("expected round type to be %s after road building use, but got %s", game.round.GetRoundTypeDescription(round.BuildRoad1Development), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickRoadBuildingSpot("1", 3)
 		if err != nil {
 			t.Errorf("expected to build road on edge#3 just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after 1st road building spot picked that reached max roads, but got %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after 1st road building spot picked that reached max roads, but got %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
 
 func TestPlayRoadBuildingDevelopmentCardWithoutHavingOne(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -1011,57 +1010,57 @@ func TestPlayRoadBuildingDevelopmentCardWithoutHavingOne(t *testing.T) {
 	})
 }
 
-// func TestPlayRoadBuildingDevelopmentCardByRound(t *testing.T) {
-// 	createGame := func(roundType int) *GameState {
-// 		game := CreateTestGame(
-// 			MockWithRoundType(roundType),
-// 			MockWithRoundNumber(5),
-// 			MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
-// 				"1": {
-// 					"Road Building": {&coreT.DevelopmentCard{
-// 						Name:        "Road Building",
-// 						RoundBought: 1,
-// 					}},
-// 				},
-// 			}),
-// 		)
-// 		return game
-// 	}
-//
-// 	willHaveErrorByRoundType := map[int]bool{
-// 		SetupSettlement1:          true,
-// 		SetupRoad1:                true,
-// 		SetupSettlement2:          true,
-// 		SetupRoad2:                true,
-// 		FirstRound:                false,
-// 		Regular:                   false,
-// 		MoveRobberDue7:            true,
-// 		MoveRobberDueKnight:       true,
-// 		PickRobbed:                true,
-// 		BetweenTurns:              true,
-// 		BuildRoad1Development:     true,
-// 		BuildRoad2Development:     true,
-// 		MonopolyPickResource:      true,
-// 		YearOfPlentyPickResources: true,
-// 		DiscardPhase:              true,
-// 	}
-//
-// 	for roundType, willHaveError := range willHaveErrorByRoundType {
-// 		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
-// 		t.Run(testname, func(t *testing.T) {
-// 			game := createGame(roundType)
-// 			err := game.UseRoadBuilding("1")
-// 			hasErr := err != nil
-// 			if hasErr != willHaveError {
-// 				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
-// 			}
-// 		})
-// 	}
-// }
+func TestPlayRoadBuildingDevelopmentCardByRound(t *testing.T) {
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithRoundNumber(5),
+			MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+				"1": {
+					"Road Building": {&coreT.DevelopmentCard{
+						Name:        "Road Building",
+						RoundBought: 1,
+					}},
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			err := game.UseRoadBuilding("1")
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}
 
 func TestPlayYearOfPlentyDevelopmentCardAvailableResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -1090,23 +1089,23 @@ func TestPlayYearOfPlentyDevelopmentCardAvailableResources(t *testing.T) {
 		if err != nil {
 			t.Errorf("expected to use year of plenty card just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != YearOfPlentyPickResources {
-			t.Errorf("expected round type to be %s after year of plenty use, but got %s", RoundTypeTranslation[YearOfPlentyPickResources], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.YearOfPlentyPickResources {
+			t.Errorf("expected round type to be %s after year of plenty use, but got %s", game.round.GetRoundTypeDescription(round.YearOfPlentyPickResources), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.PickYearOfPlentyResources("1", "Grain", "Ore")
 		if err != nil {
 			t.Errorf("expected to receive the two selected resources just fine, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != Regular {
-			t.Errorf("expected round type to be %s after picking monopoly resource, but it's actually %s", RoundTypeTranslation[Regular], RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.Regular {
+			t.Errorf("expected round type to be %s after picking monopoly resource, but it's actually %s", game.round.GetRoundTypeDescription(round.Regular), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
 
 func TestPlayYearOfPlentyDevelopmentCardWithoutHavingOne(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {1},
 		}),
@@ -1126,50 +1125,50 @@ func TestPlayYearOfPlentyDevelopmentCardWithoutHavingOne(t *testing.T) {
 	})
 }
 
-// func TestPlayYearOfPlentyDevelopmentCardByRound(t *testing.T) {
-// 	createGame := func(roundType int) *GameState {
-// 		game := CreateTestGame(
-// 			MockWithRoundType(roundType),
-// 			MockWithRoundNumber(5),
-// 			MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
-// 				"1": {
-// 					"Year of Plenty": {&coreT.DevelopmentCard{
-// 						Name:        "Year of Plenty",
-// 						RoundBought: 1,
-// 					}},
-// 				},
-// 			}),
-// 		)
-// 		return game
-// 	}
-//
-// 	willHaveErrorByRoundType := map[int]bool{
-// 		SetupSettlement1:          true,
-// 		SetupRoad1:                true,
-// 		SetupSettlement2:          true,
-// 		SetupRoad2:                true,
-// 		FirstRound:                false,
-// 		Regular:                   false,
-// 		MoveRobberDue7:            true,
-// 		MoveRobberDueKnight:       true,
-// 		PickRobbed:                true,
-// 		BetweenTurns:              true,
-// 		BuildRoad1Development:     true,
-// 		BuildRoad2Development:     true,
-// 		MonopolyPickResource:      true,
-// 		YearOfPlentyPickResources: true,
-// 		DiscardPhase:              true,
-// 	}
-//
-// 	for roundType, willHaveError := range willHaveErrorByRoundType {
-// 		testname := fmt.Sprintf("round type: %s, will have error: %v", RoundTypeTranslation[roundType], willHaveError)
-// 		t.Run(testname, func(t *testing.T) {
-// 			game := createGame(roundType)
-// 			err := game.UseYearOfPlenty("1")
-// 			hasErr := err != nil
-// 			if hasErr != willHaveError {
-// 				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
-// 			}
-// 		})
-// 	}
-// }
+func TestPlayYearOfPlentyDevelopmentCardByRound(t *testing.T) {
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithRoundNumber(5),
+			MockWithDevelopmentsByPlayer(map[string]map[string][]*coreT.DevelopmentCard{
+				"1": {
+					"Year of Plenty": {&coreT.DevelopmentCard{
+						Name:        "Year of Plenty",
+						RoundBought: 1,
+					}},
+				},
+			}),
+		)
+		return game
+	}
+
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
+	}
+
+	for roundType, willHaveError := range willHaveErrorByRoundType {
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
+		t.Run(testname, func(t *testing.T) {
+			game := createGame(roundType)
+			err := game.UseYearOfPlenty("1")
+			hasErr := err != nil
+			if hasErr != willHaveError {
+				t.Errorf("expected error to be %v, but actually was %v", willHaveError, hasErr)
+			}
+		})
+	}
+}

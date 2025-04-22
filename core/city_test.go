@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/victoroliveirab/settlers/core/packages/board"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestBuildCitySuccess(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {42},
 		}),
@@ -76,7 +77,7 @@ func TestBuildCitySuccess(t *testing.T) {
 
 func TestBuildCityErrorAlreadyExistsByPlayer(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithCitiesByPlayer(map[string][]int{
 			"1": {42},
 		}),
@@ -101,7 +102,7 @@ func TestBuildCityErrorAlreadyExistsByPlayer(t *testing.T) {
 
 func TestBuildCityErrorSettlementAlreadyExistsOtherPlayer(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"2": {42},
 		}),
@@ -126,7 +127,7 @@ func TestBuildCityErrorSettlementAlreadyExistsOtherPlayer(t *testing.T) {
 
 func TestBuildCityErrorCityAlreadyExistsOtherPlayer(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithCitiesByPlayer(map[string][]int{
 			"2": {42},
 		}),
@@ -151,7 +152,7 @@ func TestBuildCityErrorCityAlreadyExistsOtherPlayer(t *testing.T) {
 
 func TestBuildCityErrorNotPlayerRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithCurrentRoundPlayer("2"),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {42},
@@ -177,7 +178,7 @@ func TestBuildCityErrorNotPlayerRound(t *testing.T) {
 
 func TestBuildCityErrorNotEnoughResources(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(Regular),
+		MockWithRoundType(round.Regular),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {42},
 		}),
@@ -202,7 +203,7 @@ func TestBuildCityErrorNotEnoughResources(t *testing.T) {
 
 func TestBuildCityErrorNotAppropriateRound(t *testing.T) {
 	game := CreateTestGame(
-		MockWithRoundType(MoveRobberDue7),
+		MockWithRoundType(round.MoveRobberDue7),
 		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {42},
 		}),

@@ -2,6 +2,8 @@ package core
 
 import (
 	"fmt"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func (state *GameState) BuildCity(playerID string, vertexID int) error {
@@ -10,8 +12,8 @@ func (state *GameState) BuildCity(playerID string, vertexID int) error {
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot build city during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot build city during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 

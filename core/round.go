@@ -3,36 +3,38 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
 func (state *GameState) handleChangeSetupRoundType() {
-	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
-		if state.roundType == SetupSettlement1 {
-			state.roundType = SetupRoad1
+	currentRoundType := state.round.GetRoundType()
+	if currentRoundType == round.SetupSettlement1 || currentRoundType == round.SetupSettlement2 {
+		if currentRoundType == round.SetupSettlement1 {
+			state.round.SetRoundType(round.SetupRoad1)
 		} else {
-			state.roundType = SetupRoad2
+			state.round.SetRoundType(round.SetupRoad2)
 		}
 		return
 	}
-	if state.roundType == SetupRoad1 {
+	if currentRoundType == round.SetupRoad1 {
 		state.currentPlayerIndex++
 		if state.currentPlayerIndex == len(state.players) {
-			state.roundType = SetupSettlement2
+			state.round.SetRoundType(round.SetupSettlement2)
 			state.currentPlayerIndex--
 		} else {
-			state.roundType = SetupSettlement1
+			state.round.SetRoundType(round.SetupSettlement1)
 		}
 		return
 	}
-	if state.roundType == SetupRoad2 {
+	if currentRoundType == round.SetupRoad2 {
 		state.currentPlayerIndex--
 		if state.currentPlayerIndex < 0 {
-			state.roundType = FirstRound
+			state.round.SetRoundType(round.FirstRound)
 			state.currentPlayerIndex = 0
 			state.handOffInitialResources()
 		} else {
-			state.roundType = SetupSettlement2
+			state.round.SetRoundType(round.SetupSettlement2)
 		}
 		return
 	}
@@ -60,20 +62,22 @@ func (state *GameState) RollDice(playerID string) error {
 		return err
 	}
 
-	if state.roundType != FirstRound && state.roundType != BetweenTurns {
-		err := fmt.Errorf("Cannot roll dice during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.FirstRound && roundType != round.BetweenTurns {
+		err := fmt.Errorf("Cannot roll dice during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	if state.dice1 > 0 || state.dice2 > 0 {
+	dice := state.round.GetDice()
+	if dice[0] > 0 || dice[1] > 0 {
 		err := fmt.Errorf("Cannot roll dice twice in round")
 		return err
 	}
 
-	state.dice1 = state.rand.Intn(6) + 1
-	state.dice2 = state.rand.Intn(6) + 1
-
-	sum := state.dice1 + state.dice2
+	dice1 := state.rand.Intn(6) + 1
+	dice2 := state.rand.Intn(6) + 1
+	state.round.SetDice(dice1, dice2)
+	sum := dice1 + dice2
 
 	if sum == 7 {
 		state.handle7()
@@ -98,7 +102,7 @@ func (state *GameState) RollDice(playerID string) error {
 			}
 		}
 	}
-	state.roundType = Regular
+	state.round.SetRoundType(round.Regular)
 	return nil
 }
 
@@ -113,9 +117,9 @@ func (state *GameState) handle7() {
 	}
 
 	if shouldMoveToDiscardPhase {
-		state.roundType = DiscardPhase
+		state.round.SetRoundType(round.DiscardPhase)
 	} else {
-		state.roundType = MoveRobberDue7
+		state.round.SetRoundType(round.MoveRobberDue7)
 	}
 }
 
@@ -125,19 +129,19 @@ func (state *GameState) EndRound(playerID string) error {
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot end round during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot end round during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	if state.dice1 == 0 && state.dice2 == 0 {
+	dice := state.round.GetDice()
+	if dice[0] == 0 && dice[1] == 0 {
 		err := fmt.Errorf("Cannot end round without rolling dice")
 		return err
 	}
 
-	state.roundNumber += 1
-	state.dice1 = 0
-	state.dice2 = 0
+	state.round.IncrementRound()
+	state.round.SetDice(0, 0)
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
 		playerState.HasDiscardedThisRound = false
@@ -149,7 +153,7 @@ func (state *GameState) EndRound(playerID string) error {
 		newIndex = 0
 	}
 	state.currentPlayerIndex = newIndex
-	state.roundType = BetweenTurns
+	state.round.SetRoundType(round.BetweenTurns)
 
 	state.trade.CancelActiveTrades()
 	return nil

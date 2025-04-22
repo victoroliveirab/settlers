@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -13,12 +14,13 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 	}
 
 	// REFACTOR: DONT LIKE THIS HERE
-	if state.roundType == BuildRoad1Development || state.roundType == BuildRoad2Development {
+	roundType := state.round.GetRoundType()
+	if roundType == round.BuildRoad1Development || roundType == round.BuildRoad2Development {
 		return state.PickRoadBuildingSpot(playerID, edgeID)
 	}
 
-	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != Regular {
-		err := fmt.Errorf("Cannot build road during %s", RoundTypeTranslation[state.roundType])
+	if roundType != round.SetupRoad1 && roundType != round.SetupRoad2 && roundType != round.Regular {
+		err := fmt.Errorf("Cannot build road during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -29,7 +31,7 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 		return err
 	}
 
-	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
+	if roundType == round.SetupRoad1 || roundType == round.SetupRoad2 {
 		if !state.isEdgeAllowedSetupPhase(playerID, edgeID) {
 			err := fmt.Errorf("Cannot build road in this spot (edge#%d) during setup", edgeID)
 			return err
@@ -149,14 +151,15 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 		return []int{}, err
 	}
 
-	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != Regular && state.roundType != BuildRoad1Development && state.roundType != BuildRoad2Development {
-		err := fmt.Errorf("Cannot check available edges during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.SetupRoad1 && roundType != round.SetupRoad2 && roundType != round.Regular && roundType != round.BuildRoad1Development && roundType != round.BuildRoad2Development {
+		err := fmt.Errorf("Cannot check available edges during %s", state.round.GetCurrentRoundTypeDescription())
 		return []int{}, err
 	}
 
 	playerState := state.playersStates[playerID]
 
-	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
+	if roundType == round.SetupRoad1 || roundType == round.SetupRoad2 {
 		vertexID := utils.SliceLast(playerState.Settlements)
 		allowedEdgesIDs := state.board.Definition.EdgesByVertex[vertexID]
 		return allowedEdgesIDs, nil

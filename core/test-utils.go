@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -22,21 +23,6 @@ type GameStateMock struct {
 }
 
 type GameStateOption func(*GameState)
-
-func GetAllRounds() []int {
-	return []int{
-		SetupSettlement1,
-		SetupRoad1,
-		SetupSettlement2,
-		SetupRoad2,
-		FirstRound,
-		Regular,
-		MoveRobberDue7,
-		PickRobbed,
-		BetweenTurns,
-		DiscardPhase,
-	}
-}
 
 func CreateTestGame(opts ...GameStateOption) *GameState {
 	mapsdefinitions.LoadMap("base4")
@@ -114,20 +100,19 @@ func CreateTestGameWithRand(randGenerator *rand.Rand, opts ...GameStateOption) *
 	return &game
 }
 
-func MockWithRoundType(roundType int) GameStateOption {
+func MockWithRoundType(roundType round.Type) GameStateOption {
 	return func(gs *GameState) {
-		gs.roundType = roundType
+		gs.round.SetRoundType(roundType)
 		// Hack to have a dice set since the round type is already regular
-		if roundType == Regular {
-			gs.dice1 = 1
-			gs.dice2 = 1
+		if roundType == round.Regular {
+			gs.round.SetDice(1, 1)
 		}
 	}
 }
 
 func MockWithRoundNumber(roundNumber int) GameStateOption {
 	return func(gs *GameState) {
-		gs.roundNumber = roundNumber
+		gs.round.SetRoundNumber(roundNumber)
 	}
 }
 

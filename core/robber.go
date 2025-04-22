@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -12,8 +13,9 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 		return err
 	}
 
-	if state.roundType != MoveRobberDue7 && state.roundType != MoveRobberDueKnight {
-		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.MoveRobberDue7 && roundType != round.MoveRobberDueKnight {
+		err := fmt.Errorf("Cannot move robber during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -30,14 +32,15 @@ func (state *GameState) MoveRobber(playerID string, tileID int) error {
 	for _, tile := range state.board.Tiles {
 		if tile.ID == tileID {
 			tile.Blocked = true
-			state.roundType = PickRobbed
+			state.round.SetRoundType(round.PickRobbed)
 			robbablePlayers, _ := state.RobbablePlayers(playerID)
 			if len(robbablePlayers) == 0 {
 				// Used knight before round started
-				if state.dice1 == 0 && state.dice2 == 0 {
-					state.roundType = BetweenTurns
+				dice := state.round.GetDice()
+				if dice[0] == 0 && dice[1] == 0 {
+					state.round.SetRoundType(round.BetweenTurns)
 				} else {
-					state.roundType = Regular
+					state.round.SetRoundType(round.Regular)
 				}
 			}
 			return nil
@@ -55,8 +58,8 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		return err
 	}
 
-	if state.roundType != PickRobbed {
-		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.PickRobbed {
+		err := fmt.Errorf("Cannot move robber during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -71,10 +74,11 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		return err
 	}
 
-	if state.dice1 == 0 && state.dice2 == 0 {
-		state.roundType = BetweenTurns
+	dice := state.round.GetDice()
+	if dice[0] == 0 && dice[1] == 0 {
+		state.round.SetRoundType(round.BetweenTurns)
 	} else {
-		state.roundType = Regular
+		state.round.SetRoundType(round.Regular)
 	}
 
 	robbedState := state.playersStates[robbedID]
