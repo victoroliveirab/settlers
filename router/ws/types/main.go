@@ -59,6 +59,8 @@ func (c *WebSocketConnection) StartHeartBeat(onPingFail func()) {
 					onPingFail()
 					return
 				}
+
+				conn.SetWriteDeadline(time.Time{})
 			case <-c.ctx.Done():
 				return
 			}
