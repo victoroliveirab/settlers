@@ -74,9 +74,9 @@ func SetupRoutes(db *sql.DB) {
 			go player.ListenIncomingMessages(func(msg *types.WebSocketClientRequest) {
 				room.EnqueueIncomingMessage(player, msg)
 			})
-			wsConn.StartHeartBeat(func() {
-				wsConn.Close()
-			})
+			// wsConn.StartHeartBeat(func() {
+			// 	wsConn.Close()
+			// })
 		}),
 		withSessionMiddleware(db),
 	))
