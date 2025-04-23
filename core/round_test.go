@@ -1,17 +1,17 @@
-package tests
+package core
 
 import (
 	"fmt"
 	"maps"
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestRollDiceNotPlayerRound(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithCurrentRoundPlayer("2"),
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithCurrentRoundPlayer("2"),
 	)
 	t.Run("dice roll attempt out of player's round", func(t *testing.T) {
 		err := game.RollDice("1")
@@ -22,28 +22,32 @@ func TestRollDiceNotPlayerRound(t *testing.T) {
 }
 
 func TestRollDiceAcrossAllRoundTypes(t *testing.T) {
-	createGame := func(roundType int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(roundType),
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
 		)
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		testUtils.SetupSettlement1: true,
-		testUtils.SetupRoad1:       true,
-		testUtils.SetupSettlement2: true,
-		testUtils.SetupRoad2:       true,
-		testUtils.FirstRound:       false,
-		testUtils.Regular:          true,
-		testUtils.MoveRobberDue7:   true,
-		testUtils.PickRobbed:       true,
-		testUtils.BetweenTurns:     false,
-		testUtils.DiscardPhase:     true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                false,
+		round.Regular:                   true,
+		round.MoveRobberDue7:            true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              false,
+		round.DiscardPhase:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.RollDice("1")
@@ -56,17 +60,17 @@ func TestRollDiceAcrossAllRoundTypes(t *testing.T) {
 }
 
 func TestHandleDiceNot7NotBlocked(t *testing.T) {
-	createGame := func(sum int) *testUtils.GameState {
-		rand := testUtils.StubRand(sum)
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(testUtils.BetweenTurns),
-			testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	createGame := func(sum int) *GameState {
+		rand := StubRand(sum)
+		game := CreateTestGame(
+			MockWithRoundType(round.BetweenTurns),
+			MockWithSettlementsByPlayer(map[string][]int{
 				"1": {40, 11, 6},
 			}),
-			testUtils.MockWithCitiesByPlayer(map[string][]int{
+			MockWithCitiesByPlayer(map[string][]int{
 				"1": {32},
 			}),
-			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+			MockWithResourcesByPlayer(map[string]map[string]int{
 				"1": {
 					"Lumber": 1,
 					"Brick":  1,
@@ -75,7 +79,7 @@ func TestHandleDiceNot7NotBlocked(t *testing.T) {
 					"Ore":    1,
 				},
 			}),
-			testUtils.MockWithRand(rand),
+			MockWithRand(rand),
 		)
 		return game
 	}
@@ -200,16 +204,16 @@ func TestHandleDiceNot7NotBlocked(t *testing.T) {
 }
 
 func TestHandleDiceNot7Blocked(t *testing.T) {
-	rand := testUtils.StubRand(4)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	rand := StubRand(4)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {40, 11, 6},
 		}),
-		testUtils.MockWithCitiesByPlayer(map[string][]int{
+		MockWithCitiesByPlayer(map[string][]int{
 			"1": {32},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -218,8 +222,8 @@ func TestHandleDiceNot7Blocked(t *testing.T) {
 				"Ore":    1,
 			},
 		}),
-		testUtils.MockWithBlockedTile(10),
-		testUtils.MockWithRand(rand),
+		MockWithBlockedTile(10),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 4, tileID 10 blocked", func(t *testing.T) {

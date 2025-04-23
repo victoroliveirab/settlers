@@ -25,7 +25,7 @@ func handleVertexClick(player *entities.GamePlayer, message *types.WebSocketClie
 	game := room.Game
 	logs := make([]string, 0)
 
-	_, exists := game.AllSettlements()[vertexID]
+	_, exists := game.GetAllSettlements()[vertexID]
 	if !exists {
 		err := game.BuildSettlement(player.Username, vertexID)
 		if err != nil {

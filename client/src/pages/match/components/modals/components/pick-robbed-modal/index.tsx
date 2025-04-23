@@ -17,7 +17,7 @@ export const PickRobbedModal = () => {
   const players = useMatchStore((state) => state.players);
 
   const robbablePlayers = players.filter((player) =>
-    robbablePlayersState.options.includes(player.name),
+    robbablePlayersState.options?.includes(player.name),
   );
 
   const onPlayerChosen = (playerName: string) => {

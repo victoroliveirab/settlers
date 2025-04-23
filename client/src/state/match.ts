@@ -63,7 +63,7 @@ type MatchState = {
   roads: SettlersCore.Roads;
   robbablePlayers: {
     enabled: boolean;
-    options: SettlersCore.Player["name"][];
+    options: SettlersCore.Player["name"][] | null;
   };
   robber: {
     availableTiles: number[];

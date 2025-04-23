@@ -3,24 +3,37 @@ package core
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/utils"
+	"github.com/victoroliveirab/settlers/core/packages/round"
+	coreT "github.com/victoroliveirab/settlers/core/types"
 )
 
 func (state *GameState) BuyDevelopmentCard(playerID string) error {
-	err := state.IsBuyDevelopmentCardAvailable(playerID)
-	if err != nil {
+	if playerID != state.currentPlayer().ID {
+		err := fmt.Errorf("Cannot buy development card during other player's round")
 		return err
 	}
 
-	state.playerResourceHandMap[playerID]["Sheep"]--
-	state.playerResourceHandMap[playerID]["Grain"]--
-	state.playerResourceHandMap[playerID]["Ore"]--
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot buy development card during %s", state.round.GetCurrentRoundTypeDescription())
+		return err
+	}
 
-	card := state.developmentCards[state.developmentCardHeadIndex]
-	card.RoundBought = state.roundNumber
-	state.developmentCardHeadIndex++
+	playerState := state.playersStates[playerID]
+	if playerState.Resources["Sheep"] < 1 || playerState.Resources["Grain"] < 1 || playerState.Resources["Ore"] < 1 {
+		err := fmt.Errorf("Cannot buy development card: insufficient resources")
+		return err
+	}
 
-	state.playerDevelopmentHandMap[playerID][card.Name] = append(state.playerDevelopmentHandMap[playerID][card.Name], card)
+	card, err := state.development.Draw()
+	if err != nil {
+		return err
+	}
+	card.RoundBought = state.round.GetRoundNumber()
+
+	playerState.RemoveResource("Sheep", 1)
+	playerState.RemoveResource("Grain", 1)
+	playerState.RemoveResource("Ore", 1)
+	playerState.AddDevelopmentCard(card)
 
 	if card.Name == "Victory Point" {
 		state.updatePoints()
@@ -54,16 +67,13 @@ func (state *GameState) UseKnight(playerID string) error {
 		return err
 	}
 
-	state.currentPlayerNumberOfPlayedDevCards++
-	state.playerDevelopmentCardUsedMap[playerID]["Knight"]++
 	changed := state.recountKnights()
 	if changed {
 		state.updatePoints()
 	}
 	// If game is over, no need to make the player move robber
-	if state.roundType != GameOver {
-		state.roundType = MoveRobberDueKnight
-		return nil
+	if state.round.GetRoundType() != round.GameOver {
+		state.round.SetRoundType(round.MoveRobberDueKnight)
 	}
 	return nil
 }
@@ -74,9 +84,7 @@ func (state *GameState) UseMonopoly(playerID string) error {
 		return err
 	}
 
-	state.currentPlayerNumberOfPlayedDevCards++
-	state.playerDevelopmentCardUsedMap[playerID]["Monopoly"]++
-	state.roundType = MonopolyPickResource
+	state.round.SetRoundType(round.MonopolyPickResource)
 	return nil
 }
 
@@ -86,27 +94,34 @@ func (state *GameState) PickMonopolyResource(playerID, resourceName string) erro
 		return err
 	}
 
-	if state.roundType != MonopolyPickResource {
-		err := fmt.Errorf("Cannot pick monopoly resource during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.MonopolyPickResource {
+		err := fmt.Errorf("Cannot pick monopoly resource during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
+
+	monopolyPlayerState := state.playersStates[playerID]
+
 	// TODO: make resource name typesafe
-	for opponentID, resources := range state.playerResourceHandMap {
-		if opponentID == playerID {
+	for _, player := range state.players {
+		if player.ID == playerID {
 			continue
 		}
-		quantity := resources[resourceName]
-		state.playerResourceHandMap[opponentID][resourceName] = 0
-		state.playerResourceHandMap[playerID][resourceName] += quantity
+		playerState := state.playersStates[player.ID]
+		quantity := playerState.Resources[resourceName]
+		if quantity > 0 {
+			playerState.RemoveResource(resourceName, quantity)
+			monopolyPlayerState.AddResource(resourceName, quantity)
+		}
 	}
 
-	state.roundType = Regular
+	state.round.SetRoundType(round.Regular)
 
 	return nil
 }
 
 func (state *GameState) UseRoadBuilding(playerID string) error {
-	if len(state.playerRoadMap[playerID]) >= state.maxRoads {
+	playerState := state.playersStates[playerID]
+	if len(playerState.Roads) >= state.maxRoads {
 		err := fmt.Errorf("Player cannot build any more roads")
 		return err
 	}
@@ -116,9 +131,7 @@ func (state *GameState) UseRoadBuilding(playerID string) error {
 		return err
 	}
 
-	state.currentPlayerNumberOfPlayedDevCards++
-	state.playerDevelopmentCardUsedMap[playerID]["Road Building"]++
-	state.roundType = BuildRoad1Development
+	state.round.SetRoundType(round.BuildRoad1Development)
 	return nil
 }
 
@@ -128,20 +141,22 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 		return err
 	}
 
-	if state.roundType != BuildRoad1Development && state.roundType != BuildRoad2Development {
-		err := fmt.Errorf("Cannot pick road building spot during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.BuildRoad1Development && roundType != round.BuildRoad2Development {
+		err := fmt.Errorf("Cannot pick road building spot during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
 	// REFACTOR: this is repeating road.go code
-	edge, exists := state.roadMap[edgeID]
+	edge, exists := state.board.GetRoads()[edgeID]
 	if exists {
 		owner := state.findPlayer(edge.Owner)
 		err := fmt.Errorf("Player %s already has road at edge #%d", owner, edgeID)
 		return err
 	}
 
-	if len(state.playerRoadMap[playerID]) >= state.maxRoads {
+	playerState := state.playersStates[playerID]
+	if len(playerState.Roads) >= state.maxRoads {
 		err := fmt.Errorf("Player cannot build any more roads")
 		return err
 	}
@@ -153,18 +168,18 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 	// END REFACTOR
 	state.handleNewRoad(playerID, edgeID)
 
-	if state.roundType == BuildRoad2Development {
-		state.roundType = Regular
+	if state.round.GetRoundType() == round.BuildRoad2Development {
+		state.round.SetRoundType(round.Regular)
 		return nil
 	}
 
 	// Player built last available road during the first build phase of development card
-	if len(state.playerRoadMap[playerID]) >= state.maxCards {
-		state.roundType = Regular
+	if len(playerState.Roads) >= state.maxCards {
+		state.round.SetRoundType(round.Regular)
 		return nil
 	}
 
-	state.roundType = BuildRoad2Development
+	state.round.SetRoundType(round.BuildRoad2Development)
 	return nil
 }
 
@@ -174,9 +189,7 @@ func (state *GameState) UseYearOfPlenty(playerID string) error {
 		return err
 	}
 
-	state.currentPlayerNumberOfPlayedDevCards++
-	state.playerDevelopmentCardUsedMap[playerID]["Year of Plenty"]++
-	state.roundType = YearOfPlentyPickResources
+	state.round.SetRoundType(round.YearOfPlentyPickResources)
 	return nil
 }
 
@@ -186,112 +199,67 @@ func (state *GameState) PickYearOfPlentyResources(playerID, resource1, resource2
 		return err
 	}
 
-	if state.roundType != YearOfPlentyPickResources {
-		err := fmt.Errorf("Cannot pick year of plenty resources during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.YearOfPlentyPickResources {
+		err := fmt.Errorf("Cannot pick year of plenty resources during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	state.playerResourceHandMap[playerID][resource1]++
-	state.playerResourceHandMap[playerID][resource2]++
-	state.roundType = Regular
+	playerState := state.playersStates[playerID]
+	playerState.AddResource(resource1, 1)
+	playerState.AddResource(resource2, 1)
+	state.round.SetRoundType(round.Regular)
 	return nil
 }
 
 func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType string) error {
-	err := state.IsDevCardPlayable(playerID, devCardType)
-	if err != nil {
-		return err
-	}
-
-	// REFACTOR: logic repeated from IsDevCardPlayable
-	index := -1
-	for i, card := range state.playerDevelopmentHandMap[playerID][devCardType] {
-		if card.RoundBought < state.roundNumber {
-			index = i
-			break
-		}
-	}
-	if index == -1 {
-		err := fmt.Errorf("Cannot play development card bought this turn")
-		return err
-	}
-
-	cards := state.playerDevelopmentHandMap[playerID][devCardType]
-	utils.SliceRemove(&cards, index)
-	state.playerDevelopmentHandMap[playerID][devCardType] = cards
-	return nil
-}
-
-// REFACTOR: it's strange to return an error from this function, but makes things easier
-func (state *GameState) IsDevCardPlayable(playerID, devCardType string) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot use knight card during other player's round")
 		return err
 	}
 
+	roundType := state.round.GetRoundType()
 	switch devCardType {
 	case "Knight":
-		if state.roundType != FirstRound && state.roundType != Regular && state.roundType != BetweenTurns {
-			err := fmt.Errorf("Cannot use knight card during %s", RoundTypeTranslation[state.roundType])
+		if roundType != round.FirstRound && roundType != round.Regular && roundType != round.BetweenTurns {
+			err := fmt.Errorf("Cannot use knight card during %s", state.round.GetCurrentRoundTypeDescription())
 			return err
 		}
 	default:
-		if state.roundType != Regular {
-			err := fmt.Errorf("Cannot use %s card during %s", devCardType, RoundTypeTranslation[state.roundType])
+		if roundType != round.Regular {
+			err := fmt.Errorf("Cannot use %s card during %s", devCardType, state.round.GetCurrentRoundTypeDescription())
 			return err
 		}
 	}
 
-	if len(state.playerDevelopmentHandMap[playerID][devCardType]) == 0 {
-		err := fmt.Errorf("Player %s doesn't have a %s card", playerID, devCardType)
+	playerState := state.playersStates[playerID]
+	cards, exists := playerState.DevelopmentCards[devCardType]
+	if !exists {
+		err := fmt.Errorf("Cannot use %s card: not owned", devCardType)
 		return err
 	}
 
-	if state.currentPlayerNumberOfPlayedDevCards >= state.maxDevCardsPerRound {
-		err := fmt.Errorf("Can only play %d development card(s) per turn", state.maxDevCardsPerRound)
+	if playerState.NumDevCardsPlayedTurn >= state.maxDevCardsPerRound {
+		err := fmt.Errorf("Cannot use %s card: can only play %d development card(s) per turn", devCardType, state.maxDevCardsPerRound)
 		return err
 	}
 
-	index := -1
-	for i, card := range state.playerDevelopmentHandMap[playerID][devCardType] {
-		if card.RoundBought < state.roundNumber {
-			index = i
+	var cardToUse *coreT.DevelopmentCard
+	for _, card := range cards {
+		if card.RoundBought < state.round.GetRoundNumber() {
+			cardToUse = card
 			break
 		}
 	}
-	if index == -1 {
-		err := fmt.Errorf("Cannot play development card bought this turn")
+	if cardToUse == nil {
+		err := fmt.Errorf("Cannot use %s card: bought this turn", devCardType)
 		return err
 	}
-
-	return nil
-}
-
-func (state *GameState) IsBuyDevelopmentCardAvailable(playerID string) error {
-	if playerID != state.currentPlayer().ID {
-		err := fmt.Errorf("Cannot buy development card during other player's round")
-		return err
-	}
-
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot buy development card during %s", RoundTypeTranslation[state.roundType])
-		return err
-	}
-
-	if state.developmentCardHeadIndex >= len(state.developmentCards) {
-		err := fmt.Errorf("There is no development card left")
-		return err
-	}
-
-	resources := state.playerResourceHandMap[playerID]
-	if resources["Sheep"] < 1 || resources["Grain"] < 1 || resources["Ore"] < 1 {
-		err := fmt.Errorf("Insufficient resources to buy a development card")
-		return err
-	}
+	playerState.ConsumeDevelopmentCard(cardToUse)
 
 	return nil
 }
 
 func (state *GameState) NumberOfKnightsUsedByPlayer(playerID string) int {
-	return state.playerDevelopmentCardUsedMap[playerID]["Knight"]
+	playerState := state.playersStates[playerID]
+	return playerState.UsedDevelopmentCards["Knight"]
 }

@@ -155,7 +155,7 @@ export namespace SettlersMatch {
     };
     "match.update-pick-robbed": {
       enabled: boolean;
-      options: SettlersCore.Player["name"][];
+      options: SettlersCore.Player["name"][] | null;
     };
     "match.update-discard-phase": {
       discardAmounts: Record<SettlersCore.Player["name"], number>;

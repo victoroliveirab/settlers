@@ -1,16 +1,16 @@
-package trade_test
+package core
 
 import (
 	"fmt"
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestTradeWithBankWithAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  1,
@@ -38,9 +38,9 @@ func TestTradeWithBankWithAvailableResources(t *testing.T) {
 }
 
 func TestTradeWithBankWithNoAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  1,
@@ -68,10 +68,10 @@ func TestTradeWithBankWithNoAvailableResources(t *testing.T) {
 }
 
 func TestTradeWithBankByRound(t *testing.T) {
-	createGame := func(roundType int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithResourcesByPlayer(map[string]map[string]int{
 				"1": {
 					"Lumber": 4,
 					"Brick":  1,
@@ -84,26 +84,26 @@ func TestTradeWithBankByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		testUtils.SetupSettlement1:          true,
-		testUtils.SetupRoad1:                true,
-		testUtils.SetupSettlement2:          true,
-		testUtils.SetupRoad2:                true,
-		testUtils.FirstRound:                true,
-		testUtils.Regular:                   false,
-		testUtils.MoveRobberDue7:            true,
-		testUtils.MoveRobberDueKnight:       true,
-		testUtils.PickRobbed:                true,
-		testUtils.BetweenTurns:              true,
-		testUtils.BuildRoad1Development:     true,
-		testUtils.BuildRoad2Development:     true,
-		testUtils.MonopolyPickResource:      true,
-		testUtils.YearOfPlentyPickResources: true,
-		testUtils.DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			err := game.MakeBankTrade("1", map[string]int{"Lumber": 4}, map[string]int{"Ore": 1})
@@ -116,9 +116,9 @@ func TestTradeWithBankByRound(t *testing.T) {
 }
 
 func TestTradeWithBankNotPlayerRound(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"2": {
 				"Lumber": 1,
 				"Brick":  1,

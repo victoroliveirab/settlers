@@ -1,16 +1,17 @@
-package trade_test
+package core
 
 import (
 	"fmt"
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
+	"github.com/victoroliveirab/settlers/core/packages/trade"
 )
 
 func TestCreateTradeOfferWithAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -61,9 +62,9 @@ func TestCreateTradeOfferWithAvailableResources(t *testing.T) {
 }
 
 func TestCreateTradeOfferWithNoAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  0,
@@ -100,10 +101,10 @@ func TestCreateTradeOfferWithNoAvailableResources(t *testing.T) {
 }
 
 func TestCreateTradeOfferByRound(t *testing.T) {
-	createGame := func(roundType int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithResourcesByPlayer(map[string]map[string]int{
 				"1": {
 					"Lumber": 1,
 					"Brick":  1,
@@ -116,26 +117,26 @@ func TestCreateTradeOfferByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		testUtils.SetupSettlement1:          true,
-		testUtils.SetupRoad1:                true,
-		testUtils.SetupSettlement2:          true,
-		testUtils.SetupRoad2:                true,
-		testUtils.FirstRound:                true,
-		testUtils.Regular:                   false,
-		testUtils.MoveRobberDue7:            true,
-		testUtils.MoveRobberDueKnight:       true,
-		testUtils.PickRobbed:                true,
-		testUtils.BetweenTurns:              true,
-		testUtils.BuildRoad1Development:     true,
-		testUtils.BuildRoad2Development:     true,
-		testUtils.MonopolyPickResource:      true,
-		testUtils.YearOfPlentyPickResources: true,
-		testUtils.DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			_, err := game.MakeTradeOffer("1",
@@ -155,9 +156,9 @@ func TestCreateTradeOfferByRound(t *testing.T) {
 }
 
 func TestCreateTradeOfferNotPlayerRound(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"2": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -181,9 +182,9 @@ func TestCreateTradeOfferNotPlayerRound(t *testing.T) {
 }
 
 func TestCreateTradeOfferWithBlockedPlayers(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -212,9 +213,9 @@ func TestCreateTradeOfferWithBlockedPlayers(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferWithAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -271,9 +272,9 @@ func TestCreateCounterTradeOfferWithAvailableResources(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferOfCounterTradeOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -331,9 +332,9 @@ func TestCreateCounterTradeOfferOfCounterTradeOffer(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferWithNoAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -385,9 +386,9 @@ func TestCreateCounterTradeOfferWithNoAvailableResources(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferNonExistentTradeOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -419,9 +420,9 @@ func TestCreateCounterTradeOfferNonExistentTradeOffer(t *testing.T) {
 }
 
 // func TestCreateCounterTradeOfferParentTradeOfferAlreadyFinalized(t *testing.T) {
-// 	game := testUtils.CreateTestGame(
-// 		testUtils.MockWithRoundType(testUtils.Regular),
-// 		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+// 	game := CreateTestGame(
+// 		MockWithRoundType(Regular),
+// 		MockWithResourcesByPlayer(map[string]map[string]int{
 // 			"1": {
 // 				"Lumber": 1,
 // 				"Brick":  1,
@@ -445,9 +446,9 @@ func TestCreateCounterTradeOfferNonExistentTradeOffer(t *testing.T) {
 // }
 
 func TestCreateCounterTradeOfferAsBlockedPlayer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -488,9 +489,9 @@ func TestCreateCounterTradeOfferAsBlockedPlayer(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferEqualToParentTrade(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -532,10 +533,10 @@ func TestCreateCounterTradeOfferEqualToParentTrade(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferByRound(t *testing.T) {
-	createGame := func(roundType int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithResourcesByPlayer(map[string]map[string]int{
 				"1": {
 					"Lumber": 1,
 					"Brick":  1,
@@ -551,26 +552,26 @@ func TestCreateCounterTradeOfferByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		testUtils.SetupSettlement1:          true,
-		testUtils.SetupRoad1:                true,
-		testUtils.SetupSettlement2:          true,
-		testUtils.SetupRoad2:                true,
-		testUtils.FirstRound:                true,
-		testUtils.Regular:                   false,
-		testUtils.MoveRobberDue7:            true,
-		testUtils.MoveRobberDueKnight:       true,
-		testUtils.PickRobbed:                true,
-		testUtils.BetweenTurns:              true,
-		testUtils.BuildRoad1Development:     true,
-		testUtils.BuildRoad2Development:     true,
-		testUtils.MonopolyPickResource:      true,
-		testUtils.YearOfPlentyPickResources: true,
-		testUtils.DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			tradeID, _ := game.MakeTradeOffer("1",
@@ -598,9 +599,9 @@ func TestCreateCounterTradeOfferByRound(t *testing.T) {
 }
 
 func TestCreateCounterTradeOfferOwnTrade(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -642,9 +643,9 @@ func TestCreateCounterTradeOfferOwnTrade(t *testing.T) {
 }
 
 func TestAcceptTradeOfferWithAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -692,9 +693,9 @@ func TestAcceptTradeOfferWithAvailableResources(t *testing.T) {
 }
 
 func TestAcceptTradeOfferIsCounterTradeOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -749,9 +750,9 @@ func TestAcceptTradeOfferIsCounterTradeOffer(t *testing.T) {
 }
 
 func TestAcceptTradeOfferWithNoAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -788,9 +789,9 @@ func TestAcceptTradeOfferWithNoAvailableResources(t *testing.T) {
 }
 
 func TestAcceptTradeOfferAsBlockedPlayer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -827,9 +828,9 @@ func TestAcceptTradeOfferAsBlockedPlayer(t *testing.T) {
 }
 
 func TestAcceptCounterTradeOfferAsBlockedPlayerOfOriginalTrade(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -884,10 +885,10 @@ func TestAcceptCounterTradeOfferAsBlockedPlayerOfOriginalTrade(t *testing.T) {
 }
 
 func TestAcceptTradeOfferByRound(t *testing.T) {
-	createGame := func(roundType int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithResourcesByPlayer(map[string]map[string]int{
 				"1": {
 					"Lumber": 1,
 					"Brick":  1,
@@ -903,26 +904,26 @@ func TestAcceptTradeOfferByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		testUtils.SetupSettlement1:          true,
-		testUtils.SetupRoad1:                true,
-		testUtils.SetupSettlement2:          true,
-		testUtils.SetupRoad2:                true,
-		testUtils.FirstRound:                true,
-		testUtils.Regular:                   false,
-		testUtils.MoveRobberDue7:            true,
-		testUtils.MoveRobberDueKnight:       true,
-		testUtils.PickRobbed:                true,
-		testUtils.BetweenTurns:              true,
-		testUtils.BuildRoad1Development:     true,
-		testUtils.BuildRoad2Development:     true,
-		testUtils.MonopolyPickResource:      true,
-		testUtils.YearOfPlentyPickResources: true,
-		testUtils.DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			tradeID, _ := game.MakeTradeOffer("1",
@@ -943,9 +944,9 @@ func TestAcceptTradeOfferByRound(t *testing.T) {
 }
 
 func TestAcceptTradeOfferOwnOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -982,9 +983,9 @@ func TestAcceptTradeOfferOwnOffer(t *testing.T) {
 }
 
 func TestAcceptTradeOfferOriginalCreatorTriesToAcceptCounterOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1032,9 +1033,9 @@ func TestAcceptTradeOfferOriginalCreatorTriesToAcceptCounterOffer(t *testing.T) 
 }
 
 func TestAcceptTradeOfferNonExistentTradeOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1063,9 +1064,9 @@ func TestAcceptTradeOfferNonExistentTradeOffer(t *testing.T) {
 // func TestAcceptTradeOfferAlreadyFinalized(t *testing.T) {}
 
 func TestRejectTradeOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1099,23 +1100,23 @@ func TestRejectTradeOffer(t *testing.T) {
 			t.Errorf("expected to reject offer just fine, but actually got error %s", err.Error())
 		}
 
-		trade := game.ActiveTradeOffers()[0]
-		if trade.Responses["2"].Status != "Declined" {
-			t.Errorf("expected player#2 state to be \"Declined\", but actually got %s", trade.Responses["2"].Status)
+		currentTrade := game.ActiveTradeOffers()[0]
+		if currentTrade.Responses["2"].Status != trade.Declined {
+			t.Errorf("expected player#2 state to be \"Declined\", but actually got %s", currentTrade.Responses["2"].Status)
 		}
-		if trade.Responses["3"].Status != "Open" {
-			t.Errorf("expected player#3 state to be \"Open\", but actually got %s", trade.Responses["3"].Status)
+		if currentTrade.Responses["3"].Status != trade.NoResponse {
+			t.Errorf("expected player#3 state to be \"Open\", but actually got %s", currentTrade.Responses["3"].Status)
 		}
-		if trade.Responses["4"].Status != "Open" {
-			t.Errorf("expected player#4 state to be \"Open\", but actually got %s", trade.Responses["4"].Status)
+		if currentTrade.Responses["4"].Status != trade.NoResponse {
+			t.Errorf("expected player#4 state to be \"Open\", but actually got %s", currentTrade.Responses["4"].Status)
 		}
 	})
 }
 
 func TestRejectTradeOfferOwnCreator(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1152,9 +1153,9 @@ func TestRejectTradeOfferOwnCreator(t *testing.T) {
 }
 
 func TestRejectTradeOfferOriginalCreatorRejectsCounterOffer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1214,19 +1215,19 @@ func TestRejectTradeOfferOriginalCreatorRejectsCounterOffer(t *testing.T) {
 		trade1 := game.Trades()[0]
 		trade2 := game.Trades()[1]
 
-		if trade1.Status != testUtils.TradeOpen {
+		if trade1.Status != trade.TradeOpen {
 			t.Errorf("expected parent trade to still be opened, but it actually has status %s", trade1.Status)
 		}
-		if trade2.Status != testUtils.TradeClosed {
+		if trade2.Status != trade.TradeClosed {
 			t.Errorf("expected counter trade to be closed, but it actually has status %s", trade2.Status)
 		}
 	})
 }
 
 func TestRejectTradeOfferAsBlockedPlayer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1263,9 +1264,9 @@ func TestRejectTradeOfferAsBlockedPlayer(t *testing.T) {
 }
 
 func TestFinalizeAcceptedTradeOfferWithAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1338,9 +1339,9 @@ func TestFinalizeAcceptedTradeOfferWithAvailableResources(t *testing.T) {
 }
 
 func TestFinalizeAcceptedTradeOfferWithAccepterNoLongerHavingAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1418,17 +1419,17 @@ func TestFinalizeAcceptedTradeOfferWithAccepterNoLongerHavingAvailableResources(
 			t.Errorf("expected to have 1 active trade offer left, but actually got length %d", len(activeTrades))
 		}
 
-		trade := activeTrades[0]
-		if trade.Responses["2"].Status != testUtils.Declined {
-			t.Errorf("expected player 2 status to auto transition to declined, but actually got status %s", trade.Responses["2"].Status)
+		currentTrade := activeTrades[0]
+		if currentTrade.Responses["2"].Status != trade.Declined {
+			t.Errorf("expected player 2 status to auto transition to declined, but actually got status %s", currentTrade.Responses["2"].Status)
 		}
 	})
 }
 
 func TestFinalizeAcceptedTradeOfferWithRequesterNoLongerHavingAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1510,10 +1511,10 @@ func TestFinalizeAcceptedTradeOfferWithRequesterNoLongerHavingAvailableResources
 }
 
 func TestFinalizeAcceptedTradeOfferByRound(t *testing.T) {
-	createGame := func(roundType int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(roundType),
-			testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	createGame := func(roundType round.Type) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(roundType),
+			MockWithResourcesByPlayer(map[string]map[string]int{
 				"1": {
 					"Lumber": 1,
 					"Brick":  1,
@@ -1529,26 +1530,26 @@ func TestFinalizeAcceptedTradeOfferByRound(t *testing.T) {
 		return game
 	}
 
-	willHaveErrorByRoundType := map[int]bool{
-		testUtils.SetupSettlement1:          true,
-		testUtils.SetupRoad1:                true,
-		testUtils.SetupSettlement2:          true,
-		testUtils.SetupRoad2:                true,
-		testUtils.FirstRound:                true,
-		testUtils.Regular:                   false,
-		testUtils.MoveRobberDue7:            true,
-		testUtils.MoveRobberDueKnight:       true,
-		testUtils.PickRobbed:                true,
-		testUtils.BetweenTurns:              true,
-		testUtils.BuildRoad1Development:     true,
-		testUtils.BuildRoad2Development:     true,
-		testUtils.MonopolyPickResource:      true,
-		testUtils.YearOfPlentyPickResources: true,
-		testUtils.DiscardPhase:              true,
+	willHaveErrorByRoundType := map[round.Type]bool{
+		round.SetupSettlement1:          true,
+		round.SetupRoad1:                true,
+		round.SetupSettlement2:          true,
+		round.SetupRoad2:                true,
+		round.FirstRound:                true,
+		round.Regular:                   false,
+		round.MoveRobberDue7:            true,
+		round.MoveRobberDueKnight:       true,
+		round.PickRobbed:                true,
+		round.BetweenTurns:              true,
+		round.BuildRoad1Development:     true,
+		round.BuildRoad2Development:     true,
+		round.MonopolyPickResource:      true,
+		round.YearOfPlentyPickResources: true,
+		round.DiscardPhase:              true,
 	}
 
 	for roundType, willHaveError := range willHaveErrorByRoundType {
-		testname := fmt.Sprintf("round type: %s, will have error: %v", testUtils.RoundTypeTranslation[roundType], willHaveError)
+		testname := fmt.Sprintf("round type: %d, will have error: %v", roundType, willHaveError)
 		t.Run(testname, func(t *testing.T) {
 			game := createGame(roundType)
 			tradeID, _ := game.MakeTradeOffer("1",
@@ -1570,9 +1571,9 @@ func TestFinalizeAcceptedTradeOfferByRound(t *testing.T) {
 }
 
 func TestFinalizeCounterOfferWithAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -1652,9 +1653,9 @@ func TestFinalizeCounterOfferWithAvailableResources(t *testing.T) {
 }
 
 func TestFinalizeTradeOfferWithActiveCounterOfferAndAvailableResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,

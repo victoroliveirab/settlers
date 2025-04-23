@@ -3,7 +3,7 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -43,10 +43,10 @@ func handleEdgeClick(player *entities.GamePlayer, message *types.WebSocketClient
 
 func handleEdgeClickSetupResponse(room *entities.Room, logs []string) {
 	game := room.Game
-	if game.RoundType() == core.FirstRound {
+	if game.RoundType() == round.FirstRound {
 		room.ProgressStatus()
 		logs = append(logs, "Setup phase is over.", "Match starting. Good luck to everyone!")
-		room.StartSubRound(core.FirstRound)
+		room.StartSubRound(round.FirstRound)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
 			UpdateMapState,
@@ -77,10 +77,10 @@ func handleEdgeClickSetupResponse(room *entities.Room, logs []string) {
 	}
 }
 
-func handleEdgeClickMatchResponse(room *entities.Room, prevRoundType int, logs []string) {
-	if prevRoundType == core.BuildRoad1Development {
-		room.StartSubRound(core.BuildRoad2Development)
-	} else if prevRoundType == core.BuildRoad2Development {
+func handleEdgeClickMatchResponse(room *entities.Room, prevRoundType round.Type, logs []string) {
+	if prevRoundType == round.BuildRoad1Development {
+		room.StartSubRound(round.BuildRoad2Development)
+	} else if prevRoundType == round.BuildRoad2Development {
 		room.ResumeRound()
 	}
 

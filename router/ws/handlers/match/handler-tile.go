@@ -3,7 +3,7 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -44,22 +44,22 @@ func handleMoveRobberResponse(room *entities.Room) {
 
 	logs := make([]string, 0)
 	logs = append(logs, fmt.Sprintf("%s moved the robber.", currentRoundPlayer))
-	if roundType == core.Regular || roundType == core.BetweenTurns {
+	if roundType == round.Regular || roundType == round.BetweenTurns {
 		logs = append(logs, fmt.Sprintf("No player to rob."))
-		if roundType == core.Regular {
+		if roundType == round.Regular {
 			room.ResumeRound()
 		} else {
 			// NOTE: this resets the counter instead of keeping in running, but I guess it's fine
-			room.StartSubRound(core.BetweenTurns)
+			room.StartSubRound(round.BetweenTurns)
 		}
 	} else if len(robbablePlayers) == 1 {
 		game.RobPlayer(currentRoundPlayer, robbablePlayers[0])
 		logs = append(logs, fmt.Sprintf("%s robbed %s.", currentRoundPlayer, robbablePlayers[0]))
-		if roundType == core.Regular {
+		if roundType == round.Regular {
 			room.ResumeRound()
 		} else {
 			// NOTE: this resets the counter instead of keeping in running, but I guess it's fine
-			room.StartSubRound(core.BetweenTurns)
+			room.StartSubRound(round.BetweenTurns)
 		}
 	} else {
 		logs = append(logs, fmt.Sprintf("%s choosing who to rob.", currentRoundPlayer))

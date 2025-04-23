@@ -3,13 +3,13 @@ package utils
 import (
 	"fmt"
 	"strings"
-)
 
-var resourcesOrder [5]string = [5]string{"Lumber", "Brick", "Sheep", "Grain", "Ore"}
+	"github.com/victoroliveirab/settlers/core"
+)
 
 func FormatResources(collection map[string]int) string {
 	var sb strings.Builder
-	for _, resource := range resourcesOrder {
+	for _, resource := range core.ResourcesOrder {
 		quantity, ok := collection[resource]
 		if !ok || quantity == 0 {
 			continue

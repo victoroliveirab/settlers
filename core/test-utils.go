@@ -1,3 +1,5 @@
+//go:build test
+
 package core
 
 import (
@@ -5,7 +7,7 @@ import (
 	"strconv"
 
 	mapsdefinitions "github.com/victoroliveirab/settlers/core/maps"
-	"github.com/victoroliveirab/settlers/core/types"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
 )
@@ -21,21 +23,6 @@ type GameStateMock struct {
 }
 
 type GameStateOption func(*GameState)
-
-func GetAllRounds() []int {
-	return []int{
-		SetupSettlement1,
-		SetupRoad1,
-		SetupSettlement2,
-		SetupRoad2,
-		FirstRound,
-		Regular,
-		MoveRobberDue7,
-		PickRobbed,
-		BetweenTurns,
-		DiscardPhase,
-	}
-}
 
 func CreateTestGame(opts ...GameStateOption) *GameState {
 	mapsdefinitions.LoadMap("base4")
@@ -113,15 +100,19 @@ func CreateTestGameWithRand(randGenerator *rand.Rand, opts ...GameStateOption) *
 	return &game
 }
 
-func MockWithRoundType(roundType int) GameStateOption {
+func MockWithRoundType(roundType round.Type) GameStateOption {
 	return func(gs *GameState) {
-		gs.roundType = roundType
+		gs.round.SetRoundType(roundType)
+		// Hack to have a dice set since the round type is already regular
+		if roundType == round.Regular {
+			gs.round.SetDice(1, 1)
+		}
 	}
 }
 
 func MockWithRoundNumber(roundNumber int) GameStateOption {
 	return func(gs *GameState) {
-		gs.roundNumber = roundNumber
+		gs.round.SetRoundNumber(roundNumber)
 	}
 }
 
@@ -138,26 +129,29 @@ func MockWithCurrentRoundPlayer(playerID string) GameStateOption {
 
 func MockWithResourcesByPlayer(resourcesByPlayer map[string]map[string]int) GameStateOption {
 	return func(gs *GameState) {
-		gs.playerResourceHandMap = resourcesByPlayer
+		for _, player := range gs.players {
+			playerState := gs.playersStates[player.ID]
+			playerState.Resources = resourcesByPlayer[player.ID]
+		}
 	}
 }
 
 func MockWithDevelopmentsByPlayer(developmentCardsByPlayer map[string]map[string][]*coreT.DevelopmentCard) GameStateOption {
 	return func(gs *GameState) {
-		gs.playerDevelopmentHandMap = developmentCardsByPlayer
+		for _, player := range gs.players {
+			playerState := gs.playersStates[player.ID]
+			playerState.DevelopmentCards = developmentCardsByPlayer[player.ID]
+		}
 	}
 }
 
 func MockWithSettlementsByPlayer(settlementsByPlayer map[string][]int) GameStateOption {
 	return func(gs *GameState) {
-		gs.playerSettlementMap = settlementsByPlayer
-		gs.settlementMap = make(map[int]Building)
-		for playerID, settlements := range settlementsByPlayer {
-			for _, vertexID := range settlements {
-				gs.settlementMap[vertexID] = Building{
-					ID:    vertexID,
-					Owner: playerID,
-				}
+		for _, player := range gs.players {
+			playerState := gs.playersStates[player.ID]
+			playerState.Settlements = settlementsByPlayer[player.ID]
+			for _, vertexID := range settlementsByPlayer[player.ID] {
+				gs.board.AddSettlement(player.ID, vertexID)
 			}
 		}
 	}
@@ -165,14 +159,11 @@ func MockWithSettlementsByPlayer(settlementsByPlayer map[string][]int) GameState
 
 func MockWithCitiesByPlayer(citiesByPlayer map[string][]int) GameStateOption {
 	return func(gs *GameState) {
-		gs.playerCityMap = citiesByPlayer
-		gs.cityMap = make(map[int]Building)
-		for playerID, cities := range citiesByPlayer {
-			for _, vertexID := range cities {
-				gs.cityMap[vertexID] = Building{
-					ID:    vertexID,
-					Owner: playerID,
-				}
+		for _, player := range gs.players {
+			playerState := gs.playersStates[player.ID]
+			playerState.Cities = citiesByPlayer[player.ID]
+			for _, vertexID := range citiesByPlayer[player.ID] {
+				gs.board.AddCity(player.ID, vertexID)
 			}
 		}
 	}
@@ -183,9 +174,10 @@ func MockWithCitiesByPlayer(citiesByPlayer map[string][]int) GameStateOption {
 func MockWithPortsByPlayer(portsByPlayer map[string][]string) GameStateOption {
 	return func(gs *GameState) {
 		for playerID, ports := range portsByPlayer {
+			playerState := gs.playersStates[playerID]
 			for _, port := range ports {
 				vertexID := -1
-				for candidateVertexID, portType := range gs.ports {
+				for candidateVertexID, portType := range gs.board.Ports {
 					if portType == port {
 						vertexID = candidateVertexID
 					}
@@ -193,12 +185,9 @@ func MockWithPortsByPlayer(portsByPlayer map[string][]string) GameStateOption {
 				if vertexID == -1 {
 					panic(portsByPlayer)
 				}
-				gs.settlementMap[vertexID] = Building{
-					ID:    vertexID,
-					Owner: playerID,
-				}
-				gs.playerSettlementMap[playerID] = append(gs.playerSettlementMap[playerID], vertexID)
-				gs.playerPortMap[playerID] = append(gs.playerPortMap[playerID], vertexID)
+				gs.board.AddSettlement(playerID, vertexID)
+				playerState.AddSettlement(vertexID)
+				playerState.AddPort(vertexID, gs.board.Ports[vertexID])
 			}
 		}
 	}
@@ -206,27 +195,24 @@ func MockWithPortsByPlayer(portsByPlayer map[string][]string) GameStateOption {
 
 func MockWithRoadsByPlayer(roadsByPlayer map[string][]int) GameStateOption {
 	return func(gs *GameState) {
-		gs.playerRoadMap = roadsByPlayer
-		gs.roadMap = make(map[int]Building)
-		for playerID, roads := range roadsByPlayer {
-			for _, edgeID := range roads {
-				gs.roadMap[edgeID] = Building{
-					ID:    edgeID,
-					Owner: playerID,
-				}
+		for _, player := range gs.players {
+			playerState := gs.playersStates[player.ID]
+			playerState.Roads = roadsByPlayer[player.ID]
+			for _, edgeID := range roadsByPlayer[player.ID] {
+				gs.board.AddRoad(player.ID, edgeID)
 			}
-			gs.computeLongestRoad(playerID)
+			gs.computeLongestRoad(player.ID)
 		}
 	}
 }
 
 func MockWithBlockedTile(tileID int) GameStateOption {
 	return func(gs *GameState) {
-		for _, tile := range gs.tiles {
+		for i, tile := range gs.board.GetTiles() {
 			if tile.ID == tileID {
-				tile.Blocked = true
+				gs.board.BlockTileByIndex(i)
 			} else {
-				tile.Blocked = false
+				gs.board.UnblockTileByIndex(i)
 			}
 		}
 	}
@@ -235,18 +221,7 @@ func MockWithBlockedTile(tileID int) GameStateOption {
 func MockWithUsedDevelopmentCardsByPlayer(developmentCardsUsedByPlayer map[string]map[string]int) GameStateOption {
 	return func(gs *GameState) {
 		for playerID, devCards := range developmentCardsUsedByPlayer {
-			gs.playerDevelopmentCardUsedMap[playerID] = devCards
-		}
-	}
-}
-
-func MockWithNextDevelopmentCard(name string) GameStateOption {
-	return func(gs *GameState) {
-		for i := 0; i < len(gs.developmentCards); i++ {
-			if gs.developmentCards[i].Name == name {
-				gs.developmentCardHeadIndex = i
-				break
-			}
+			gs.playersStates[playerID].UsedDevelopmentCards = devCards
 		}
 	}
 }
@@ -268,12 +243,9 @@ func MockWithRand(r *rand.Rand) GameStateOption {
 	}
 }
 
-func MockWithPeekDevCards(ptr *func() []*types.DevelopmentCard) GameStateOption {
+func MockWithNextDevelopmentCard(name string) GameStateOption {
 	return func(gs *GameState) {
-		f := func() []*types.DevelopmentCard {
-			return gs.developmentCards
-		}
-		*ptr = f
+		gs.development.SetCardByIndex(0, name)
 	}
 }
 

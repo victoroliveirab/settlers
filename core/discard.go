@@ -1,25 +1,30 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/victoroliveirab/settlers/core/packages/round"
+)
 
 func (state *GameState) DiscardPlayerCards(playerID string, resources map[string]int) error {
-	if state.roundType != DiscardPhase {
-		err := fmt.Errorf("Cannot discard during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.DiscardPhase {
+		err := fmt.Errorf("Cannot discard cards during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	playerDiscardAmount := state.discardAmountByPlayer(playerID)
+	playerState := state.playersStates[playerID]
+	playerDiscardAmount := playerState.DiscardAmount
 	if playerDiscardAmount == 0 {
-		err := fmt.Errorf("Player mustn't discard")
+		err := fmt.Errorf("Cannot discard cards: player mustn't discard")
 		return err
 	}
 
-	if state.playerDiscardedCurrentRoundMap[playerID] {
-		err := fmt.Errorf("Player already discarded this round")
+	if playerState.HasDiscardedThisRound {
+		err := fmt.Errorf("Cannot discard cards: player already discarded this round")
 		return err
 	}
 
-	playerHand := state.playerResourceHandMap[playerID]
+	playerHand := playerState.Resources
 	discardingTotal := 0
 
 	for resource, quantity := range resources {
@@ -36,20 +41,20 @@ func (state *GameState) DiscardPlayerCards(playerID string, resources map[string
 	}
 
 	for resource, quantity := range resources {
-		state.playerResourceHandMap[playerID][resource] -= quantity
+		playerState.RemoveResource(resource, quantity)
 	}
-	state.playerDiscardedCurrentRoundMap[playerID] = true
+	playerState.HasDiscardedThisRound = true
 
 	for _, player := range state.players {
-		if state.playerDiscardedCurrentRoundMap[player.ID] {
+		playerState := state.playersStates[player.ID]
+		if playerState.HasDiscardedThisRound {
 			continue
 		}
-		playerDiscardAmount := state.discardAmountByPlayer(player.ID)
-		if playerDiscardAmount > 0 {
+		if playerState.DiscardAmount > 0 {
 			return nil
 		}
 	}
 
-	state.roundType = MoveRobberDue7
+	state.round.SetRoundType(round.MoveRobberDue7)
 	return nil
 }

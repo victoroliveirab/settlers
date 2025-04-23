@@ -5,7 +5,7 @@ import (
 	"maps"
 	"math/rand"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
@@ -18,9 +18,9 @@ func OnSetupRoundTimeoutCurry(room *entities.Room) func() {
 		currentRoundPlayer := game.CurrentRoundPlayer().ID
 		currentRoundType := game.RoundType()
 
-		logger.LogSystemMessage(fmt.Sprintf("onSetupRoundTimeout.%s", room.ID), fmt.Sprintf("handling timeout on %s for player %s", core.RoundTypeTranslation[currentRoundType], currentRoundPlayer))
+		logger.LogSystemMessage(fmt.Sprintf("onSetupRoundTimeout.%s", room.ID), fmt.Sprintf("handling timeout on %s for player %s", round.RoundTypeTranslation[currentRoundType], currentRoundPlayer))
 
-		if currentRoundType == core.SetupSettlement1 || currentRoundType == core.SetupSettlement2 {
+		if currentRoundType == round.SetupSettlement1 || currentRoundType == round.SetupSettlement2 {
 			availableSettlements, _ := game.AvailableVertices(currentRoundPlayer)
 			vertexID := utils.SliceGetRandom(availableSettlements, room.Rand)
 			game.BuildSettlement(currentRoundPlayer, vertexID)
@@ -102,7 +102,7 @@ func OnBuildRoadDevelopmentTimeoutCurry(room *entities.Room) func() {
 		game := room.Game
 		currentRoundPlayer := game.CurrentRoundPlayer().ID
 		var numberOfRoadsToBuild int
-		if game.RoundType() == core.BuildRoad1Development {
+		if game.RoundType() == round.BuildRoad1Development {
 			numberOfRoadsToBuild = 2
 		} else {
 			numberOfRoadsToBuild = 1
@@ -121,7 +121,7 @@ func OnBuildRoadDevelopmentTimeoutCurry(room *entities.Room) func() {
 		}
 
 		// Force it back to regular round count
-		handleEdgeClickMatchResponse(room, core.BuildRoad2Development, logs)
+		handleEdgeClickMatchResponse(room, round.BuildRoad2Development, logs)
 	}
 }
 

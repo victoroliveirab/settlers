@@ -3,7 +3,7 @@ package match
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -25,7 +25,7 @@ func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientR
 func handleEndRoundResponse(room *entities.Room, player string) {
 	room.EndRound()
 	room.StartRound()
-	room.StartSubRound(core.BetweenTurns)
+	room.StartSubRound(round.BetweenTurns)
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,
 		UpdateDiceState,

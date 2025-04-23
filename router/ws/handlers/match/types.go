@@ -3,7 +3,8 @@ package match
 import (
 	"time"
 
-	"github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/board"
+	"github.com/victoroliveirab/settlers/core/packages/trade"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -29,10 +30,10 @@ type edgesStateUpdateResponsePayload struct {
 }
 
 type mapStateUpdateResponsePayload struct {
-	BlockedTiles []int                 `json:"blockedTiles"`
-	Cities       map[int]core.Building `json:"cities"`
-	Roads        map[int]core.Building `json:"roads"`
-	Settlements  map[int]core.Building `json:"settlements"`
+	BlockedTiles []int                  `json:"blockedTiles"`
+	Cities       map[int]board.Building `json:"cities"`
+	Roads        map[int]board.Building `json:"roads"`
+	Settlements  map[int]board.Building `json:"settlements"`
 }
 
 type portStateUpdateResponsePayload struct {
@@ -89,7 +90,7 @@ type pickRobbedStateUpdate struct {
 }
 
 type updateActiveTradeOffersStateUpdate struct {
-	Offers []core.Trade `json:"offers"`
+	Offers []trade.Trade `json:"offers"`
 }
 
 type pointsStateUpdate struct {
@@ -114,7 +115,7 @@ type yearOfPlentyStateUpdate struct {
 
 type hydrateSetupMatchResponsePayload struct {
 	EdgeUpdate        *types.WebSocketServerResponse `json:"edgeUpdate"`
-	Map               []*coreT.MapBlock              `json:"map"`
+	Map               []coreT.MapBlock               `json:"map"`
 	MapName           string                         `json:"mapName"`
 	MapUpdate         *types.WebSocketServerResponse `json:"mapUpdate"`
 	Players           []coreT.Player                 `json:"players"`
@@ -134,7 +135,7 @@ type hydrateOngoingMatchResponsePayload struct {
 	HandUpdate               *types.WebSocketServerResponse `json:"handUpdate"`
 	KnightsUsageUpdate       *types.WebSocketServerResponse `json:"knightsUsageUpdate"`
 	LongestRoadUpdate        *types.WebSocketServerResponse `json:"longestRoadUpdate"`
-	Map                      []*coreT.MapBlock              `json:"map"`
+	Map                      []coreT.MapBlock               `json:"map"`
 	MapName                  string                         `json:"mapName"`
 	MapUpdate                *types.WebSocketServerResponse `json:"mapUpdate"`
 	MonopolyUpdate           *types.WebSocketServerResponse `json:"monopolyUpdate"`

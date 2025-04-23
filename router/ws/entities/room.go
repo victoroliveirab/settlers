@@ -5,6 +5,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
@@ -227,7 +228,7 @@ func (room *Room) assignNewOwner() error {
 	return err
 }
 
-func (room *Room) CreateRoundManager(onTimeout func(), onExpireFuncs map[int]func()) error {
+func (room *Room) CreateRoundManager(onTimeout func(), onExpireFuncs map[round.Type]func()) error {
 	if room.roundManager != nil {
 		err := fmt.Errorf("Error: room#%s already has a round manager initialized", room.ID)
 		return err
@@ -256,7 +257,7 @@ func (room *Room) ResumeRound() error {
 	return nil
 }
 
-func (room *Room) StartSubRound(phase int) error {
+func (room *Room) StartSubRound(phase round.Type) error {
 	if room.roundManager == nil {
 		err := fmt.Errorf("Error: room#%s doesn't have a round manager initialized", room.ID)
 		return err
