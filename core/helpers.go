@@ -40,6 +40,27 @@ func (state *GameState) IsStartTradeAllowed(playerID string) bool {
 	return isPlayerRound && roundType == round.Regular
 }
 
+// FIXME: get hand to see if it has the required resources
+func (state *GameState) IsBuyDevCardAllowed(playerID string) bool {
+	isPlayerRound := state.IsPlayerTurn(playerID)
+	roundType := state.round.GetRoundType()
+	return isPlayerRound && roundType == round.Regular
+}
+
+func (state *GameState) IsDevCardPlayable(playerID string, devCardType string) bool {
+	playerState := state.playersStates[playerID]
+	cards := playerState.DevelopmentCards[devCardType]
+	if len(cards) == 0 {
+		return false
+	}
+	for _, card := range cards {
+		if card.RoundBought < state.round.GetRoundNumber() {
+			return true
+		}
+	}
+	return false
+}
+
 func (state *GameState) IsRoadBuilding() bool {
 	roundType := state.round.GetRoundType()
 	return roundType == round.SetupRoad1 ||
