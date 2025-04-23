@@ -8,7 +8,7 @@ interface IMonopolyProps {
 
 export const Monopoly = ({ onClick }: IMonopolyProps) => {
   return (
-    <ul>
+    <ul className="flex justify-center gap-6">
       {resourcesOrder.map((resource) => (
         <li key={resource}>
           <GameCard
