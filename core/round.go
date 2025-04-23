@@ -3,51 +3,56 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
 func (state *GameState) handleChangeSetupRoundType() {
-	if state.roundType == SetupSettlement1 || state.roundType == SetupSettlement2 {
-		if state.roundType == SetupSettlement1 {
-			state.roundType = SetupRoad1
+	currentRoundType := state.round.GetRoundType()
+	if currentRoundType == round.SetupSettlement1 || currentRoundType == round.SetupSettlement2 {
+		if currentRoundType == round.SetupSettlement1 {
+			state.round.SetRoundType(round.SetupRoad1)
 		} else {
-			state.roundType = SetupRoad2
+			state.round.SetRoundType(round.SetupRoad2)
 		}
 		return
 	}
-	if state.roundType == SetupRoad1 {
+	if currentRoundType == round.SetupRoad1 {
 		state.currentPlayerIndex++
 		if state.currentPlayerIndex == len(state.players) {
-			state.roundType = SetupSettlement2
+			state.round.SetRoundType(round.SetupSettlement2)
 			state.currentPlayerIndex--
 		} else {
-			state.roundType = SetupSettlement1
+			state.round.SetRoundType(round.SetupSettlement1)
 		}
 		return
 	}
-	if state.roundType == SetupRoad2 {
+	if currentRoundType == round.SetupRoad2 {
 		state.currentPlayerIndex--
 		if state.currentPlayerIndex < 0 {
-			state.roundType = FirstRound
+			state.round.SetRoundType(round.FirstRound)
 			state.currentPlayerIndex = 0
 			state.handOffInitialResources()
 		} else {
-			state.roundType = SetupSettlement2
+			state.round.SetRoundType(round.SetupSettlement2)
 		}
 		return
 	}
 }
 
 func (state *GameState) handOffInitialResources() {
-	for playerID, settlementsIDs := range state.playerSettlementMap {
+	tiles := state.board.GetTiles()
+	for _, player := range state.players {
+		playerState := state.playersStates[player.ID]
+		settlementsIDs := playerState.Settlements
 		vertexID := settlementsIDs[1]
-		tilesIndexes := state.definition.TilesByVertex[vertexID]
+		tilesIndexes := state.board.Definition.TilesByVertex[vertexID]
 		for _, index := range tilesIndexes {
-			tile := state.tiles[index]
+			tile := tiles[index]
 			if tile.Resource == "Desert" {
 				continue
 			}
-			state.playerResourceHandMap[playerID][tile.Resource]++
+			playerState.AddResource(tile.Resource, 1)
 		}
 	}
 }
@@ -58,44 +63,47 @@ func (state *GameState) RollDice(playerID string) error {
 		return err
 	}
 
-	if state.roundType != FirstRound && state.roundType != BetweenTurns {
-		err := fmt.Errorf("Cannot roll dice during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.FirstRound && roundType != round.BetweenTurns {
+		err := fmt.Errorf("Cannot roll dice during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	if state.dice1 > 0 || state.dice2 > 0 {
+	dice := state.round.GetDice()
+	if dice[0] > 0 || dice[1] > 0 {
 		err := fmt.Errorf("Cannot roll dice twice in round")
 		return err
 	}
 
-	state.dice1 = state.rand.Intn(6) + 1
-	state.dice2 = state.rand.Intn(6) + 1
-
-	sum := state.dice1 + state.dice2
+	dice1 := state.rand.Intn(6) + 1
+	dice2 := state.rand.Intn(6) + 1
+	state.round.SetDice(dice1, dice2)
+	sum := dice1 + dice2
 
 	if sum == 7 {
 		state.handle7()
 		return nil
 	}
 
-	for _, tile := range state.tiles {
+	for _, tile := range state.board.GetTiles() {
 		if tile.Token != sum || tile.Blocked || tile.Resource == "Desert" {
 			continue
 		}
 		for _, vertice := range tile.Vertices {
-			for player, settlementVertice := range state.playerSettlementMap {
-				if utils.SliceContains(settlementVertice, vertice) {
-					state.playerResourceHandMap[player][tile.Resource]++
+			for _, player := range state.players {
+				playerState := state.playersStates[player.ID]
+				settlements := playerState.Settlements
+				if utils.SliceContains(settlements, vertice) {
+					playerState.AddResource(tile.Resource, 1)
 				}
-			}
-			for player, cityVertice := range state.playerCityMap {
-				if utils.SliceContains(cityVertice, vertice) {
-					state.playerResourceHandMap[player][tile.Resource] += 2
+				cities := playerState.Cities
+				if utils.SliceContains(cities, vertice) {
+					playerState.AddResource(tile.Resource, 2)
 				}
 			}
 		}
 	}
-	state.roundType = Regular
+	state.round.SetRoundType(round.Regular)
 	return nil
 }
 
@@ -105,14 +113,14 @@ func (state *GameState) handle7() {
 		toDiscard := state.discardAmountByPlayer(player.ID)
 		if toDiscard > 0 {
 			shouldMoveToDiscardPhase = true
-			break
+			state.playersStates[player.ID].DiscardAmount = toDiscard
 		}
 	}
 
 	if shouldMoveToDiscardPhase {
-		state.roundType = DiscardPhase
+		state.round.SetRoundType(round.DiscardPhase)
 	} else {
-		state.roundType = MoveRobberDue7
+		state.round.SetRoundType(round.MoveRobberDue7)
 	}
 }
 
@@ -122,32 +130,32 @@ func (state *GameState) EndRound(playerID string) error {
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot end round during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot end round during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	if state.dice1 == 0 && state.dice2 == 0 {
+	dice := state.round.GetDice()
+	if dice[0] == 0 && dice[1] == 0 {
 		err := fmt.Errorf("Cannot end round without rolling dice")
 		return err
 	}
 
-	state.roundNumber += 1
-	state.dice1 = 0
-	state.dice2 = 0
-	state.playerDiscardedCurrentRoundMap = make(map[string]bool)
+	state.round.IncrementRound()
+	state.round.SetDice(0, 0)
+	for _, player := range state.players {
+		playerState := state.playersStates[player.ID]
+		playerState.HasDiscardedThisRound = false
+		playerState.NumDevCardsPlayedTurn = 0
+		playerState.DiscardAmount = 0
+	}
 	newIndex := state.currentPlayerIndex + 1
 	if newIndex >= len(state.players) {
 		newIndex = 0
 	}
 	state.currentPlayerIndex = newIndex
-	state.roundType = BetweenTurns
-	state.currentPlayerNumberOfPlayedDevCards = 0
+	state.round.SetRoundType(round.BetweenTurns)
 
-	for _, trade := range state.playersTrades {
-		if trade.Status == "Open" {
-			state.cancelOffer(trade)
-		}
-	}
+	state.trade.CancelActiveTrades()
 	return nil
 }

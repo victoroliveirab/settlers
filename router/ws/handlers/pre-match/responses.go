@@ -21,7 +21,7 @@ func BuildRoomMessage(room *entities.Room, messageType string) *types.WebSocketS
 func buildStartMatch(room *entities.Room) *types.WebSocketServerResponse {
 	game := room.Game
 	responsePayload := roomStartMatchPayload{
-		Map:           game.Map(),
+		Map:           game.GetBoard(),
 		MapName:       game.MapName(),
 		Players:       game.Players(),
 		Ports:         game.Ports(),

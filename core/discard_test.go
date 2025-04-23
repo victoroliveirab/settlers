@@ -1,16 +1,16 @@
-package tests
+package core
 
 import (
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func TestEnterDiscardPhaseAfter7AndAPlayerHasTooMuchCards(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -19,13 +19,13 @@ func TestEnterDiscardPhaseAfter7AndAPlayerHasTooMuchCards(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("dice 7, must enter discard phase", func(t *testing.T) {
 		game.RollDice("1")
-		if game.RoundType() != testUtils.DiscardPhase {
-			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.DiscardPhase], testUtils.RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.DiscardPhase {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.DiscardPhase), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
@@ -35,10 +35,10 @@ func TestEnterDiscardPhaseAfter7AndAPlayerHasTooMuchCards(t *testing.T) {
 // }
 
 func TestDiscardPlayerCardsDoesntNeedToDiscardError(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 1,
 				"Brick":  1,
@@ -54,7 +54,7 @@ func TestDiscardPlayerCardsDoesntNeedToDiscardError(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, doesn't need to discard", func(t *testing.T) {
@@ -69,10 +69,10 @@ func TestDiscardPlayerCardsDoesntNeedToDiscardError(t *testing.T) {
 }
 
 func TestDiscardPlayerAlreadyDiscardedError(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -81,7 +81,7 @@ func TestDiscardPlayerAlreadyDiscardedError(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, trying to discard twice the same turn", func(t *testing.T) {
@@ -107,10 +107,10 @@ func TestDiscardPlayerAlreadyDiscardedError(t *testing.T) {
 }
 
 func TestDiscardPlayerTryToDiscardMoreResourceThanPossessedError(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -119,7 +119,7 @@ func TestDiscardPlayerTryToDiscardMoreResourceThanPossessedError(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, tries to discard more resources than possessed", func(t *testing.T) {
@@ -135,10 +135,10 @@ func TestDiscardPlayerTryToDiscardMoreResourceThanPossessedError(t *testing.T) {
 }
 
 func TestDiscardPlayerTryToDiscardLessResourcesThanRequiredError(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -147,7 +147,7 @@ func TestDiscardPlayerTryToDiscardLessResourcesThanRequiredError(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, tries to discard less resources than required", func(t *testing.T) {
@@ -163,10 +163,10 @@ func TestDiscardPlayerTryToDiscardLessResourcesThanRequiredError(t *testing.T) {
 }
 
 func TestDiscardPlayerTryToDiscardMoreResourcesThanRequiredError(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -175,7 +175,7 @@ func TestDiscardPlayerTryToDiscardMoreResourcesThanRequiredError(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, tries to discard more resources than required", func(t *testing.T) {
@@ -192,10 +192,10 @@ func TestDiscardPlayerTryToDiscardMoreResourcesThanRequiredError(t *testing.T) {
 }
 
 func TestDiscardPlayerTryToDiscardMoreR(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -204,7 +204,7 @@ func TestDiscardPlayerTryToDiscardMoreR(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, tries to discard more resources than required", func(t *testing.T) {
@@ -221,10 +221,10 @@ func TestDiscardPlayerTryToDiscardMoreR(t *testing.T) {
 }
 
 func TestDiscardPlayerSuccess(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -233,7 +233,7 @@ func TestDiscardPlayerSuccess(t *testing.T) {
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 
 	t.Run("discard attempt, discards correctly", func(t *testing.T) {
@@ -265,17 +265,17 @@ func TestDiscardPlayerSuccess(t *testing.T) {
 			t.Errorf("expected player#1 to have 3 Ore, actually got %d", player1Resources["Ore"])
 		}
 
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.MoveRobberDue7], testUtils.RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDue7 {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.MoveRobberDue7), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }
 
 func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *testing.T) {
-	rand := testUtils.StubRand(7)
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.BetweenTurns),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	rand := StubRand(7)
+	game := CreateTestGame(
+		MockWithRoundType(round.BetweenTurns),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 3,
 				"Brick":  3,
@@ -291,10 +291,14 @@ func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *
 				"Ore":    3,
 			},
 		}),
-		testUtils.MockWithRand(rand),
+		MockWithRand(rand),
 	)
 	t.Run("discard phase, over only after all required players discard", func(t *testing.T) {
 		game.RollDice("1")
+		t.Log("Player1", game.DiscardAmountByPlayer("1"))
+		t.Log("Player2", game.DiscardAmountByPlayer("2"))
+		t.Log("Player3", game.DiscardAmountByPlayer("3"))
+		t.Log("Player4", game.DiscardAmountByPlayer("4"))
 		err := game.DiscardPlayerCards("1", map[string]int{
 			"Lumber": 3,
 			"Brick":  3,
@@ -303,8 +307,8 @@ func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *
 		if err != nil {
 			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != testUtils.DiscardPhase {
-			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.DiscardPhase], testUtils.RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.DiscardPhase {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.DiscardPhase), game.round.GetCurrentRoundTypeDescription())
 		}
 
 		err = game.DiscardPlayerCards("2", map[string]int{
@@ -315,8 +319,8 @@ func TestDiscardPlayerChangeToMoveRobberRoundAfterLastRequiredPlayerDiscards(t *
 		if err != nil {
 			t.Errorf("expected to discard resources correctly, but actually got error %s", err.Error())
 		}
-		if game.RoundType() != testUtils.MoveRobberDue7 {
-			t.Errorf("expected round type to be %s, but it's actually %s", testUtils.RoundTypeTranslation[testUtils.MoveRobberDue7], testUtils.RoundTypeTranslation[game.RoundType()])
+		if game.round.GetRoundType() != round.MoveRobberDue7 {
+			t.Errorf("expected round type to be %s, but it's actually %s", game.round.GetRoundTypeDescription(round.MoveRobberDue7), game.round.GetCurrentRoundTypeDescription())
 		}
 	})
 }

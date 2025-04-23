@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -13,23 +14,24 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 	}
 
 	// REFACTOR: DONT LIKE THIS HERE
-	if state.roundType == BuildRoad1Development || state.roundType == BuildRoad2Development {
+	roundType := state.round.GetRoundType()
+	if roundType == round.BuildRoad1Development || roundType == round.BuildRoad2Development {
 		return state.PickRoadBuildingSpot(playerID, edgeID)
 	}
 
-	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != Regular {
-		err := fmt.Errorf("Cannot build road during %s", RoundTypeTranslation[state.roundType])
+	if roundType != round.SetupRoad1 && roundType != round.SetupRoad2 && roundType != round.Regular {
+		err := fmt.Errorf("Cannot build road during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	edge, exists := state.roadMap[edgeID]
+	edge, exists := state.board.GetRoads()[edgeID]
 	if exists {
 		owner := state.findPlayer(edge.Owner)
 		err := fmt.Errorf("Player %s already has road at edge #%d", owner, edgeID)
 		return err
 	}
 
-	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
+	if roundType == round.SetupRoad1 || roundType == round.SetupRoad2 {
 		if !state.isEdgeAllowedSetupPhase(playerID, edgeID) {
 			err := fmt.Errorf("Cannot build road in this spot (edge#%d) during setup", edgeID)
 			return err
@@ -39,13 +41,15 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 		return nil
 	}
 
-	resources := state.playerResourceHandMap[playerID]
+	playerState := state.playersStates[playerID]
+
+	resources := playerState.Resources
 	if resources["Lumber"] < 1 || resources["Brick"] < 1 {
 		err := fmt.Errorf("Insufficient resources to build a road")
 		return err
 	}
 
-	numberOfRoads := len(state.playerRoadMap[playerID])
+	numberOfRoads := len(playerState.Roads)
 	if numberOfRoads >= state.maxRoads {
 		err := fmt.Errorf("Cannot have more than %d roads at once", state.maxRoads)
 		return err
@@ -56,26 +60,25 @@ func (state *GameState) BuildRoad(playerID string, edgeID int) error {
 		return err
 	}
 
-	state.playerResourceHandMap[playerID]["Lumber"]--
-	state.playerResourceHandMap[playerID]["Brick"]--
+	playerState.RemoveResource("Lumber", 1)
+	playerState.RemoveResource("Brick", 1)
 	state.handleNewRoad(playerID, edgeID)
 
 	return nil
 }
 
 func (state *GameState) isEdgeAllowedSetupPhase(playerID string, edgeID int) bool {
-	vertexID := utils.SliceLast(state.playerSettlementMap[playerID])
-	allowedEdgesIDs := state.definition.EdgesByVertex[vertexID]
+	playerState := state.playersStates[playerID]
+	vertexID := utils.SliceLast(playerState.Settlements)
+	allowedEdgesIDs := state.board.Definition.EdgesByVertex[vertexID]
 	return utils.SliceContains(allowedEdgesIDs, edgeID)
 }
 
 func (state *GameState) handleNewRoad(playerID string, edgeID int) {
-	entry := Building{
-		ID:    edgeID,
-		Owner: playerID,
-	}
-	state.roadMap[edgeID] = entry
-	state.playerRoadMap[playerID] = append(state.playerRoadMap[playerID], edgeID)
+	state.board.AddRoad(playerID, edgeID)
+	playerState := state.playersStates[playerID]
+	playerState.AddRoad(edgeID)
+
 	state.computeLongestRoad(playerID)
 	changed := state.recountLongestRoad()
 	if changed {
@@ -85,8 +88,9 @@ func (state *GameState) handleNewRoad(playerID string, edgeID int) {
 
 func (state *GameState) computeLongestRoad(playerID string) {
 	graph := make(map[int][]int)
-	for _, edgeID := range state.playerRoadMap[playerID] {
-		edge := state.definition.VerticesByEdge[edgeID]
+	playerState := state.playersStates[playerID]
+	for _, edgeID := range playerState.Roads {
+		edge := state.board.Definition.VerticesByEdge[edgeID]
 		vertex1 := edge[0]
 		vertex2 := edge[1]
 
@@ -105,6 +109,8 @@ func (state *GameState) computeLongestRoad(playerID string) {
 
 	var maxPath []int
 	var dfs func(node int, visited map[int]bool, path []int)
+	settlements := state.board.GetSettlements()
+	cities := state.board.GetCities()
 
 	dfs = func(node int, visited map[int]bool, path []int) {
 		if len(path) > len(maxPath) {
@@ -114,15 +120,15 @@ func (state *GameState) computeLongestRoad(playerID string) {
 		for _, edgeID := range graph[node] {
 			if !visited[edgeID] {
 				var vertex int
-				if state.definition.VerticesByEdge[edgeID][0] == node {
-					vertex = state.definition.VerticesByEdge[edgeID][1]
-				} else if state.definition.VerticesByEdge[edgeID][1] == node {
-					vertex = state.definition.VerticesByEdge[edgeID][0]
+				if state.board.Definition.VerticesByEdge[edgeID][0] == node {
+					vertex = state.board.Definition.VerticesByEdge[edgeID][1]
+				} else if state.board.Definition.VerticesByEdge[edgeID][1] == node {
+					vertex = state.board.Definition.VerticesByEdge[edgeID][0]
 				} else {
 					panic(fmt.Sprintf("unknown edgeID %d", edgeID))
 				}
-				settlement, settlementExists := state.settlementMap[vertex]
-				city, cityExists := state.cityMap[vertex]
+				settlement, settlementExists := settlements[vertex]
+				city, cityExists := cities[vertex]
 				if (settlementExists && settlement.Owner != playerID) || (cityExists && city.Owner != playerID) {
 					continue
 				}
@@ -138,7 +144,7 @@ func (state *GameState) computeLongestRoad(playerID string) {
 		dfs(startNode, visited, []int{})
 	}
 
-	state.playerLongestRoad[playerID] = maxPath
+	playerState.LongestRoadSegments = maxPath
 }
 
 func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
@@ -147,50 +153,54 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 		return []int{}, err
 	}
 
-	if state.roundType != SetupRoad1 && state.roundType != SetupRoad2 && state.roundType != Regular && state.roundType != BuildRoad1Development && state.roundType != BuildRoad2Development {
-		err := fmt.Errorf("Cannot check available edges during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.SetupRoad1 && roundType != round.SetupRoad2 && roundType != round.Regular && roundType != round.BuildRoad1Development && roundType != round.BuildRoad2Development {
+		err := fmt.Errorf("Cannot check available edges during %s", state.round.GetCurrentRoundTypeDescription())
 		return []int{}, err
 	}
 
-	if state.roundType == SetupRoad1 || state.roundType == SetupRoad2 {
-		vertexID := utils.SliceLast(state.playerSettlementMap[playerID])
-		allowedEdgesIDs := state.definition.EdgesByVertex[vertexID]
+	playerState := state.playersStates[playerID]
+
+	if roundType == round.SetupRoad1 || roundType == round.SetupRoad2 {
+		vertexID := utils.SliceLast(playerState.Settlements)
+		allowedEdgesIDs := state.board.Definition.EdgesByVertex[vertexID]
 		return allowedEdgesIDs, nil
 	}
 
+	roads := state.board.GetRoads()
 	edges := utils.NewSet[int]()
 
-	for _, edgeID := range state.playerRoadMap[playerID] {
-		edge := state.definition.VerticesByEdge[edgeID]
+	for _, edgeID := range playerState.Roads {
+		edge := state.board.Definition.VerticesByEdge[edgeID]
 		vertex1 := edge[0]
 		vertex2 := edge[1]
 
-		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertex1] {
-			_, exists := state.roadMap[candidateEdgeID]
+		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex1] {
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}
 		}
-		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertex2] {
-			_, exists := state.roadMap[candidateEdgeID]
-			if !exists {
-				edges.Add(candidateEdgeID)
-			}
-		}
-	}
-
-	for _, vertexID := range state.playerSettlementMap[playerID] {
-		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertexID] {
-			_, exists := state.roadMap[candidateEdgeID]
+		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex2] {
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}
 		}
 	}
 
-	for _, vertexID := range state.playerCityMap[playerID] {
-		for _, candidateEdgeID := range state.definition.EdgesByVertex[vertexID] {
-			_, exists := state.roadMap[candidateEdgeID]
+	for _, vertexID := range playerState.Settlements {
+		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertexID] {
+			_, exists := roads[candidateEdgeID]
+			if !exists {
+				edges.Add(candidateEdgeID)
+			}
+		}
+	}
+
+	for _, vertexID := range playerState.Cities {
+		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertexID] {
+			_, exists := roads[candidateEdgeID]
 			if !exists {
 				edges.Add(candidateEdgeID)
 			}

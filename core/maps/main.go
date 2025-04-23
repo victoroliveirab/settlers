@@ -55,10 +55,9 @@ type jsonStructure struct {
 }
 
 type generateMapReturnType struct {
-	Definition       MapDefinition
-	Tiles            []*coreT.MapBlock
-	Ports            map[int]string
-	DevelopmentCards []*coreT.DevelopmentCard
+	Tiles          []coreT.MapBlock
+	RobberPosition int
+	Ports          map[int]string
 }
 
 var MapCollection map[string]jsonStructure = make(map[string]jsonStructure)
@@ -95,16 +94,19 @@ func LoadMap(name string) error {
 	return nil
 }
 
-func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
+func GetMapDefinitions(name string) (*MapDefinition, error) {
 	data, exists := MapCollection[name]
 	if !exists {
-		err := fmt.Errorf("cannot generate unknown map %s", name)
+		err := fmt.Errorf("unknown map: %s", name)
 		return nil, err
 	}
+	return &data.Data, nil
+}
 
-	definitions := data.Data
+func GenerateMap(definitions *MapDefinition, rand *rand.Rand) *generateMapReturnType {
+	robberPosition := -1
 
-	instance := make([]*coreT.MapBlock, 0)
+	instance := make([]coreT.MapBlock, 0)
 	resourcesLeft := make([]int, 0)
 	typesOfResources := len(definitions.Resources)
 
@@ -133,7 +135,7 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		if i+desertShift < len(definitions.Tokens) {
 			token = definitions.Tokens[i+desertShift]
 		}
-		block := &coreT.MapBlock{
+		block := coreT.MapBlock{
 			Resource: resourceName,
 			Token:    token,
 			Blocked:  false,
@@ -144,6 +146,7 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 			desertShift--
 			if !alreadyBlocked {
 				block.Blocked = true
+				robberPosition = i
 				alreadyBlocked = true
 			}
 		}
@@ -152,14 +155,15 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 	}
 	utils.SliceShuffle(instance, rand)
 
-	for index, tile := range instance {
-		tile.ID = index + 1
-		tile.Vertices = definitions.VerticesByTile[tile.ID]
-		tile.Edges = definitions.EdgesByTile[tile.ID]
-		tile.Coordinates = coreT.HexCoordinate{
-			Q: definitions.HexCoordinatesByTile[tile.ID][0],
-			R: definitions.HexCoordinatesByTile[tile.ID][1],
-			S: definitions.HexCoordinatesByTile[tile.ID][2],
+	for index := range instance {
+		tileID := index + 1
+		instance[index].ID = tileID
+		instance[index].Vertices = definitions.VerticesByTile[tileID]
+		instance[index].Edges = definitions.EdgesByTile[tileID]
+		instance[index].Coordinates = coreT.HexCoordinate{
+			Q: definitions.HexCoordinatesByTile[tileID][0],
+			R: definitions.HexCoordinatesByTile[tileID][1],
+			S: definitions.HexCoordinatesByTile[tileID][2],
 		}
 	}
 
@@ -178,18 +182,11 @@ func GenerateMap(name string, rand *rand.Rand) (*generateMapReturnType, error) {
 		ports[vertex2] = portsDefinitions[index]
 	}
 
-	developmentCards := MapToShuffledSlice[*coreT.DevelopmentCard](
-		definitions.DevelopmentCards,
-		func(el string) *coreT.DevelopmentCard { return &coreT.DevelopmentCard{Name: el} },
-		rand,
-	)
-
 	return &generateMapReturnType{
-		Definition:       definitions,
-		DevelopmentCards: developmentCards,
-		Ports:            ports,
-		Tiles:            instance,
-	}, nil
+		RobberPosition: robberPosition,
+		Ports:          ports,
+		Tiles:          instance,
+	}
 }
 
 func GetMetadata(mapName string) (*meta, error) {

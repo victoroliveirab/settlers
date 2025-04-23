@@ -3,7 +3,7 @@ package core
 import (
 	"fmt"
 
-	"github.com/victoroliveirab/settlers/utils"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 )
 
 func (state *GameState) BuildCity(playerID string, vertexID int) error {
@@ -12,45 +12,43 @@ func (state *GameState) BuildCity(playerID string, vertexID int) error {
 		return err
 	}
 
-	if state.roundType != Regular {
-		err := fmt.Errorf("Cannot build city during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.Regular {
+		err := fmt.Errorf("Cannot build city during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	resources := state.playerResourceHandMap[playerID]
-	if resources["Grain"] < 2 || resources["Ore"] < 3 {
+	vertice, exists := state.board.GetSettlements()[vertexID]
+	if exists && vertice.Owner != playerID {
+		owner := state.findPlayer(vertice.Owner)
+		err := fmt.Errorf("Player %s already has settlement at vertex #%d", owner.ID, vertexID)
+		return err
+	}
+
+	vertice, exists = state.board.GetCities()[vertexID]
+	if exists {
+		owner := state.findPlayer(vertice.Owner)
+		err := fmt.Errorf("Player %s already has city at vertex #%d", owner.ID, vertexID)
+		return err
+	}
+
+	playerState := state.playersStates[playerID]
+
+	if !playerState.HasResourcesToBuildCity() {
 		err := fmt.Errorf("Insufficient resources to build a city")
 		return err
 	}
 
-	numberOfCities := len(state.playerCityMap[playerID])
+	numberOfCities := len(playerState.Cities)
 	if numberOfCities >= state.maxCities {
 		err := fmt.Errorf("Cannot have more than %d cities at once", state.maxCities)
 		return err
 	}
 
-	for index, settlementVertexID := range state.playerSettlementMap[playerID] {
-		if settlementVertexID == vertexID {
-			entry := Building{
-				ID:    vertexID,
-				Owner: playerID,
-			}
-			delete(state.settlementMap, vertexID)
-			state.cityMap[vertexID] = entry
+	state.board.AddCity(playerID, vertexID)
+	playerState.AddCity(vertexID)
+	playerState.RemoveResource("Grain", 2)
+	playerState.RemoveResource("Ore", 3)
+	state.updatePoints()
 
-			settlements := state.playerSettlementMap[playerID]
-			utils.SliceRemove(&settlements, index)
-			state.playerSettlementMap[playerID] = settlements
-			state.playerCityMap[playerID] = append(state.playerCityMap[playerID], vertexID)
-
-			state.playerResourceHandMap[playerID]["Grain"] -= 2
-			state.playerResourceHandMap[playerID]["Ore"] -= 3
-
-			state.updatePoints()
-			return nil
-		}
-	}
-
-	err := fmt.Errorf("Cannot build city at vertex#%d since player doesn't have a settlement in that spot", vertexID)
-	return err
+	return nil
 }

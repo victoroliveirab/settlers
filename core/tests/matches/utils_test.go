@@ -48,7 +48,6 @@ func createGameStateStub(opts ...testUtils.GameStateOption) *GameStateStub {
 						if index >= len(expectedHand) {
 							break
 						}
-						// fmt.Printf("index:%d,quantity:%d,resource:%s,currentByte:%s\n", index, quantity, string(resource), string(expectedHand[index]))
 						if expectedHand[index] == entry {
 							quantity++
 							index++
@@ -60,7 +59,6 @@ func createGameStateStub(opts ...testUtils.GameStateOption) *GameStateStub {
 					if actualHand[entryName] != quantity {
 						panic(fmt.Errorf("expected player %s to have %d %s, found %d", playerID, quantity, entryName, actualHand[entryName]))
 					}
-					// fmt.Printf("player:%s, checked %s and has correct quantity, reseting quantity variable\n", playerID, resourceName)
 				}
 			}
 		},

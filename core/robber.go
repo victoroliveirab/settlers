@@ -2,43 +2,46 @@ package core
 
 import (
 	"fmt"
-	"sort"
 
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
+// TODO: add prevTileID here
 func (state *GameState) MoveRobber(playerID string, tileID int) error {
 	if playerID != state.currentPlayer().ID {
 		err := fmt.Errorf("Cannot move robber during other player's turn")
 		return err
 	}
 
-	if state.roundType != MoveRobberDue7 && state.roundType != MoveRobberDueKnight {
-		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
+	roundType := state.round.GetRoundType()
+	if roundType != round.MoveRobberDue7 && roundType != round.MoveRobberDueKnight {
+		err := fmt.Errorf("Cannot move robber during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
-	for _, tile := range state.tiles {
+	for i, tile := range state.board.GetTiles() {
 		if tile.Blocked {
 			if tile.ID == tileID {
 				err := fmt.Errorf("Cannot move robber to already blocked tile - %d", tileID)
 				return err
 			}
-			tile.Blocked = false
+			state.board.UnblockTileByIndex(i)
 			break
 		}
 	}
-	for _, tile := range state.tiles {
+	for i, tile := range state.board.GetTiles() {
 		if tile.ID == tileID {
-			tile.Blocked = true
-			state.roundType = PickRobbed
+			state.board.BlockTileByIndex(i)
+			state.round.SetRoundType(round.PickRobbed)
 			robbablePlayers, _ := state.RobbablePlayers(playerID)
 			if len(robbablePlayers) == 0 {
 				// Used knight before round started
-				if state.dice1 == 0 && state.dice2 == 0 {
-					state.roundType = BetweenTurns
+				dice := state.round.GetDice()
+				if dice[0] == 0 && dice[1] == 0 {
+					state.round.SetRoundType(round.BetweenTurns)
 				} else {
-					state.roundType = Regular
+					state.round.SetRoundType(round.Regular)
 				}
 			}
 			return nil
@@ -56,8 +59,8 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		return err
 	}
 
-	if state.roundType != PickRobbed {
-		err := fmt.Errorf("Cannot move robber during %s", RoundTypeTranslation[state.roundType])
+	if state.round.GetRoundType() != round.PickRobbed {
+		err := fmt.Errorf("Cannot move robber during %s", state.round.GetCurrentRoundTypeDescription())
 		return err
 	}
 
@@ -72,22 +75,18 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 		return err
 	}
 
-	if state.dice1 == 0 && state.dice2 == 0 {
-		state.roundType = BetweenTurns
+	dice := state.round.GetDice()
+	if dice[0] == 0 && dice[1] == 0 {
+		state.round.SetRoundType(round.BetweenTurns)
 	} else {
-		state.roundType = Regular
+		state.round.SetRoundType(round.Regular)
 	}
 
-	// NOTE: this is done to enforce ordering for tests (math/random seed)
-	keys := make([]string, 0, len(state.playerResourceHandMap[robbedID]))
-	for kind := range state.playerResourceHandMap[robbedID] {
-		keys = append(keys, kind)
-	}
-	sort.Strings(keys)
+	robbedState := state.playersStates[robbedID]
 
 	resources := make([]string, 0)
-	for _, resourceName := range keys {
-		quantity := state.playerResourceHandMap[robbedID][resourceName]
+	for _, resourceName := range ResourcesOrder {
+		quantity := robbedState.Resources[resourceName]
 		for i := 0; i < quantity; i++ {
 			resources = append(resources, resourceName)
 		}
@@ -100,27 +99,15 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 
 	robbedResource := resources[state.rand.Intn(len(resources))]
 
-	state.playerResourceHandMap[robberID][robbedResource]++
-	state.playerResourceHandMap[robbedID][robbedResource]--
+	robbedState.RemoveResource(robbedResource, 1)
+	state.playersStates[robberID].AddResource(robbedResource, 1)
 	return nil
 }
 
 func (state *GameState) BlockedTiles() []int {
-	tileIDs := make([]int, 0)
-	for _, tile := range state.tiles {
-		if tile.Blocked {
-			tileIDs = append(tileIDs, tile.ID)
-		}
-	}
-	return tileIDs
+	return state.board.GetBlockedTilesIDs()
 }
 
 func (state *GameState) UnblockedTiles() []int {
-	tileIDs := make([]int, 0)
-	for _, tile := range state.tiles {
-		if !tile.Blocked {
-			tileIDs = append(tileIDs, tile.ID)
-		}
-	}
-	return tileIDs
+	return state.board.GetUnblockedTilesIDs()
 }

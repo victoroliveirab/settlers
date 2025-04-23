@@ -1,14 +1,15 @@
-package tests
+package core
 
 import (
 	"testing"
 
-	testUtils "github.com/victoroliveirab/settlers/core"
+	"github.com/victoroliveirab/settlers/core/packages/board"
+	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
 func TestBuildSettlementSetupPhaseSuccess(t *testing.T) {
-	game := testUtils.CreateTestGame()
+	game := CreateTestGame()
 
 	t.Run("settlement build success (setup phase)", func(t *testing.T) {
 		err := game.BuildSettlement("1", 42)
@@ -19,13 +20,13 @@ func TestBuildSettlementSetupPhaseSuccess(t *testing.T) {
 }
 
 func TestBuildSettlementRegularPhaseSuccess(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -42,8 +43,10 @@ func TestBuildSettlementRegularPhaseSuccess(t *testing.T) {
 			t.Errorf("expected to be able to build settlement in vertex#42 during regular phase, but found error %s", err.Error())
 		}
 
-		settlements := game.AllSettlements()
+		settlements := game.GetAllSettlements()
+		t.Log(settlements)
 		newSettlement := settlements[42]
+		var emptyBuilding = board.Building{Owner: "", ID: 0}
 		if newSettlement == emptyBuilding {
 			t.Errorf("expected new settlement to show up in settlements map, but it didn't")
 		}
@@ -73,16 +76,16 @@ func TestBuildSettlementRegularPhaseSuccess(t *testing.T) {
 }
 
 func TestBuildSettlementErrorAlreadyExistsByPlayer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"1": {32},
 		}),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -101,16 +104,16 @@ func TestBuildSettlementErrorAlreadyExistsByPlayer(t *testing.T) {
 }
 
 func TestBuildSettlementErrorAlreadyExistsOtherPlayer(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithSettlementsByPlayer(map[string][]int{
 			"2": {32},
 		}),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -129,14 +132,14 @@ func TestBuildSettlementErrorAlreadyExistsOtherPlayer(t *testing.T) {
 }
 
 func TestBuildSettlementErrorNotPlayerRound(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithCurrentRoundPlayer("2"),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithCurrentRoundPlayer("2"),
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -155,13 +158,13 @@ func TestBuildSettlementErrorNotPlayerRound(t *testing.T) {
 }
 
 func TestBuildSettlementErrorNotEnoughResources(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 0,
 				"Brick":  1,
@@ -181,13 +184,13 @@ func TestBuildSettlementErrorNotEnoughResources(t *testing.T) {
 }
 
 func TestBuildSettlementErrorNotAppropriateRound(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.MoveRobberDue7),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.MoveRobberDue7),
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -206,16 +209,16 @@ func TestBuildSettlementErrorNotAppropriateRound(t *testing.T) {
 }
 
 func TestBuildSettlementErrorAlreadyExistsCity(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.MoveRobberDue7),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.MoveRobberDue7),
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithCitiesByPlayer(map[string][]int{
+		MockWithCitiesByPlayer(map[string][]int{
 			"2": {42},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -234,9 +237,9 @@ func TestBuildSettlementErrorAlreadyExistsCity(t *testing.T) {
 }
 
 func TestBuildSettlementErrorBuildingWithoutRoad(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -255,16 +258,16 @@ func TestBuildSettlementErrorBuildingWithoutRoad(t *testing.T) {
 }
 
 func TestBuildSettlementErrorAlreadyBuildingSameEdge(t *testing.T) {
-	game := testUtils.CreateTestGame(
-		testUtils.MockWithRoundType(testUtils.Regular),
-		testUtils.MockWithRoadsByPlayer(map[string][]int{
+	game := CreateTestGame(
+		MockWithRoundType(round.Regular),
+		MockWithRoadsByPlayer(map[string][]int{
 			"1": {65},
 		},
 		),
-		testUtils.MockWithSettlementsByPlayer(map[string][]int{
+		MockWithSettlementsByPlayer(map[string][]int{
 			"2": {31},
 		}),
-		testUtils.MockWithResourcesByPlayer(map[string]map[string]int{
+		MockWithResourcesByPlayer(map[string]map[string]int{
 			"1": {
 				"Lumber": 4,
 				"Brick":  3,
@@ -283,12 +286,12 @@ func TestBuildSettlementErrorAlreadyBuildingSameEdge(t *testing.T) {
 }
 
 func TestAvailableVerticesPlayerRoundRegularPhase(t *testing.T) {
-	createGame := func(settlementMap, cityMap, roadMap map[string][]int) *testUtils.GameState {
-		game := testUtils.CreateTestGame(
-			testUtils.MockWithRoundType(testUtils.Regular),
-			testUtils.MockWithSettlementsByPlayer(settlementMap),
-			testUtils.MockWithCitiesByPlayer(cityMap),
-			testUtils.MockWithRoadsByPlayer(roadMap),
+	createGame := func(settlementMap, cityMap, roadMap map[string][]int) *GameState {
+		game := CreateTestGame(
+			MockWithRoundType(round.Regular),
+			MockWithSettlementsByPlayer(settlementMap),
+			MockWithCitiesByPlayer(cityMap),
+			MockWithRoadsByPlayer(roadMap),
 		)
 		return game
 	}

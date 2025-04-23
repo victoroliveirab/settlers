@@ -33,10 +33,10 @@ type roomUpdateResponsePayload struct {
 }
 
 type roomStartMatchPayload struct {
-	Map           []*coreT.MapBlock `json:"map"`
-	MapName       string            `json:"mapName"`
-	Players       []coreT.Player    `json:"players"`
-	Ports         []coreT.Port      `json:"ports"`
-	ResourceCount map[string]int    `json:"resourceCount"`
-	Logs          []string          `json:"logs"`
+	Map           []coreT.MapBlock `json:"map"`
+	MapName       string           `json:"mapName"`
+	Players       []coreT.Player   `json:"players"`
+	Ports         []coreT.Port     `json:"ports"`
+	ResourceCount map[string]int   `json:"resourceCount"`
+	Logs          []string         `json:"logs"`
 }

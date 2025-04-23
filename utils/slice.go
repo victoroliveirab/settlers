@@ -2,6 +2,7 @@ package utils
 
 import (
 	"math/rand"
+	"sort"
 )
 
 func SliceShuffle[T any](slice []T, randGenerator *rand.Rand) {
@@ -55,4 +56,22 @@ func SliceRemove[T any](slice *[]T, index int) {
 func SliceGetRandom[T any](slice []T, randGenerator *rand.Rand) T {
 	index := randGenerator.Intn(len(slice))
 	return slice[index]
+}
+
+func MapToShuffledSlice[T any](instance map[string]int, transformer func(el string) T, rand *rand.Rand) []T {
+	keys := make([]string, 0)
+	for key := range instance {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	slice := make([]T, 0)
+	for _, key := range keys {
+		quantity := instance[key]
+		for i := 0; i < quantity; i++ {
+			slice = append(slice, transformer(key))
+		}
+	}
+	SliceShuffle(slice, rand)
+	return slice
 }
