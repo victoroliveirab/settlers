@@ -125,6 +125,9 @@ export namespace SettlersMatch {
     "match.update-resource-count": {
       resourceCount: Record<SettlersCore.Player["name"], number>;
     };
+    "match.update-dev-hand-count": {
+      devHandCount: Record<SettlersCore.Player["name"], number>;
+    };
     "match.update-logs": string[];
     "match.update-dice": {
       dice: [number, number];
@@ -274,6 +277,7 @@ export namespace SettlersMatch {
   export type MatchSetupHydrateMessage = {
     type: "setup.hydrate";
     payload: {
+      devHandCount: Record<SettlersCore.Player["name"], number>;
       edgeUpdate: SingleIncomingMessage<"setup.update-edges">;
       map: SettlersCore.Map;
       mapName: string;
@@ -290,6 +294,7 @@ export namespace SettlersMatch {
     type: "match.hydrate";
     payload: {
       buyDevCardUpdate: SingleIncomingMessage<"match.update-buy-dev-card">;
+      devHandCount: Record<SettlersCore.Player["name"], number>;
       devHandUpdate: SingleIncomingMessage<"match.update-dev-hand">;
       devHandPermissionsUpdate: SingleIncomingMessage<"match.update-dev-hand-permissions">;
       diceUpdate: SingleIncomingMessage<"match.update-dice">;

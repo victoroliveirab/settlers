@@ -61,6 +61,10 @@ type resourceCountStateUpdateResponsePayload struct {
 	ResourceCount map[string]int `json:"resourceCount"`
 }
 
+type devHandCountStateUpdateResponsePayload struct {
+	DevHandCount map[string]int `json:"devHandCount"`
+}
+
 type moveRobberStateUpdateResponsePayload struct {
 	AvailableTiles []int `json:"availableTiles"`
 	Enabled        bool  `json:"enabled"`
@@ -114,6 +118,7 @@ type yearOfPlentyStateUpdate struct {
 }
 
 type hydrateSetupMatchResponsePayload struct {
+	DevHandCount      map[string]int                 `json:"devHandCount"`
 	EdgeUpdate        *types.WebSocketServerResponse `json:"edgeUpdate"`
 	Map               []coreT.MapBlock               `json:"map"`
 	MapName           string                         `json:"mapName"`
@@ -127,6 +132,7 @@ type hydrateSetupMatchResponsePayload struct {
 
 type hydrateOngoingMatchResponsePayload struct {
 	BuyDevCardUpdate         *types.WebSocketServerResponse `json:"buyDevCardUpdate"`
+	DevHandCount             map[string]int                 `json:"devHandCount"`
 	DevHandUpdate            *types.WebSocketServerResponse `json:"devHandUpdate"`
 	DevHandPermissionsUpdate *types.WebSocketServerResponse `json:"devHandPermissionsUpdate"`
 	DiceUpdate               *types.WebSocketServerResponse `json:"diceUpdate"`

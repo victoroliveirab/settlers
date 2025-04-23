@@ -32,6 +32,7 @@ type MatchState = {
     subDeadline: string | null;
   } | null;
   devHand: SettlersCore.DevHand;
+  devHandCount: Record<SettlersCore.Player["name"], number>;
   devHandPermissions: Record<SettlersCore.DevelopmentCard, boolean>;
   dice: {
     enabled: boolean;
@@ -99,6 +100,7 @@ export const useMatchStore = create<MatchState>(() => ({
     "Victory Point": 0,
     "Year of Plenty": 0,
   },
+  devHandCount: {},
   devHandPermissions: {
     Knight: false,
     Monopoly: false,
@@ -276,6 +278,10 @@ export const setPlayers = (value: SettlersCore.Player[]) => {
 
 export const setResourceCount = (value: Record<string, number>) => {
   return useMatchStore.setState({ resourceCount: value });
+};
+
+export const setDevHandCount = (value: Record<string, number>) => {
+  return useMatchStore.setState({ devHandCount: value });
 };
 
 export const setPoints = (value: Record<string, number>) => {

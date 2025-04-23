@@ -14,6 +14,7 @@ export const Players = () => {
   const pointsByPlayer = useMatchStore((state) => state.points);
   const devHand = useMatchStore((state) => state.devHand);
   const resourceCountByPlayer = useMatchStore((state) => state.resourceCount);
+  const devHandCountByPlayer = useMatchStore((state) => state.devHandCount);
   const username = usePlayerStore((state) => state.username);
 
   return (
@@ -26,7 +27,7 @@ export const Players = () => {
             knightsUsed={knightsUsedByPlayer[player.name]}
             longestRoad={longestRoadByPlayer[player.name]}
             numberOfCardsToDiscard={discardAmountByPlayer[player.name]}
-            numberOfDevCards={0}
+            numberOfDevCards={devHandCountByPlayer[player.name]}
             numberOfResources={resourceCountByPlayer[player.name]}
             points={pointsByPlayer[player.name]}
             extraPoints={player.name === username ? devHand["Victory Point"] : 0}

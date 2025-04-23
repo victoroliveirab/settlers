@@ -32,6 +32,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 		hydrateMsg := &types.WebSocketServerResponse{
 			Type: "setup.hydrate",
 			Payload: hydrateSetupMatchResponsePayload{
+				DevHandCount:      game.NumberOfDevCardsByPlayer(),
 				EdgeUpdate:        edgeState,
 				Map:               game.GetBoard(),
 				MapName:           game.MapName(),
@@ -77,6 +78,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 		Type: "match.hydrate",
 		Payload: hydrateOngoingMatchResponsePayload{
 			BuyDevCardUpdate:         buyDevCardState,
+			DevHandCount:             game.NumberOfDevCardsByPlayer(),
 			DevHandUpdate:            devHandState,
 			DevHandPermissionsUpdate: devHandPermissionsState,
 			DiceUpdate:               diceState,

@@ -5,6 +5,7 @@ import {
   setCities,
   setCurrentRoundPlayer,
   setDevHand,
+  setDevHandCount,
   setDevHandPermissions,
   setDice,
   setDiscard,
@@ -129,6 +130,10 @@ export function reducer(message: SettlersIncomingMessage) {
       setResourceCount(message.payload.resourceCount);
       break;
     }
+    case "match.update-dev-hand-count": {
+      setDevHandCount(message.payload.devHandCount);
+      break;
+    }
     case "setup.update-points":
     case "match.update-points": {
       setPoints(message.payload.points);
@@ -217,6 +222,7 @@ export function reducer(message: SettlersIncomingMessage) {
       setMap(message.payload.map);
       setPlayers(message.payload.players);
       setResourceCount(message.payload.resourceCount);
+      setDevHandCount(message.payload.devHandCount);
       setPorts(message.payload.ports);
 
       setRoads(message.payload.mapUpdate.payload.roads);
@@ -275,6 +281,7 @@ export function reducer(message: SettlersIncomingMessage) {
       setRobber(message.payload.robberMovementUpdate.payload);
 
       setResourceCount(message.payload.resourceCount);
+      setDevHandCount(message.payload.devHandCount);
       setPoints(message.payload.pointsUpdate.payload.points);
       setLongestRoadSizes(message.payload.longestRoadUpdate.payload.longestRoadSizeByPlayer);
       setKnightUsages(message.payload.knightsUsageUpdate.payload.knightUsesByPlayer);

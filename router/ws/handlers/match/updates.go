@@ -150,6 +150,17 @@ func UpdateResourceCount(room *entities.Room, username string) *types.WebSocketS
 	}
 }
 
+func UpdateDevHandCount(room *entities.Room, username string) *types.WebSocketServerResponse {
+	game := room.Game
+	messageType := fmt.Sprintf("%s.update-dev-hand-count", room.Status)
+	return &types.WebSocketServerResponse{
+		Type: types.ResponseType(messageType),
+		Payload: devHandCountStateUpdateResponsePayload{
+			DevHandCount: game.NumberOfDevCardsByPlayer(),
+		},
+	}
+}
+
 func UpdateRobberMovement(room *entities.Room, username string) *types.WebSocketServerResponse {
 	game := room.Game
 	messageType := fmt.Sprintf("%s.update-robber-movement", room.Status)

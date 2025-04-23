@@ -35,6 +35,7 @@ func handleBuyDevCard(player *entities.GamePlayer, message *types.WebSocketClien
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,
 		UpdateResourceCount,
+		UpdateDevHandCount,
 		UpdatePlayerHand,
 		UpdatePlayerDevHand,
 		UpdatePlayerDevHandPermissions,
@@ -65,6 +66,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 		room.StartSubRound(round.MoveRobberDueKnight)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
+			UpdateDevHandCount,
 			UpdateRobberMovement,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
@@ -77,6 +79,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 		room.StartSubRound(round.MonopolyPickResource)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
+			UpdateDevHandCount,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
 			UpdatePass,
@@ -89,6 +92,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 		room.StartSubRound(game.RoundType())
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
+			UpdateDevHandCount,
 			UpdateEdgeState,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
@@ -101,6 +105,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 		room.StartSubRound(round.YearOfPlentyPickResources)
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
+			UpdateDevHandCount,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
 			UpdateYOP,
@@ -110,6 +115,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 	} else {
 		room.EnqueueBulkUpdate(
 			UpdateCurrentRoundPlayerState,
+			UpdateDevHandCount,
 			UpdatePass,
 			UpdateTrade,
 			UpdatePlayerDevHand,
