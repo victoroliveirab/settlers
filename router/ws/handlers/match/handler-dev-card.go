@@ -155,7 +155,12 @@ func handleMonopolyResourceResponse(room *entities.Room, resourceStolen string, 
 	resourceCountAfter := game.NumberOfResourcesByPlayer()[currentRoundPlayer]
 	resourceDiff := resourceCountAfter - resourceCountBefore
 
-	logs := []string{fmt.Sprintf("%s stole [res q=%d v=%s] from the other players", currentRoundPlayer, resourceDiff, resourceStolen)}
+	var logs []string
+	if resourceDiff == 0 {
+		logs = []string{fmt.Sprintf("%s tried to steal [res q=1 v=%s] from the other players, but no one had it!", currentRoundPlayer, resourceStolen)}
+	} else {
+		logs = []string{fmt.Sprintf("%s stole [res q=%d v=%s] from the other players", currentRoundPlayer, resourceDiff, resourceStolen)}
+	}
 	room.ResumeRound()
 	room.EnqueueBulkUpdate(
 		UpdateCurrentRoundPlayerState,
