@@ -3,6 +3,7 @@ import { DevHand } from "./components/dev-hand";
 import { Hand } from "./components/hand";
 import { SettlersMap } from "./components/map";
 import { Players } from "./components/players";
+import { Statistics } from "./components/statistics";
 import { Timer } from "./components/timer";
 
 export const MainArea = () => {
@@ -19,6 +20,9 @@ export const MainArea = () => {
         </div>
         <div className="absolute bottom-0 left-0 flex flex-col">
           <Timer />
+        </div>
+        <div className="absolute top-0 left-0">
+          <Statistics />
         </div>
       </div>
       <hr className="w-full h-px bg-border" />

@@ -31,6 +31,7 @@ import {
   setVertices,
   setYearOfPlenty,
 } from "./match";
+import { setStatistics } from "./match-statistics";
 import type { SettlersIncomingMessage } from "./messages";
 import { setRoom, setRoomCapacity, setRoomParams, setRoomStatus } from "./room";
 
@@ -195,6 +196,10 @@ export function reducer(message: SettlersIncomingMessage) {
     }
     case "match.update-year-of-plenty": {
       setYearOfPlenty(message.payload.enabled);
+      break;
+    }
+    case "match.statistics.success": {
+      setStatistics(message.payload.statistics);
       break;
     }
     case "setup.hydrate": {

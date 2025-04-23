@@ -50,6 +50,7 @@ func (tm *Instance) MakeTradeOffer(
 		Finalized: false,
 		Timestamp: time.Now().UnixMilli(),
 	}
+	tm.stats.AddTradeStarted(playerID)
 	return tradeID, nil
 }
 
@@ -224,19 +225,24 @@ func (tm *Instance) FinalizeTrade(
 	for resource, quantity := range trade.Offer {
 		if quantity > 0 {
 			ownerState.RemoveResource(resource, quantity)
+			tm.stats.AddTradeResourceGiven(playerID, quantity)
 			accepterState.AddResource(resource, quantity)
+			tm.stats.AddTradeResourceReceived(accepterID, quantity)
 		}
 	}
 
 	for resource, quantity := range trade.Request {
 		if quantity > 0 {
 			ownerState.AddResource(resource, quantity)
+			tm.stats.AddTradeResourceReceived(playerID, quantity)
 			accepterState.RemoveResource(resource, quantity)
+			tm.stats.AddTradeResourceGiven(accepterID, quantity)
 		}
 	}
 
 	trade.Finalized = true
 	trade.Status = TradeFinalized
+	tm.stats.AddTradeFinalized(playerID)
 	if trade.ParentID >= 0 {
 		// If finalizing a counter offer, close the parent and all siblings
 		parentID := trade.ParentID

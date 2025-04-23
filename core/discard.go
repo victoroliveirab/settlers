@@ -42,6 +42,7 @@ func (state *GameState) DiscardPlayerCards(playerID string, resources map[string
 
 	for resource, quantity := range resources {
 		playerState.RemoveResource(resource, quantity)
+		state.stats.AddResourceDiscarded(playerID, resource, quantity)
 	}
 	playerState.HasDiscardedThisRound = true
 

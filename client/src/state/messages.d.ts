@@ -201,6 +201,15 @@ export namespace SettlersMatch {
     "match.update-monopoly": {
       enabled: boolean;
     };
+    "match.statistics.success": {
+      statistics: {
+        diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
+        generalDiceStats: Record<number, number>;
+        longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
+        numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
+        pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
+      };
+    };
   };
 
   export type OutgoingMessages = {
@@ -267,6 +276,7 @@ export namespace SettlersMatch {
       resource: SettlersCore.Resource;
     };
     "match.end-round": {};
+    "match.statistics": {};
   };
 
   type SingleIncomingMessage<T extends keyof IncomingMessages = keyof IncomingMessages> = {

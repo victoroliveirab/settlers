@@ -3,6 +3,8 @@ package trade
 import (
 	"fmt"
 	"sort"
+
+	"github.com/victoroliveirab/settlers/core/packages/statistics"
 )
 
 type ResponseStatus string
@@ -46,13 +48,15 @@ type Instance struct {
 	trades           map[int]*Trade
 	parentToChildMap map[int][]int
 	nextTradeID      int
+	stats            *statistics.Instance
 }
 
-func New() *Instance {
+func New(statsHandler *statistics.Instance) *Instance {
 	return &Instance{
 		// activeTrades:     make(map[int]*Trade),
 		parentToChildMap: make(map[int][]int),
 		nextTradeID:      1,
+		stats:            statsHandler,
 		trades:           make(map[int]*Trade),
 	}
 }

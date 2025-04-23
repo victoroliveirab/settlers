@@ -9,6 +9,7 @@ import (
 	"github.com/victoroliveirab/settlers/core/packages/development"
 	"github.com/victoroliveirab/settlers/core/packages/player"
 	"github.com/victoroliveirab/settlers/core/packages/round"
+	"github.com/victoroliveirab/settlers/core/packages/statistics"
 	"github.com/victoroliveirab/settlers/core/packages/trade"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
@@ -32,6 +33,7 @@ type MostKnights struct {
 type GameState struct {
 	board               *board.Instance
 	rand                *rand.Rand
+	stats               *statistics.Instance
 	logs                []StateLog
 	maxCards            int
 	maxSettlements      int
@@ -96,6 +98,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	}
 
 	state.board = board.New(mapName, mapDefinitions, randGenerator)
+	state.stats = statistics.New(players)
 
 	developmentCards := utils.MapToShuffledSlice[*coreT.DevelopmentCard](
 		mapDefinitions.DevelopmentCards,
@@ -156,7 +159,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 		state.playersStates[playerDefinition.ID].DevelopmentCards["Monopoly"] = make([]*coreT.DevelopmentCard, 0)
 	}
 
-	state.trade = trade.New()
+	state.trade = trade.New(state.stats)
 
 	return nil
 }

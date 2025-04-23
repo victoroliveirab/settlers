@@ -48,6 +48,8 @@ func (state *GameState) BuildCity(playerID string, vertexID int) error {
 	playerState.AddCity(vertexID)
 	playerState.RemoveResource("Grain", 2)
 	playerState.RemoveResource("Ore", 3)
+	state.stats.AddResourcesUsed(playerID, "Grain", 2)
+	state.stats.AddResourcesUsed(playerID, "Ore", 3)
 	state.updatePoints()
 
 	return nil

@@ -33,7 +33,11 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 	playerState.RemoveResource("Sheep", 1)
 	playerState.RemoveResource("Grain", 1)
 	playerState.RemoveResource("Ore", 1)
+	state.stats.AddResourcesUsed(playerID, "Sheep", 1)
+	state.stats.AddResourcesUsed(playerID, "Grain", 1)
+	state.stats.AddResourcesUsed(playerID, "Ore", 1)
 	playerState.AddDevelopmentCard(card)
+	state.stats.AddDevCardDrawn(playerID, card.Name)
 
 	if card.Name == "Victory Point" {
 		state.updatePoints()
