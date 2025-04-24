@@ -70,6 +70,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 			UpdateRobberMovement,
 			UpdatePlayerDevHand,
 			UpdatePlayerDevHandPermissions,
+			UpdateKnightUsage,
 			UpdatePass,
 			UpdateTrade,
 			UpdatePoints,
