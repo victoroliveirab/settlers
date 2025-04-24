@@ -131,7 +131,7 @@ func MockWithResourcesByPlayer(resourcesByPlayer map[string]map[string]int) Game
 	return func(gs *GameState) {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
-			playerState.Resources = resourcesByPlayer[player.ID]
+			playerState.SetResources(resourcesByPlayer[player.ID])
 		}
 	}
 }
@@ -140,7 +140,7 @@ func MockWithDevelopmentsByPlayer(developmentCardsByPlayer map[string]map[string
 	return func(gs *GameState) {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
-			playerState.DevelopmentCards = developmentCardsByPlayer[player.ID]
+			playerState.SetDevelopmentCards(developmentCardsByPlayer[player.ID])
 		}
 	}
 }
@@ -149,8 +149,8 @@ func MockWithSettlementsByPlayer(settlementsByPlayer map[string][]int) GameState
 	return func(gs *GameState) {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
-			playerState.Settlements = settlementsByPlayer[player.ID]
 			for _, vertexID := range settlementsByPlayer[player.ID] {
+				playerState.AddSettlement(vertexID)
 				gs.board.AddSettlement(player.ID, vertexID)
 			}
 		}
@@ -161,8 +161,8 @@ func MockWithCitiesByPlayer(citiesByPlayer map[string][]int) GameStateOption {
 	return func(gs *GameState) {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
-			playerState.Cities = citiesByPlayer[player.ID]
 			for _, vertexID := range citiesByPlayer[player.ID] {
+				playerState.AddCity(vertexID)
 				gs.board.AddCity(player.ID, vertexID)
 			}
 		}
@@ -197,8 +197,8 @@ func MockWithRoadsByPlayer(roadsByPlayer map[string][]int) GameStateOption {
 	return func(gs *GameState) {
 		for _, player := range gs.players {
 			playerState := gs.playersStates[player.ID]
-			playerState.Roads = roadsByPlayer[player.ID]
 			for _, edgeID := range roadsByPlayer[player.ID] {
+				playerState.AddRoad(edgeID)
 				gs.board.AddRoad(player.ID, edgeID)
 			}
 			gs.computeLongestRoad(player.ID)
@@ -221,7 +221,7 @@ func MockWithBlockedTile(tileID int) GameStateOption {
 func MockWithUsedDevelopmentCardsByPlayer(developmentCardsUsedByPlayer map[string]map[string]int) GameStateOption {
 	return func(gs *GameState) {
 		for playerID, devCards := range developmentCardsUsedByPlayer {
-			gs.playersStates[playerID].UsedDevelopmentCards = devCards
+			gs.playersStates[playerID].SetUsedDevelopmentCards(devCards)
 		}
 	}
 }

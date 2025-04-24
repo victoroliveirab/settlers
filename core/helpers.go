@@ -49,7 +49,7 @@ func (state *GameState) IsBuyDevCardAllowed(playerID string) bool {
 
 func (state *GameState) IsDevCardPlayable(playerID string, devCardType string) bool {
 	playerState := state.playersStates[playerID]
-	cards := playerState.DevelopmentCards[devCardType]
+	cards := playerState.GetDevelopmentCards()[devCardType]
 	if len(cards) == 0 {
 		return false
 	}

@@ -109,13 +109,6 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 
 	state.playersStates = make(map[string]*player.Instance)
 
-	state.players = make([]coreT.Player, len(players))
-	for i, player := range players {
-		state.players[i] = coreT.Player{
-			ID:    player.ID,
-			Color: player.Color,
-		}
-	}
 	state.logs = make([]StateLog, 0)
 	state.maxCards = params.MaxCards
 	state.maxSettlements = params.MaxSettlements
@@ -138,25 +131,19 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	state.round = round.New()
 	state.currentPlayerIndex = 0
 
+	state.players = make([]coreT.Player, len(players))
 	for i, playerDefinition := range players {
 		state.players[i] = coreT.Player{
 			ID:    playerDefinition.ID,
 			Color: playerDefinition.Color,
 		}
-
-		state.playersStates[playerDefinition.ID] = player.New(playerDefinition)
-		state.playersStates[playerDefinition.ID].UsedDevelopmentCards = map[string]int{
-			"Knight":         0,
-			"Monopoly":       0,
-			"Road Building":  0,
-			"Year of Plenty": 0,
-		}
-
-		state.playersStates[playerDefinition.ID].DevelopmentCards["Knight"] = make([]*coreT.DevelopmentCard, 0)
-		state.playersStates[playerDefinition.ID].DevelopmentCards["Victory Point"] = make([]*coreT.DevelopmentCard, 0)
-		state.playersStates[playerDefinition.ID].DevelopmentCards["Road Building"] = make([]*coreT.DevelopmentCard, 0)
-		state.playersStates[playerDefinition.ID].DevelopmentCards["Year of Plenty"] = make([]*coreT.DevelopmentCard, 0)
-		state.playersStates[playerDefinition.ID].DevelopmentCards["Monopoly"] = make([]*coreT.DevelopmentCard, 0)
+		state.playersStates[playerDefinition.ID] = player.New(playerDefinition, map[string]int{
+			"Lumber": 0,
+			"Brick":  0,
+			"Sheep":  0,
+			"Grain":  0,
+			"Ore":    0,
+		}, map[string][]*coreT.DevelopmentCard{})
 	}
 
 	state.trade = trade.New(state.stats)
@@ -203,7 +190,7 @@ func (state *GameState) Ports() []coreT.Port {
 }
 
 func (state *GameState) PortsByPlayer(playerID string) []string {
-	return state.playersStates[playerID].PortsTypes
+	return state.playersStates[playerID].GetPortTypes()
 }
 
 func (state *GameState) Players() []coreT.Player {
@@ -230,7 +217,7 @@ func (state *GameState) RoundType() round.Type {
 func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int {
 	devHand := make(map[string]int)
 	playerState := state.playersStates[playerID]
-	for name, cards := range playerState.DevelopmentCards {
+	for name, cards := range playerState.GetDevelopmentCards() {
 		devHand[name] = len(cards)
 	}
 	return devHand
@@ -238,7 +225,7 @@ func (state *GameState) DevelopmentHandByPlayer(playerID string) map[string]int 
 
 func (state *GameState) ResourceHandByPlayer(playerID string) map[string]int {
 	playerState := state.playersStates[playerID]
-	return playerState.Resources
+	return playerState.GetResources()
 }
 
 func (state *GameState) NumberOfCardsInHandByPlayer(playerID string) int {
@@ -252,17 +239,17 @@ func (state *GameState) NumberOfCardsInHandByPlayer(playerID string) int {
 
 func (state *GameState) SettlementsByPlayer(playerID string) []int {
 	playerState := state.playersStates[playerID]
-	return playerState.Settlements
+	return playerState.GetSettlements()
 }
 
 func (state *GameState) CitiesByPlayer(playerID string) []int {
 	playerState := state.playersStates[playerID]
-	return playerState.Cities
+	return playerState.GetCities()
 }
 
 func (state *GameState) RoadsByPlayer(playerID string) []int {
 	playerState := state.playersStates[playerID]
-	return playerState.Roads
+	return playerState.GetRoads()
 }
 
 func (state *GameState) LongestRoadLengths() map[string]int {
@@ -275,14 +262,14 @@ func (state *GameState) LongestRoadLengths() map[string]int {
 
 func (state *GameState) LongestRoadLengthByPlayer(playerID string) int {
 	playerState := state.playersStates[playerID]
-	return len(playerState.LongestRoadSegments)
+	return playerState.GetLongestRoadSize()
 }
 
 func (state *GameState) KnightUses() map[string]int {
 	knightUses := make(map[string]int)
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		knightUses[player.ID] = playerState.UsedDevelopmentCards["Knight"]
+		knightUses[player.ID] = playerState.GetKnightCount()
 	}
 	return knightUses
 }
@@ -331,7 +318,7 @@ func (state *GameState) DiscardAmountByPlayer(playerID string) int {
 		return 0
 	}
 	playerState := state.playersStates[playerID]
-	if playerState.HasDiscardedThisRound {
+	if playerState.GetHasDiscardedThisTurn() {
 		return 0
 	}
 	return state.discardAmountByPlayer(playerID)

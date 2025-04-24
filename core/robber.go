@@ -83,10 +83,11 @@ func (state *GameState) RobPlayer(robberID string, robbedID string) error {
 	}
 
 	robbedState := state.playersStates[robbedID]
+	robbedPlayerResources := robbedState.GetResources()
 
 	resources := make([]string, 0)
 	for _, resourceName := range ResourcesOrder {
-		quantity := robbedState.Resources[resourceName]
+		quantity := robbedPlayerResources[resourceName]
 		for i := 0; i < quantity; i++ {
 			resources = append(resources, resourceName)
 		}

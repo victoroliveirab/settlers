@@ -14,6 +14,7 @@ func (tm *Instance) MakeBankTrade(
 	requestedResources map[string]int,
 ) error {
 	availableResourcesToRequest := 0
+	playerResources := playerState.GetResources()
 	for resource, quantity := range givenResources {
 		if quantity == 0 {
 			continue
@@ -22,7 +23,7 @@ func (tm *Instance) MakeBankTrade(
 			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, bankTradeCost)
 			return err
 		}
-		if playerState.Resources[resource] < quantity {
+		if playerResources[resource] < quantity {
 			err := fmt.Errorf("Cannot trade %d of %s with bank: doesn't have that quantity available", quantity, resource)
 			return err
 		}

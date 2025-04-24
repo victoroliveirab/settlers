@@ -19,7 +19,8 @@ func (state *GameState) BuyDevelopmentCard(playerID string) error {
 	}
 
 	playerState := state.playersStates[playerID]
-	if playerState.Resources["Sheep"] < 1 || playerState.Resources["Grain"] < 1 || playerState.Resources["Ore"] < 1 {
+	playerResources := playerState.GetResources()
+	if playerResources["Sheep"] < 1 || playerResources["Grain"] < 1 || playerResources["Ore"] < 1 {
 		err := fmt.Errorf("Cannot buy development card: insufficient resources")
 		return err
 	}
@@ -111,7 +112,8 @@ func (state *GameState) PickMonopolyResource(playerID, resourceName string) erro
 			continue
 		}
 		playerState := state.playersStates[player.ID]
-		quantity := playerState.Resources[resourceName]
+		playerResources := playerState.GetResources()
+		quantity := playerResources[resourceName]
 		if quantity > 0 {
 			playerState.RemoveResource(resourceName, quantity)
 			monopolyPlayerState.AddResource(resourceName, quantity)
@@ -125,7 +127,8 @@ func (state *GameState) PickMonopolyResource(playerID, resourceName string) erro
 
 func (state *GameState) UseRoadBuilding(playerID string) error {
 	playerState := state.playersStates[playerID]
-	if len(playerState.Roads) >= state.maxRoads {
+	playerRoads := playerState.GetRoads()
+	if len(playerRoads) >= state.maxRoads {
 		err := fmt.Errorf("Player cannot build any more roads")
 		return err
 	}
@@ -160,7 +163,8 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 	}
 
 	playerState := state.playersStates[playerID]
-	if len(playerState.Roads) >= state.maxRoads {
+	playerRoads := playerState.GetRoads()
+	if len(playerRoads) >= state.maxRoads {
 		err := fmt.Errorf("Player cannot build any more roads")
 		return err
 	}
@@ -177,8 +181,9 @@ func (state *GameState) PickRoadBuildingSpot(playerID string, edgeID int) error 
 		return nil
 	}
 
+	playerRoads = playerState.GetRoads()
 	// Player built last available road during the first build phase of development card
-	if len(playerState.Roads) >= state.maxCards {
+	if len(playerRoads) >= state.maxCards {
 		state.round.SetRoundType(round.Regular)
 		return nil
 	}
@@ -236,13 +241,14 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 	}
 
 	playerState := state.playersStates[playerID]
-	cards, exists := playerState.DevelopmentCards[devCardType]
+	playerDevCards := playerState.GetDevelopmentCards()
+	cards, exists := playerDevCards[devCardType]
 	if !exists {
 		err := fmt.Errorf("Cannot use %s card: not owned", devCardType)
 		return err
 	}
 
-	if playerState.NumDevCardsPlayedTurn >= state.maxDevCardsPerRound {
+	if playerState.GetNumberOfDevCardsPlayedCurrentTurn() >= state.maxDevCardsPerRound {
 		err := fmt.Errorf("Cannot use %s card: can only play %d development card(s) per turn", devCardType, state.maxDevCardsPerRound)
 		return err
 	}
@@ -265,5 +271,5 @@ func (state *GameState) consumeDevelopmentCardByPlayer(playerID, devCardType str
 
 func (state *GameState) NumberOfKnightsUsedByPlayer(playerID string) int {
 	playerState := state.playersStates[playerID]
-	return playerState.UsedDevelopmentCards["Knight"]
+	return playerState.GetKnightCount()
 }

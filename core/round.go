@@ -44,7 +44,7 @@ func (state *GameState) handOffInitialResources() {
 	tiles := state.board.GetTiles()
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		settlementsIDs := playerState.Settlements
+		settlementsIDs := playerState.GetSettlements()
 		vertexID := settlementsIDs[1]
 		tilesIndexes := state.board.Definition.TilesByVertex[vertexID]
 		for _, index := range tilesIndexes {
@@ -93,7 +93,7 @@ func (state *GameState) RollDice(playerID string) error {
 		for _, vertice := range tile.Vertices {
 			for _, player := range state.players {
 				playerState := state.playersStates[player.ID]
-				settlements := playerState.Settlements
+				settlements := playerState.GetSettlements()
 				if utils.SliceContains(settlements, vertice) {
 					if tile.Blocked {
 						state.stats.AddResourcesBlocked(player.ID, tile.Resource, 1)
@@ -102,7 +102,7 @@ func (state *GameState) RollDice(playerID string) error {
 						state.stats.AddResourceDrawn(player.ID, tile.Resource, 1)
 					}
 				}
-				cities := playerState.Cities
+				cities := playerState.GetCities()
 				if utils.SliceContains(cities, vertice) {
 					if tile.Blocked {
 						state.stats.AddResourcesBlocked(player.ID, tile.Resource, 2)
@@ -124,7 +124,7 @@ func (state *GameState) handle7() {
 		toDiscard := state.discardAmountByPlayer(player.ID)
 		if toDiscard > 0 {
 			shouldMoveToDiscardPhase = true
-			state.playersStates[player.ID].DiscardAmount = toDiscard
+			state.playersStates[player.ID].SetDiscardAmount(toDiscard)
 		}
 	}
 
@@ -156,9 +156,9 @@ func (state *GameState) EndRound(playerID string) error {
 	state.round.SetDice(0, 0)
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		playerState.HasDiscardedThisRound = false
-		playerState.NumDevCardsPlayedTurn = 0
-		playerState.DiscardAmount = 0
+		playerState.SetHasDiscardedThisTurn(false)
+		playerState.ResetNumberOfDevCardsPlayedCurrentTurn()
+		playerState.SetDiscardAmount(0)
 	}
 	newIndex := state.currentPlayerIndex + 1
 	if newIndex >= len(state.players) {

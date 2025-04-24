@@ -12,7 +12,7 @@ func (state *GameState) NumberOfResourcesByPlayer() map[string]int {
 	resourcesByPlayer := make(map[string]int)
 	for player, pState := range state.playersStates {
 		resourcesByPlayer[player] = 0
-		for _, count := range pState.Resources {
+		for _, count := range pState.GetResources() {
 			resourcesByPlayer[player] += count
 		}
 	}
@@ -23,7 +23,7 @@ func (state *GameState) NumberOfDevCardsByPlayer() map[string]int {
 	devCardsByPlayer := make(map[string]int)
 	for player, pState := range state.playersStates {
 		devCardsByPlayer[player] = 0
-		for _, cards := range pState.DevelopmentCards {
+		for _, cards := range pState.GetDevelopmentCards() {
 			devCardsByPlayer[player] += len(cards)
 		}
 	}
@@ -32,7 +32,7 @@ func (state *GameState) NumberOfDevCardsByPlayer() map[string]int {
 
 func (state *GameState) discardAmountByPlayer(playerID string) int {
 	total := 0
-	for _, count := range state.playersStates[playerID].Resources {
+	for _, count := range state.playersStates[playerID].GetResources() {
 		total += count
 	}
 	if total <= state.maxCards {
@@ -74,8 +74,9 @@ func (state *GameState) ownsBuildingApproaching(playerID string, edgeID int) boo
 	vertex2 := state.board.Definition.VerticesByEdge[edgeID][1]
 
 	playerState := state.playersStates[playerID]
-	hasSettlementVertex1 := utils.SliceContains(playerState.Settlements, vertex1)
-	hasSettlementVertex2 := utils.SliceContains(playerState.Settlements, vertex2)
+	settlements := playerState.GetSettlements()
+	hasSettlementVertex1 := utils.SliceContains(settlements, vertex1)
+	hasSettlementVertex2 := utils.SliceContains(settlements, vertex2)
 
 	if hasSettlementVertex1 || hasSettlementVertex2 {
 		return true

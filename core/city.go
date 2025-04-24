@@ -38,7 +38,7 @@ func (state *GameState) BuildCity(playerID string, vertexID int) error {
 		return err
 	}
 
-	numberOfCities := len(playerState.Cities)
+	numberOfCities := len(playerState.GetCities())
 	if numberOfCities >= state.maxCities {
 		err := fmt.Errorf("Cannot have more than %d cities at once", state.maxCities)
 		return err

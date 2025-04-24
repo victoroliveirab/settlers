@@ -13,18 +13,18 @@ func (state *GameState) DiscardPlayerCards(playerID string, resources map[string
 	}
 
 	playerState := state.playersStates[playerID]
-	playerDiscardAmount := playerState.DiscardAmount
+	playerDiscardAmount := playerState.GetDiscardAmount()
 	if playerDiscardAmount == 0 {
 		err := fmt.Errorf("Cannot discard cards: player mustn't discard")
 		return err
 	}
 
-	if playerState.HasDiscardedThisRound {
+	if playerState.GetHasDiscardedThisTurn() {
 		err := fmt.Errorf("Cannot discard cards: player already discarded this round")
 		return err
 	}
 
-	playerHand := playerState.Resources
+	playerHand := playerState.GetResources()
 	discardingTotal := 0
 
 	for resource, quantity := range resources {
@@ -44,14 +44,14 @@ func (state *GameState) DiscardPlayerCards(playerID string, resources map[string
 		playerState.RemoveResource(resource, quantity)
 		state.stats.AddResourceDiscarded(playerID, resource, quantity)
 	}
-	playerState.HasDiscardedThisRound = true
+	playerState.SetHasDiscardedThisTurn(true)
 
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		if playerState.HasDiscardedThisRound {
+		if playerState.GetHasDiscardedThisTurn() {
 			continue
 		}
-		if playerState.DiscardAmount > 0 {
+		if playerState.GetDiscardAmount() > 0 {
 			return nil
 		}
 	}

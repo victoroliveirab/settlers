@@ -13,11 +13,13 @@ func (tm *Instance) MakeGeneralPortTrade(
 	givenResources map[string]int,
 	requestedResources map[string]int,
 ) error {
-	ownedPorts := playerState.PortsTypes
+	ownedPorts := playerState.GetPortTypes()
 	if !utils.SliceContains(ownedPorts, "General") {
 		err := fmt.Errorf("Cannot trade in port General: doesn't own port")
 		return err
 	}
+
+	ownedResources := playerState.GetResources()
 	availableResourcesToRequest := 0
 	for resource, quantity := range givenResources {
 		if quantity == 0 {
@@ -31,7 +33,7 @@ func (tm *Instance) MakeGeneralPortTrade(
 			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, generalPortTradeCost)
 			return err
 		}
-		if playerState.Resources[resource] < quantity {
+		if ownedResources[resource] < quantity {
 			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
 			return err
 		}
@@ -66,7 +68,8 @@ func (tm *Instance) MakeResourcePortTrade(
 	givenResources map[string]int,
 	requestedResources map[string]int,
 ) error {
-	ownedPorts := playerState.PortsTypes
+	ownedPorts := playerState.GetPortTypes()
+	ownedResources := playerState.GetResources()
 	availableResourcesToRequest := 0
 	for resource, quantity := range givenResources {
 		if quantity == 0 {
@@ -80,7 +83,7 @@ func (tm *Instance) MakeResourcePortTrade(
 			err := fmt.Errorf("Cannot trade %d of %s: not a multiple of %d", quantity, resource, resourcePortTradeCost)
 			return err
 		}
-		if playerState.Resources[resource] < quantity {
+		if ownedResources[resource] < quantity {
 			err := fmt.Errorf("Cannot trade %d of %s with port: doesn't have that quantity available", quantity, resource)
 			return err
 		}

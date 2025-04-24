@@ -16,9 +16,10 @@ func (tm *Instance) MakeTradeOffer(
 	players []coreT.Player,
 	blockedPlayers []string,
 ) (int, error) {
-	playerID := playerState.ID
+	playerID := playerState.GetID()
+	ownedResources := playerState.GetResources()
 	for resource, quantity := range givenResources {
-		totalFromOfferedResource := playerState.Resources[resource]
+		totalFromOfferedResource := ownedResources[resource]
 		if totalFromOfferedResource < quantity {
 			err := fmt.Errorf("Cannot make such offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
 			return -1, err
@@ -61,7 +62,7 @@ func (tm *Instance) MakeCounterTradeOffer(
 	requestedResources map[string]int,
 	players []coreT.Player,
 ) (int, error) {
-	playerID := playerState.ID
+	playerID := playerState.GetID()
 	parentTrade, exists := tm.trades[tradeID]
 	if !exists {
 		err := fmt.Errorf("Cannot create counter offer: invalid tradeID %d", tradeID)
@@ -91,8 +92,9 @@ func (tm *Instance) MakeCounterTradeOffer(
 		offeredResources = requestedResources
 	}
 
+	ownedResources := playerState.GetResources()
 	for resource, quantity := range offeredResources {
-		totalFromOfferedResource := playerState.Resources[resource]
+		totalFromOfferedResource := ownedResources[resource]
 		if totalFromOfferedResource < quantity {
 			err := fmt.Errorf("Cannot craate counter offer: wants to give %d %s, but only have %d", quantity, resource, totalFromOfferedResource)
 			return -1, err
@@ -134,7 +136,7 @@ func (tm *Instance) MakeCounterTradeOffer(
 }
 
 func (tm *Instance) AcceptTradeOffer(playerState *player.Instance, tradeID int) error {
-	playerID := playerState.ID
+	playerID := playerState.GetID()
 	trade, exists := tm.trades[tradeID]
 	if !exists {
 		err := fmt.Errorf("Cannot accept trade offer: invalid tradeID %d", tradeID)
@@ -151,8 +153,9 @@ func (tm *Instance) AcceptTradeOffer(playerState *player.Instance, tradeID int) 
 		return err
 	}
 
+	ownedResources := playerState.GetResources()
 	for resource, quantity := range trade.Request {
-		if playerState.Resources[resource] < quantity {
+		if ownedResources[resource] < quantity {
 			err := fmt.Errorf("Cannot accept offer %d: not enough %s", tradeID, resource)
 			return err
 		}
@@ -167,8 +170,8 @@ func (tm *Instance) FinalizeTrade(
 	accepterState *player.Instance,
 	tradeID int,
 ) error {
-	playerID := ownerState.ID
-	accepterID := accepterState.ID
+	playerID := ownerState.GetID()
+	accepterID := accepterState.GetID()
 	trade, exists := tm.trades[tradeID]
 	if !exists {
 		err := fmt.Errorf("Cannot finalize trade offer: invalid tradeID %d", tradeID)
@@ -195,10 +198,11 @@ func (tm *Instance) FinalizeTrade(
 		return err
 	}
 
+	ownerResources := ownerState.GetResources()
 	var err error
 	// Check if original offerer still has the available resources - could have accepted a different offer in the mean time
 	for resource, quantity := range trade.Offer {
-		totalFromOfferedResource := ownerState.Resources[resource]
+		totalFromOfferedResource := ownerResources[resource]
 		if totalFromOfferedResource < quantity {
 			err = fmt.Errorf("Offer %d cannot be accepted at the moment: player %s wants to give %d %s, but only has %d", tradeID, trade.Requester, quantity, resource, totalFromOfferedResource)
 			break
@@ -209,9 +213,10 @@ func (tm *Instance) FinalizeTrade(
 		return err
 	}
 
+	accepterResources := accepterState.GetResources()
 	// Check if accepter still has the available resources - could have accepted a different offer in the mean time
 	for resource, quantity := range trade.Request {
-		totalFromRequestedResource := accepterState.Resources[resource]
+		totalFromRequestedResource := accepterResources[resource]
 		if totalFromRequestedResource < quantity {
 			err = fmt.Errorf("Offer %d cannot be accepted at the moment by player %s: they don't have %d %s", tradeID, accepterID, quantity, resource)
 			break
@@ -266,7 +271,7 @@ func (tm *Instance) FinalizeTrade(
 }
 
 func (tm *Instance) RejectTradeOffer(playerState *player.Instance, tradeID int) error {
-	playerID := playerState.ID
+	playerID := playerState.GetID()
 	trade, exists := tm.trades[tradeID]
 	if !exists {
 		err := fmt.Errorf("Cannot reject trade offer: invalid tradeID %d", tradeID)
@@ -298,7 +303,7 @@ func (tm *Instance) RejectTradeOffer(playerState *player.Instance, tradeID int) 
 }
 
 func (tm *Instance) CancelTradeOffer(playerState *player.Instance, tradeID int) error {
-	playerID := playerState.ID
+	playerID := playerState.GetID()
 	_, exists := tm.trades[tradeID]
 	if !exists {
 		err := fmt.Errorf("Cannot cancel trade offer: invalid tradeID %d", tradeID)

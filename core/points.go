@@ -11,8 +11,7 @@ func (state *GameState) recountLongestRoad() bool {
 	for _, player := range state.players {
 		playerID := player.ID
 		playerState := state.playersStates[playerID]
-		playerLongestRoad := playerState.LongestRoadSegments
-		playerLongestRoadSize := len(playerLongestRoad)
+		playerLongestRoadSize := playerState.GetLongestRoadSize()
 		// REFACTOR: this looks waaay more convoluted than I think it needs to be
 		// By the time I'm writing this, this is the best I came up with
 		if playerLongestRoadSize > longestRoad.Length {
@@ -50,7 +49,7 @@ func (state *GameState) recountKnights() bool {
 	changed := false
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		knightsUsed := playerState.UsedDevelopmentCards["Knight"]
+		knightsUsed := playerState.GetKnightCount()
 		if knightsUsed > state.mostKnights.Quantity && knightsUsed >= state.mostKnightsMinimum {
 			state.mostKnights.PlayerID = player.ID
 			state.mostKnights.Quantity = knightsUsed
@@ -66,9 +65,9 @@ func (state *GameState) updatePoints() {
 		playerID := player.ID
 		playerState := state.playersStates[playerID]
 		sum := 0
-		sum += state.pointsPerSettlement * len(playerState.Settlements)
-		sum += state.pointsPerCity * len(playerState.Cities)
-		sum += len(playerState.DevelopmentCards["Victory Point"])
+		sum += state.pointsPerSettlement * len(playerState.GetSettlements())
+		sum += state.pointsPerCity * len(playerState.GetCities())
+		sum += len(playerState.GetDevelopmentCards()["Victory Point"])
 
 		if state.mostKnights.PlayerID == playerID {
 			sum += state.pointsPerMostKnights

@@ -50,13 +50,13 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 	}
 
 	playerState := state.playersStates[playerID]
-	resources := playerState.Resources
+	resources := playerState.GetResources()
 	if resources["Lumber"] < 1 || resources["Brick"] < 1 || resources["Grain"] < 1 || resources["Sheep"] < 1 {
 		err := fmt.Errorf("Insufficient resources to build a settlement")
 		return err
 	}
 
-	numberOfSettlements := len(playerState.Settlements)
+	numberOfSettlements := len(playerState.GetSettlements())
 	if numberOfSettlements >= state.maxSettlements {
 		err := fmt.Errorf("Cannot have more than %d settlements at once", state.maxSettlements)
 		return err
@@ -127,7 +127,7 @@ func (state *GameState) AvailableVertices(playerID string) ([]int, error) {
 	}
 
 	vertexSet := utils.NewSet[int]()
-	for _, edgeID := range state.playersStates[playerID].Roads {
+	for _, edgeID := range state.playersStates[playerID].GetRoads() {
 		for _, vertexID := range state.board.Definition.VerticesByEdge[edgeID] {
 			_, settlementExists := settlements[vertexID]
 			_, cityExists := cities[vertexID]
