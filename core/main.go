@@ -330,6 +330,10 @@ func (state *GameState) DiscardAmountByPlayer(playerID string) int {
 	if state.round.GetRoundType() != round.DiscardPhase {
 		return 0
 	}
+	playerState := state.playersStates[playerID]
+	if playerState.HasDiscardedThisRound {
+		return 0
+	}
 	return state.discardAmountByPlayer(playerID)
 }
 
