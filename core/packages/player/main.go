@@ -19,7 +19,6 @@ type Instance struct {
 	ports                 []int
 	portsTypes            []string
 	points                int
-	knightCount           int
 	longestRoadSegments   []int
 	numDevCardsPlayedTurn int
 	discardAmount         int
@@ -32,17 +31,14 @@ func New(
 	initialDevCards map[string][]*coreT.DevelopmentCard,
 ) *Instance {
 	return &Instance{
-		id:                    player.ID,
-		resources:             maps.Clone(initialResources),
-		developmentCards:      maps.Clone(initialDevCards),
-		usedDevelopmentCards:  make(map[string]int),
+		id:               player.ID,
+		resources:        maps.Clone(initialResources),
+		developmentCards: maps.Clone(initialDevCards),
 		settlements:           make([]int, 0),
 		cities:                make([]int, 0),
 		roads:                 make([]int, 0),
 		ports:                 make([]int, 0),
 		portsTypes:            make([]string, 0),
-		points:                0,
-		knightCount:           0,
 		longestRoadSegments:   make([]int, 0),
 		numDevCardsPlayedTurn: 0,
 		discardAmount:         0,
@@ -138,6 +134,14 @@ func (p *Instance) GetDevelopmentCards() map[string][]*coreT.DevelopmentCard {
 	return maps.Clone(p.developmentCards)
 }
 
+func (p *Instance) GetNumberOfVictoryPoints() int {
+	cards, exists := p.developmentCards["Victory Point"]
+	if !exists {
+		return 0
+	}
+	return len(cards)
+}
+
 func (p *Instance) GetUsedDevelopmentCards() map[string]int {
 	return maps.Clone(p.usedDevelopmentCards)
 }
@@ -146,23 +150,31 @@ func (p *Instance) GetSettlements() []int {
 	return p.settlements
 }
 
+func (p *Instance) GetNumberOfSettlements() int {
+	return len(p.settlements)
+}
+
 func (p *Instance) GetCities() []int {
 	return p.cities
+}
+
+func (p *Instance) GetNumberOfCities() int {
+	return len(p.cities)
 }
 
 func (p *Instance) GetRoads() []int {
 	return p.roads
 }
 
+func (p *Instance) GetNumberOfRoads() int {
+	return len(p.roads)
+}
+
 func (p *Instance) GetPortTypes() []string {
 	return p.portsTypes
 }
 
-func (p *Instance) GetPoints() int {
-	return p.points
-}
-
-func (p *Instance) GetKnightCount() int {
+func (p *Instance) GetArmySize() int {
 	return p.usedDevelopmentCards["Knight"]
 }
 

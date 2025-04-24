@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/victoroliveirab/settlers/core/packages/statistics"
+	"github.com/victoroliveirab/settlers/core/packages/book-keeping"
 )
 
 type ResponseStatus string
@@ -48,15 +48,15 @@ type Instance struct {
 	trades           map[int]*Trade
 	parentToChildMap map[int][]int
 	nextTradeID      int
-	stats            *statistics.Instance
+	bookKeeping      *bookkeeping.Instance
 }
 
-func New(statsHandler *statistics.Instance) *Instance {
+func New(bookKeepingHandler *bookkeeping.Instance) *Instance {
 	return &Instance{
 		// activeTrades:     make(map[int]*Trade),
 		parentToChildMap: make(map[int][]int),
 		nextTradeID:      1,
-		stats:            statsHandler,
+		bookKeeping:      bookKeepingHandler,
 		trades:           make(map[int]*Trade),
 	}
 }

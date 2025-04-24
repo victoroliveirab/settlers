@@ -12,6 +12,23 @@ func (h HexCoordinate) String() string {
 	return fmt.Sprintf("(q=%d,r=%d,s=%d)", h.Q, h.R, h.S)
 }
 
+// FIXME: redundant for now
+type Settings struct {
+	BankTradeAmount      int
+	MaxCards             int
+	MaxDevCardsPerRound  int
+	MaxSettlements       int
+	MaxCities            int
+	MaxRoads             int
+	TargetPoint          int
+	PointsPerSettlement  int
+	PointsPerCity        int
+	PointsForMostKnights int
+	PointsForLongestRoad int
+	MostKnightsMinimum   int
+	LongestRoadMinimum   int
+}
+
 type MapBlock struct {
 	ID          int           `json:"id"`
 	Resource    string        `json:"resource"`

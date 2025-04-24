@@ -6,10 +6,11 @@ import (
 
 	coreMaps "github.com/victoroliveirab/settlers/core/maps"
 	"github.com/victoroliveirab/settlers/core/packages/board"
+	"github.com/victoroliveirab/settlers/core/packages/book-keeping"
 	"github.com/victoroliveirab/settlers/core/packages/development"
 	"github.com/victoroliveirab/settlers/core/packages/player"
 	"github.com/victoroliveirab/settlers/core/packages/round"
-	"github.com/victoroliveirab/settlers/core/packages/statistics"
+	"github.com/victoroliveirab/settlers/core/packages/summary"
 	"github.com/victoroliveirab/settlers/core/packages/trade"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/utils"
@@ -32,8 +33,8 @@ type MostKnights struct {
 
 type GameState struct {
 	board               *board.Instance
+	bookKeeping         *bookkeeping.Instance
 	rand                *rand.Rand
-	stats               *statistics.Instance
 	logs                []StateLog
 	maxCards            int
 	maxSettlements      int
@@ -71,6 +72,9 @@ type GameState struct {
 
 	// cards related
 	development *development.Instance
+
+	// post-game related
+	summary *summary.Instance
 }
 
 type Params struct {
@@ -98,7 +102,12 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 	}
 
 	state.board = board.New(mapName, mapDefinitions, randGenerator)
-	state.stats = statistics.New(players)
+	state.bookKeeping = bookkeeping.New(players)
+	state.summary = summary.New(
+		state.playersStates,
+		state.GetSettings(),
+		state.bookKeeping,
+	)
 
 	developmentCards := utils.MapToShuffledSlice[*coreT.DevelopmentCard](
 		mapDefinitions.DevelopmentCards,
@@ -146,7 +155,7 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 		}, map[string][]*coreT.DevelopmentCard{})
 	}
 
-	state.trade = trade.New(state.stats)
+	state.trade = trade.New(state.bookKeeping)
 
 	return nil
 }
@@ -162,6 +171,24 @@ func (state *GameState) findPlayer(playerID string) *coreT.Player {
 		}
 	}
 	return nil
+}
+
+func (state *GameState) GetSettings() coreT.Settings {
+	return coreT.Settings{
+		BankTradeAmount:      state.bankTradeAmount,
+		MaxCards:             state.maxCards,
+		MaxDevCardsPerRound:  state.maxDevCardsPerRound,
+		MaxSettlements:       state.maxSettlements,
+		MaxCities:            state.maxCities,
+		MaxRoads:             state.maxRoads,
+		TargetPoint:          state.targetPoint,
+		PointsPerSettlement:  state.pointsPerSettlement,
+		PointsPerCity:        state.pointsPerCity,
+		PointsForMostKnights: state.pointsPerMostKnights,
+		PointsForLongestRoad: state.pointsPerLongestRoad,
+		MostKnightsMinimum:   state.mostKnightsMinimum,
+		LongestRoadMinimum:   state.longestRoadMinimum,
+	}
 }
 
 // Getters
@@ -269,7 +296,7 @@ func (state *GameState) KnightUses() map[string]int {
 	knightUses := make(map[string]int)
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		knightUses[player.ID] = playerState.GetKnightCount()
+		knightUses[player.ID] = playerState.GetArmySize()
 	}
 	return knightUses
 }
@@ -347,5 +374,5 @@ func (state *GameState) Round() int {
 func (state *GameState) EndGame() {
 	state.round.SetRoundType(round.GameOver)
 	state.trade.CancelActiveTrades()
-	state.stats.AddPointsRecord(state.points)
+	state.bookKeeping.AddPointsRecord(state.points)
 }

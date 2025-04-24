@@ -47,7 +47,7 @@ func (state *GameState) recountKnights() bool {
 	changed := false
 	for _, player := range state.players {
 		playerState := state.playersStates[player.ID]
-		knightsUsed := playerState.GetKnightCount()
+		knightsUsed := playerState.GetArmySize()
 		if knightsUsed > state.mostKnights.Quantity && knightsUsed >= state.mostKnightsMinimum {
 			state.mostKnights.PlayerID = player.ID
 			state.mostKnights.Quantity = knightsUsed

@@ -66,10 +66,10 @@ func (state *GameState) BuildSettlement(playerID string, vertexID int) error {
 	playerState.RemoveResource("Brick", 1)
 	playerState.RemoveResource("Sheep", 1)
 	playerState.RemoveResource("Grain", 1)
-	state.stats.AddResourcesUsed(playerID, "Lumber", 1)
-	state.stats.AddResourcesUsed(playerID, "Brick", 1)
-	state.stats.AddResourcesUsed(playerID, "Sheep", 1)
-	state.stats.AddResourcesUsed(playerID, "Grain", 1)
+	state.bookKeeping.AddResourcesUsed(playerID, "Lumber", 1)
+	state.bookKeeping.AddResourcesUsed(playerID, "Brick", 1)
+	state.bookKeeping.AddResourcesUsed(playerID, "Sheep", 1)
+	state.bookKeeping.AddResourcesUsed(playerID, "Grain", 1)
 	state.handleNewSettlement(playerID, vertexID)
 
 	return nil

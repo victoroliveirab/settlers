@@ -79,7 +79,7 @@ func (state *GameState) RollDice(playerID string) error {
 	dice2 := state.rand.Intn(6) + 1
 	state.round.SetDice(dice1, dice2)
 	sum := dice1 + dice2
-	state.stats.AddDiceEntry(playerID, sum)
+	state.bookKeeping.AddDiceEntry(playerID, sum)
 
 	if sum == 7 {
 		state.handle7()
@@ -96,19 +96,19 @@ func (state *GameState) RollDice(playerID string) error {
 				settlements := playerState.GetSettlements()
 				if utils.SliceContains(settlements, vertice) {
 					if tile.Blocked {
-						state.stats.AddResourcesBlocked(player.ID, tile.Resource, 1)
+						state.bookKeeping.AddResourcesBlocked(player.ID, tile.Resource, 1)
 					} else {
 						playerState.AddResource(tile.Resource, 1)
-						state.stats.AddResourceDrawn(player.ID, tile.Resource, 1)
+						state.bookKeeping.AddResourceDrawn(player.ID, tile.Resource, 1)
 					}
 				}
 				cities := playerState.GetCities()
 				if utils.SliceContains(cities, vertice) {
 					if tile.Blocked {
-						state.stats.AddResourcesBlocked(player.ID, tile.Resource, 2)
+						state.bookKeeping.AddResourcesBlocked(player.ID, tile.Resource, 2)
 					} else {
 						playerState.AddResource(tile.Resource, 2)
-						state.stats.AddResourceDrawn(player.ID, tile.Resource, 2)
+						state.bookKeeping.AddResourceDrawn(player.ID, tile.Resource, 2)
 					}
 				}
 			}
@@ -165,8 +165,8 @@ func (state *GameState) EndRound(playerID string) error {
 		newIndex = 0
 	}
 	state.currentPlayerIndex = newIndex
-	state.stats.AddPointsRecord(state.points)
-	state.stats.AddLongestRoadRecord(state.LongestRoadLengths())
+	state.bookKeeping.AddPointsRecord(state.points)
+	state.bookKeeping.AddLongestRoadRecord(state.LongestRoadLengths())
 	state.round.SetRoundType(round.BetweenTurns)
 
 	state.trade.CancelActiveTrades()
