@@ -8,12 +8,12 @@ import { Timer } from "./components/timer";
 
 export const MainArea = () => {
   return (
-    <section className="h-full w-3/4 flex flex-col gap-4 justify-between relative">
+    <section className="h-full w-3/4 flex flex-col gap-2 xl:gap-4 justify-between relative">
       <div>
         <Players />
       </div>
       <hr className="w-full h-px bg-border" />
-      <div className="flex-1 relative">
+      <div className="overflow-hidden flex-1 relative">
         <SettlersMap />
         <div className="absolute top-0 right-0 w-80 flex flex-col gap-1">
           <ActiveTrades />

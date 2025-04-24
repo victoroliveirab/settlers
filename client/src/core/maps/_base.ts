@@ -14,9 +14,9 @@ export default abstract class BaseMapRenderer {
   protected readonly tilesGroupID = "map-tiles";
   protected readonly verticesGroupID = "map-vertices";
 
-  protected hexSize: number;
-  protected outerPadding: number;
-  protected spacingProportion: number;
+  protected hexSize!: number;
+  protected outerPadding!: number;
+  protected spacingProportion!: number;
 
   private darkenTilesTimeoutRef: NodeJS.Timeout | null = null;
 
@@ -29,12 +29,7 @@ export default abstract class BaseMapRenderer {
     >,
     protected readonly username: string,
     protected readonly eventHandlers: EventHandlers,
-  ) {
-    // REFACTOR: workaround, make this responsible someday
-    this.hexSize = 64;
-    this.outerPadding = 50;
-    this.spacingProportion = 1 / 8;
-  }
+  ) {}
 
   protected hexCoordinateToPoint(coordinate: HexCoordinate, hexSize: number, spacing: number) {
     const spacingFactor = 1 + spacing / (Math.sqrt(3) * hexSize);
@@ -105,11 +100,15 @@ export default abstract class BaseMapRenderer {
   }
 
   protected drawNumberToken(center: Point, number: number) {
+    const numberTokenCircleRadius = Math.max(10, this.hexSize / 3);
+    const textFontSize = 0.8 * numberTokenCircleRadius;
+    const frequencyFontSize = 0.9 * textFontSize;
+
     const g = document.createElementNS(this.ns, "g");
     const circle = document.createElementNS(this.ns, "circle");
     circle.setAttribute("cx", String(center.x));
     circle.setAttribute("cy", String(center.y));
-    circle.setAttribute("r", "20");
+    circle.setAttribute("r", String(numberTokenCircleRadius));
     circle.setAttribute("fill", "white");
     circle.setAttribute("stroke", "black");
     circle.setAttribute("stroke-width", "0.1px");
@@ -118,7 +117,7 @@ export default abstract class BaseMapRenderer {
     text.setAttribute("x", String(center.x));
     text.setAttribute("y", String(center.y + 2));
     text.setAttribute("text-anchor", "middle");
-    text.setAttribute("font-size", "18");
+    text.setAttribute("font-size", String(textFontSize));
     text.setAttribute("fill", number === 6 || number === 8 ? "red" : "black");
     text.textContent = String(number);
 
@@ -126,7 +125,7 @@ export default abstract class BaseMapRenderer {
     frequency.setAttribute("x", String(center.x));
     frequency.setAttribute("y", String(center.y + 8));
     frequency.setAttribute("text-anchor", "middle");
-    frequency.setAttribute("font-size", "16");
+    frequency.setAttribute("font-size", String(frequencyFontSize));
     frequency.setAttribute("fill", number === 6 || number === 8 ? "red" : "black");
     let dots = "";
     if (number === 2 || number === 12) {
@@ -216,9 +215,9 @@ export default abstract class BaseMapRenderer {
 
     const path = document.createElementNS(this.ns, "path");
     path.setAttribute("d", arcPath);
-    path.setAttribute("stroke", "blue");
+    path.setAttribute("stroke", "gray");
     path.setAttribute("fill", "none");
-    path.setAttribute("stroke-width", "4");
+    path.setAttribute("stroke-width", "3");
     g.appendChild(path);
 
     const text = document.createElementNS(this.ns, "text");
@@ -381,7 +380,8 @@ export default abstract class BaseMapRenderer {
   }
 
   protected drawRobber(center: Point) {
-    const side = this.hexSize / 2;
+    const side = this.hexSize / 3;
+    const strokeWidth = side / 5;
     const x = center.x;
     const y = center.y - this.hexSize / 2 - 2;
     const height = (Math.sqrt(3) / 2) * side;
@@ -395,7 +395,7 @@ export default abstract class BaseMapRenderer {
     robber.setAttribute("points", points.map(({ x, y }) => `${x},${y}`).join(" "));
     robber.setAttribute("fill", "white");
     robber.setAttribute("stroke", "black");
-    robber.setAttribute("stroke-width", "4");
+    robber.setAttribute("stroke-width", String(strokeWidth));
     return robber;
   }
 
