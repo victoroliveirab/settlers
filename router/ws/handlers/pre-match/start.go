@@ -63,7 +63,7 @@ func StartMatch(player *entities.GamePlayer, room *entities.Room) error {
 	logger.LogSystemMessage("StartMatch", fmt.Sprintf("%s %s %v", room.ID, room.MapName, params))
 
 	room.Game = gameState
-	room.Status = "setup"
+	room.ProgressStatus()
 
 	onSetupRoundTimeout := match.OnSetupRoundTimeoutCurry(room)
 	onRegularRoundTimeout := match.OnRegularRoundTimeoutCurry(room)

@@ -38,5 +38,6 @@ type roomStartMatchPayload struct {
 	Players       []coreT.Player   `json:"players"`
 	Ports         []coreT.Port     `json:"ports"`
 	ResourceCount map[string]int   `json:"resourceCount"`
+	RoomStatus    string           `json:"roomStatus"`
 	Logs          []string         `json:"logs"`
 }

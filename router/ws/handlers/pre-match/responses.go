@@ -26,6 +26,7 @@ func buildStartMatch(room *entities.Room) *types.WebSocketServerResponse {
 		Players:       game.Players(),
 		Ports:         game.Ports(),
 		ResourceCount: game.NumberOfResourcesByPlayer(),
+		RoomStatus:    room.Status,
 		Logs:          []string{},
 	}
 	msg := &types.WebSocketServerResponse{

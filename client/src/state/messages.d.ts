@@ -29,6 +29,7 @@ export namespace SettlersRoom {
       players: SettlersCore.Player[];
       ports: SettlersCore.Ports;
       resourceCount: Record<SettlersCore.Player["name"], number>;
+      roomStatus: string;
     };
   };
 
@@ -296,6 +297,7 @@ export namespace SettlersMatch {
       ports: SettlersCore.Ports;
       resourceCount: Record<SettlersCore.Player["name"], number>;
       roundPlayerUpdate: SingleIncomingMessage<"setup.update-round-player">;
+      roomStatus: string;
       vertexUpdate: SingleIncomingMessage<"setup.update-vertices">;
     };
   };
@@ -324,6 +326,7 @@ export namespace SettlersMatch {
       resourceCount: Record<SettlersCore.Player["name"], number>;
       robbablePlayersUpdate: SingleIncomingMessage<"match.update-pick-robbed">;
       robberMovementUpdate: SingleIncomingMessage<"match.update-robber-movement">;
+      roomStatus: string;
       roundPlayerUpdate: SingleIncomingMessage<"match.update-round-player">;
       tradeActionState: SingleIncomingMessage<"match.update-trade">;
       tradeOffersUpdate: SingleIncomingMessage<"match.update-trade-offers">;

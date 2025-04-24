@@ -76,7 +76,7 @@ export function reducer(message: SettlersIncomingMessage) {
       break;
     }
     case "room.start-game.success": {
-      setRoomStatus("setup"); // This should come from the API
+      setRoomStatus(message.payload.roomStatus);
       setMapName(message.payload.mapName);
       setMap(message.payload.map);
       setPlayers(message.payload.players);
@@ -203,7 +203,7 @@ export function reducer(message: SettlersIncomingMessage) {
       break;
     }
     case "setup.hydrate": {
-      setRoomStatus("setup"); // This should come from the API
+      setRoomStatus(message.payload.roomStatus);
 
       const edges = message.payload.edgeUpdate.payload;
       setEdges(edges.availableEdges, edges.highlight, edges.enabled);
@@ -236,7 +236,7 @@ export function reducer(message: SettlersIncomingMessage) {
       break;
     }
     case "match.hydrate": {
-      setRoomStatus("match"); // This should come from the API
+      setRoomStatus(message.payload.roomStatus);
 
       const edges = message.payload.edgeUpdate.payload;
       setEdges(edges.availableEdges, edges.highlight, edges.enabled);
