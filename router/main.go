@@ -10,6 +10,7 @@ import (
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	"github.com/victoroliveirab/settlers/router/ws/utils"
 
 	"github.com/victoroliveirab/settlers/router/ws/handlers/connect"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
@@ -69,6 +70,7 @@ func SetupRoutes(db *sql.DB) {
 
 			player, err := connect.HandleConnection(wsConn, user, room)
 			if err != nil {
+				utils.WriteJsonError(wsConn, userID, types.RequestType(fmt.Sprintf("%s.reconnect.error", room.Status)), err)
 				return
 			}
 			go player.ListenIncomingMessages(func(msg *types.WebSocketClientRequest) {

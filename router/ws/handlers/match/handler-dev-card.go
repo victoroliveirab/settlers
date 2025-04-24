@@ -5,6 +5,7 @@ import (
 
 	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
+	postmatch "github.com/victoroliveirab/settlers/router/ws/handlers/post-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
@@ -61,7 +62,9 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 	}
 
 	if game.RoundType() == round.GameOver {
-		panic("HANDLE ME")
+		room.EndRound()
+		room.ProgressStatus()
+		room.EnqueueOutgoingMessage(postmatch.BuildPostMatchMessage(room), nil, nil)
 	} else if game.RoundType() == round.MoveRobberDueKnight {
 		room.StartSubRound(round.MoveRobberDueKnight)
 		room.EnqueueBulkUpdate(

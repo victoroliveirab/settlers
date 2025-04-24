@@ -207,10 +207,12 @@ func (room *Room) ProgressStatus() error {
 	}
 	if room.Status == "setup" {
 		room.Status = "match"
+		room.StartDatetime = time.Now().UTC()
 		return nil
 	}
 	if room.Status == "match" {
 		room.Status = "over"
+		room.EndDatetime = time.Now().UTC()
 		return nil
 	}
 	err := fmt.Errorf("Cannot proceed status %s", room.Status)

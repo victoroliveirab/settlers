@@ -295,6 +295,10 @@ export function reducer(message: SettlersIncomingMessage) {
 
       break;
     }
+    case "over.data": {
+      setRoomStatus(message.payload.roomStatus);
+      break;
+    }
     default: {
       console.warn("Unknown websocket message type:", (message as any).type);
     }

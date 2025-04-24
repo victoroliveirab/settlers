@@ -7,6 +7,7 @@ import (
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
+	postmatch "github.com/victoroliveirab/settlers/router/ws/handlers/post-match"
 	prematch "github.com/victoroliveirab/settlers/router/ws/handlers/pre-match"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
@@ -49,9 +50,17 @@ func HandleConnection(conn *types.WebSocketConnection, user *models.User, room *
 		}
 	}
 
-	if !alreadyPartOfRoom || room.Status == "over" {
-		err := fmt.Errorf("Cannot connect to room %s right now: room at %s", room.ID, room.Status)
+	if !alreadyPartOfRoom {
+		err := fmt.Errorf("Cannot connect to room %s right now: room at status %s", room.ID, room.Status)
 		return nil, err
+	}
+
+	if room.Status == "over" {
+		player, err := postmatch.ReconnectPlayer(room, playerID, conn)
+		if err != nil {
+			return nil, err
+		}
+		return player, nil
 	}
 
 	if room.Status == "setup" || room.Status == "match" {

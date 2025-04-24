@@ -343,3 +343,9 @@ func (state *GameState) ActiveTradeOffers() []trade.Trade {
 func (state *GameState) Round() int {
 	return state.round.GetRoundNumber()
 }
+
+func (state *GameState) EndGame() {
+	state.round.SetRoundType(round.GameOver)
+	state.trade.CancelActiveTrades()
+	state.stats.AddPointsRecord(state.points)
+}

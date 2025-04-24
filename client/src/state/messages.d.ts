@@ -211,6 +211,21 @@ export namespace SettlersMatch {
         pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
       };
     };
+
+    "over.data": {
+      points: Record<SettlersCore.Player["name"], number>;
+      roomStatus: string;
+      roundsPlayed: number;
+      statistics: {
+        diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
+        generalDiceStats: Record<number, number>;
+        longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
+        numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
+        pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
+      };
+      startDatetime: string;
+      endDatetime: string;
+    };
   };
 
   export type OutgoingMessages = {

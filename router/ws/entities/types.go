@@ -71,6 +71,8 @@ type Room struct {
 	Rand             *rand.Rand                   `json:"-"`
 	roundManager     *roundManager                `json:"-"`
 	onDestroy        func(room *Room)             `json:"-"`
+	StartDatetime    time.Time                    `json:"startDatetime"`
+	EndDatetime      time.Time                    `json:"endDatetime"`
 	sync.Mutex
 }
 
