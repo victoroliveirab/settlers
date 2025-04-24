@@ -3,11 +3,11 @@ import { useEffect } from "react";
 import type BaseMapRenderer from "@/core/maps/_base";
 import { useMatchStore } from "@/state/match";
 
-export function useUpdateCities(instance: BaseMapRenderer | null) {
+export function useUpdateCities(instance: BaseMapRenderer | null, tick: number) {
   const cities = useMatchStore((state) => state.cities);
 
   useEffect(() => {
-    if (!instance) return;
+    if (!instance || tick === 0) return;
     instance.updateCities(cities);
-  }, [cities, instance]);
+  }, [cities, instance, tick]);
 }

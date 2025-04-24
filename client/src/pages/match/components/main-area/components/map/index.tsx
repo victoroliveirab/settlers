@@ -22,6 +22,7 @@ import "./map.css";
 export const SettlersMap = () => {
   const ref = useRef<HTMLDivElement>(null);
   const [instance, setInstance] = useState<BaseMapRenderer | null>(null);
+  const [tick, setTick] = useState(0); // force re-render on resize
 
   const username = usePlayerStore((state) => state.username);
   const mapName = useMatchStore((state) => state.mapName);
@@ -51,23 +52,25 @@ export const SettlersMap = () => {
     if (!renderer) return;
     renderer.render(map, ports);
     setInstance(renderer);
+    setTick(1);
 
     const main = document.getElementsByTagName("main")[0];
     const observer = new ResizeObserver(() => {
       renderer.render(map, ports);
+      setTick((prev) => prev + 1);
     });
     observer.observe(main);
   }, [instance, map, mapName, onEdgeClick, onTileClick, onVertexClick]);
 
-  useUpdateCities(instance);
-  useUpdateEdges(instance);
-  useUpdateRoads(instance);
-  useUpdateSettlements(instance);
-  useUpdateVertices(instance);
-  useUpdateRobbers(instance); // TODO: change name to useUpdateTiles
-  useUpdateBlockedTiles(instance);
+  useUpdateCities(instance, tick);
+  useUpdateEdges(instance, tick);
+  useUpdateRoads(instance, tick);
+  useUpdateSettlements(instance, tick);
+  useUpdateVertices(instance, tick);
+  useUpdateRobbers(instance, tick); // TODO: change name to useUpdateTiles
+  useUpdateBlockedTiles(instance, tick);
 
-  useDarkenTilesAfterDiceRoll(instance);
+  useDarkenTilesAfterDiceRoll(instance, tick);
 
   return <div ref={ref} className="h-full w-full flex items-center justify-center" />;
 };
