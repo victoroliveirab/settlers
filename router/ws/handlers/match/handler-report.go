@@ -6,19 +6,19 @@ import (
 	"github.com/victoroliveirab/settlers/router/ws/types"
 )
 
-type statisticsResponsePayload struct {
-	Statistics summary.Statistics `json:"statistics"`
+type reportResponsePayload struct {
+	Report summary.ReportOutput `json:"report"`
 }
 
-func handleStatisticsRequest(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
+func handleReportRequest(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	room := player.Room
 	game := room.Game
-	stats := game.GetStatistics()
+	report := game.GetReport()
 
 	msg := &types.WebSocketServerResponse{
-		Type: "match.statistics.success",
-		Payload: statisticsResponsePayload{
-			Statistics: stats,
+		Type: "match.report.success",
+		Payload: reportResponsePayload{
+			Report: report,
 		},
 	}
 	room.EnqueueOutgoingMessage(msg, []string{player.Username}, nil)

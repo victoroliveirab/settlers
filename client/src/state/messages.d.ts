@@ -202,13 +202,16 @@ export namespace SettlersMatch {
     "match.update-monopoly": {
       enabled: boolean;
     };
-    "match.statistics.success": {
-      statistics: {
-        diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
-        generalDiceStats: Record<number, number>;
-        longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
-        numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
-        pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
+    "match.report.success": {
+      report: {
+        pointsDistribution: Record<string, number> | null;
+        statistics: {
+          diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
+          generalDiceStats: Record<number, number>;
+          longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
+          numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
+          pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
+        };
       };
     };
 
@@ -292,7 +295,7 @@ export namespace SettlersMatch {
       resource: SettlersCore.Resource;
     };
     "match.end-round": {};
-    "match.statistics": {};
+    "match.report": {};
   };
 
   type SingleIncomingMessage<T extends keyof IncomingMessages = keyof IncomingMessages> = {

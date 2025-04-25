@@ -49,8 +49,8 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		return handlePickYearOfPlentyResources(player, message)
 	case "match.end-round":
 		return handleEndRound(player, message)
-	case "match.statistics":
-		return handleStatisticsRequest(player, message)
+	case "match.report":
+		return handleReportRequest(player, message)
 	default:
 		return false, nil
 	}

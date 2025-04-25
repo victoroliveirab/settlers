@@ -26,7 +26,7 @@ export const Statistics = () => {
   const { sendMessage } = useWebSocket();
 
   const requestStatistics = () => {
-    sendMessage({ type: "match.statistics", payload: {} });
+    sendMessage({ type: "match.report", payload: {} });
   };
 
   useEffect(() => {

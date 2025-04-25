@@ -103,11 +103,6 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 
 	state.board = board.New(mapName, mapDefinitions, randGenerator)
 	state.bookKeeping = bookkeeping.New(players)
-	state.summary = summary.New(
-		state.playersStates,
-		state.GetSettings(),
-		state.bookKeeping,
-	)
 
 	developmentCards := utils.MapToShuffledSlice[*coreT.DevelopmentCard](
 		mapDefinitions.DevelopmentCards,
@@ -154,7 +149,11 @@ func (state *GameState) New(players []*coreT.Player, mapName string, randGenerat
 			"Ore":    0,
 		}, map[string][]*coreT.DevelopmentCard{})
 	}
-
+	state.summary = summary.New(
+		state.playersStates,
+		state.GetSettings(),
+		state.bookKeeping,
+	)
 	state.trade = trade.New(state.bookKeeping)
 
 	return nil

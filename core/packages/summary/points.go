@@ -16,6 +16,7 @@ func (s *Instance) getPlayerPointDistribution(input ReportInput) map[string]Play
 		if playerID == input.LargestArmyOwner {
 			playerPointDistribution.LargestArmy = s.settings.PointsForMostKnights
 		}
+		pointsDistribution[playerID] = playerPointDistribution
 	}
 	return pointsDistribution
 }

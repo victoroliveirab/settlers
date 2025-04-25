@@ -198,8 +198,8 @@ export function reducer(message: SettlersIncomingMessage) {
       setYearOfPlenty(message.payload.enabled);
       break;
     }
-    case "match.statistics.success": {
-      setStatistics(message.payload.statistics);
+    case "match.report.success": {
+      setStatistics(message.payload.report.statistics);
       break;
     }
     case "setup.hydrate": {

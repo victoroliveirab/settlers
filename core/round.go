@@ -30,6 +30,7 @@ func (state *GameState) handleChangeSetupRoundType() {
 	if currentRoundType == round.SetupRoad2 {
 		state.currentPlayerIndex--
 		if state.currentPlayerIndex < 0 {
+			state.bookKeeping.AddLongestRoadRecord(state.LongestRoadLengths())
 			state.round.SetRoundType(round.FirstRound)
 			state.currentPlayerIndex = 0
 			state.handOffInitialResources()

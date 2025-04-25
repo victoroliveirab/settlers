@@ -7,13 +7,14 @@ import (
 
 func BuildPostMatchMessage(room *entities.Room) *types.WebSocketServerResponse {
 	game := room.Game
+	report := game.GetReport()
+
 	return &types.WebSocketServerResponse{
 		Type: "over.data",
 		Payload: postMatchDataResponsePayload{
-			Points:        game.Points(),
+			Report:        report,
 			RoomStatus:    room.Status,
 			RoundsPlayed:  game.Round() + 1,
-			Statistics:    game.GetStatistics(),
 			StartDatetime: room.StartDatetime,
 			EndDatetime:   room.EndDatetime,
 		},
