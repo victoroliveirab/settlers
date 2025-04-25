@@ -168,6 +168,7 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 	}
 
 	roads := state.board.GetRoads()
+	settlements := state.board.GetSettlements()
 	edges := utils.NewSet[int]()
 
 	for _, edgeID := range playerState.GetRoads() {
@@ -175,16 +176,23 @@ func (state *GameState) AvailableEdges(playerID string) ([]int, error) {
 		vertex1 := edge[0]
 		vertex2 := edge[1]
 
-		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex1] {
-			_, exists := roads[candidateEdgeID]
-			if !exists {
-				edges.Add(candidateEdgeID)
+		settlement, settlementExistsInVertex1 := settlements[vertex1]
+		if !settlementExistsInVertex1 || settlement.Owner == playerID {
+			for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex1] {
+				_, exists := roads[candidateEdgeID]
+				if !exists {
+					edges.Add(candidateEdgeID)
+				}
 			}
 		}
-		for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex2] {
-			_, exists := roads[candidateEdgeID]
-			if !exists {
-				edges.Add(candidateEdgeID)
+
+		settlement, settlementExistsInVertex2 := settlements[vertex2]
+		if !settlementExistsInVertex2 || settlement.Owner == playerID {
+			for _, candidateEdgeID := range state.board.Definition.EdgesByVertex[vertex2] {
+				_, exists := roads[candidateEdgeID]
+				if !exists {
+					edges.Add(candidateEdgeID)
+				}
 			}
 		}
 	}

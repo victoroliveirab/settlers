@@ -335,11 +335,27 @@ func TestAvailableEdgesPlayerRoundRegularPhase(t *testing.T) {
 			expectedResult: []int{6, 19, 20, 54, 57, 65},
 		},
 		{
-			description: "no available edges around settlements, blocked by opponents",
+			description: "no available edges around settlements, blocked by opponents' roads",
 			roadMap: map[string][]int{
 				"1": {4, 71},
 				"2": {3, 11},
 				"3": {5, 6, 70},
+				"4": {32, 60, 72},
+			},
+			settlementMap: map[string][]int{
+				"1": {5, 54},
+				"2": {3, 32},
+				"3": {1, 52},
+				"4": {26, 45},
+			},
+			expectedResult: []int{},
+		},
+		{
+			description: "no available edges, blocked by opponents' buildings",
+			roadMap: map[string][]int{
+				"1": {4, 5, 6, 70, 71},
+				"2": {3, 11, 40},
+				"3": {20, 68},
 				"4": {32, 60, 72},
 			},
 			settlementMap: map[string][]int{
