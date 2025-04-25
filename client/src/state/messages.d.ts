@@ -204,30 +204,51 @@ export namespace SettlersMatch {
     };
     "match.report.success": {
       report: {
-        pointsDistribution: Record<string, number> | null;
+        pointsDistribution: null;
         statistics: {
           diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
           generalDiceStats: Record<number, number>;
           longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
           numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
-          pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
+          pointsEvolution: null;
         };
       };
     };
 
     "over.data": {
-      points: Record<SettlersCore.Player["name"], number>;
+      report: {
+        pointsDistribution: Record<SettlersCore.Player["name"], Record<string, number>>;
+        statistics: {
+          diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
+          generalDiceStats: Record<number, number>;
+          longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
+          numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
+          pointsEvolution: Record<SettlersCore.Player["name"], number[]>;
+        };
+      };
       roomStatus: string;
       roundsPlayed: number;
-      statistics: {
-        diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
-        generalDiceStats: Record<number, number>;
-        longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
-        numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
-        pointsEvolution: Record<SettlersCore.Player["name"], number[]> | null;
-      };
       startDatetime: string;
       endDatetime: string;
+    };
+    "over.hydrate": {
+      report: {
+        pointsDistribution: Record<SettlersCore.Player["name"], Record<string, number>>;
+        statistics: {
+          diceStatsByPlayer: Record<SettlersCore.Player["name"], Record<number, number>>;
+          generalDiceStats: Record<number, number>;
+          longestRoadEvolution: Record<SettlersCore.Player["name"], number[]>;
+          numberOfRobberiesByPlayer: Record<SettlersCore.Player["name"], number>;
+          pointsEvolution: Record<SettlersCore.Player["name"], number[]>;
+        };
+      };
+      roomStatus: string;
+      roundsPlayed: number;
+      startDatetime: string;
+      endDatetime: string;
+      roomName: string;
+      players: SettlersCore.Player[];
+      mapName: string;
     };
   };
 

@@ -15,14 +15,14 @@ import { Statistics as StatisticsComponents } from "@/features/statistics";
 
 import { useWebSocket } from "@/hooks/useWebSocket";
 import { useRoomStore } from "@/state/room";
-import { useMatchStatisticsStore } from "@/state/match-statistics";
 import { useMatchStore } from "@/state/match";
+import { useMatchReportStore } from "@/state/match-report";
 
 export const Statistics = () => {
   const [open, setOpen] = useState(false);
   const roomStatus = useRoomStore((state) => state.room.status);
   const players = useMatchStore((state) => state.players);
-  const stats = useMatchStatisticsStore((state) => state.data);
+  const stats = useMatchReportStore((state) => state.statistics);
   const { sendMessage } = useWebSocket();
 
   const requestStatistics = () => {
@@ -50,6 +50,7 @@ export const Statistics = () => {
               diceStats={stats.generalDiceStats}
               diceStatsByPlayer={stats.diceStatsByPlayer}
               players={players}
+              pointsDistribution={null}
             />
           </DialogDescription>
         </DialogHeader>

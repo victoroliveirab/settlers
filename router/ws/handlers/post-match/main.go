@@ -22,7 +22,7 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 		return nil, err
 	}
 
-	msg := BuildPostMatchMessage(room)
+	msg := BuildPostMatchHydrateMessage(room)
 	wsErr := utils.WriteJson(player.Connection, player.ID, msg)
 	return player, wsErr
 }

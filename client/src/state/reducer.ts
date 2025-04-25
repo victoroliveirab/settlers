@@ -31,7 +31,14 @@ import {
   setVertices,
   setYearOfPlenty,
 } from "./match";
-import { setStatistics } from "./match-statistics";
+import {
+  setEndDatetime,
+  setPointsDistribution,
+  setRoomName,
+  setRoundsPlayed,
+  setStartDatetime,
+  setStatistics,
+} from "./match-report";
 import type { SettlersIncomingMessage } from "./messages";
 import { setRoom, setRoomCapacity, setRoomParams, setRoomStatus } from "./room";
 
@@ -51,27 +58,32 @@ export function reducer(message: SettlersIncomingMessage) {
     }
     case "room.connect.success": {
       setRoom(message.payload.room);
+      setRoomName(message.payload.room.id);
       setRoomParams(message.payload.params);
       setRoomCapacity(message.payload.minMaxPlayers);
       break;
     }
     case "room.new-update": {
       setRoom(message.payload.room);
+      setRoomName(message.payload.room.id);
       setRoomParams(message.payload.params);
       break;
     }
     case "room.update-capacity.success": {
       setRoom(message.payload.room);
+      setRoomName(message.payload.room.id);
       setRoomParams(message.payload.params);
       break;
     }
     case "room.toggle-ready.success": {
       setRoom(message.payload.room);
+      setRoomName(message.payload.room.id);
       setRoomParams(message.payload.params);
       break;
     }
     case "room.update-param.success": {
       setRoom(message.payload.room);
+      setRoomName(message.payload.room.id);
       setRoomParams(message.payload.params);
       break;
     }
@@ -297,6 +309,23 @@ export function reducer(message: SettlersIncomingMessage) {
     }
     case "over.data": {
       setRoomStatus(message.payload.roomStatus);
+      setStatistics(message.payload.report.statistics);
+      setPointsDistribution(message.payload.report.pointsDistribution);
+      setStartDatetime(message.payload.startDatetime);
+      setEndDatetime(message.payload.endDatetime);
+      setRoundsPlayed(message.payload.roundsPlayed);
+      break;
+    }
+    case "over.hydrate": {
+      setPlayers(message.payload.players);
+      setMapName(message.payload.mapName);
+      setRoomStatus(message.payload.roomStatus);
+      setRoomName(message.payload.roomName);
+      setStatistics(message.payload.report.statistics);
+      setPointsDistribution(message.payload.report.pointsDistribution);
+      setStartDatetime(message.payload.startDatetime);
+      setEndDatetime(message.payload.endDatetime);
+      setRoundsPlayed(message.payload.roundsPlayed);
       break;
     }
     default: {

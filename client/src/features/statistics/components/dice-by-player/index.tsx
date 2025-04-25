@@ -44,31 +44,6 @@ export const DiceByPlayer = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <ul className="flex gap-2">
-        {players.map((player) => (
-          <li key={player.name} className="flex space-x-2">
-            <Checkbox
-              id={`dice-by-player-${player.name}`}
-              checked={checkboxesStates[player.name]}
-              disabled={checkboxesStates[player.name] && numberOfChecked === 1}
-              onCheckedChange={(state) =>
-                setCheckboxesStates((prev) => ({
-                  ...prev,
-                  [player.name]: !!state,
-                }))
-              }
-            />
-            <div className="grid gap-1.5 leading-none">
-              <label
-                htmlFor={`dice-by-player-${player.name}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {player.name}
-              </label>
-            </div>
-          </li>
-        ))}
-      </ul>
       <Bar
         data={{
           labels: diceValues,
@@ -95,6 +70,31 @@ export const DiceByPlayer = ({
           },
         }}
       />
+      <ul className="flex gap-2 z-10">
+        {players.map((player) => (
+          <li key={player.name} className="flex space-x-2">
+            <Checkbox
+              id={`dice-by-player-${player.name}`}
+              checked={checkboxesStates[player.name]}
+              disabled={checkboxesStates[player.name] && numberOfChecked === 1}
+              onCheckedChange={(state) =>
+                setCheckboxesStates((prev) => ({
+                  ...prev,
+                  [player.name]: !!state,
+                }))
+              }
+            />
+            <div className="grid gap-1.5 leading-none">
+              <label
+                htmlFor={`dice-by-player-${player.name}`}
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                {player.name}
+              </label>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
