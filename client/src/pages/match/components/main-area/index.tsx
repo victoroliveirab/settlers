@@ -1,3 +1,5 @@
+import { Toaster } from "@/components/custom/toaster";
+
 import { ActiveTrades } from "./components/active-trades";
 import { DevHand } from "./components/dev-hand";
 import { Hand } from "./components/hand";
@@ -34,6 +36,7 @@ export const MainArea = () => {
           <DevHand />
         </div>
       </div>
+      <Toaster />
     </section>
   );
 };

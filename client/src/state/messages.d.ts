@@ -386,6 +386,14 @@ export namespace SettlersMatch {
     type: T;
     payload: OutgoingMessages[T];
   };
+  export type IncomingError = {
+    [K in keyof OutgoingMessages as `${K & string}.error`]: {
+      type: `${K & string}.error`;
+      payload: {
+        error: string;
+      };
+    };
+  };
 }
 
 export type SettlersIncomingMessage =
@@ -395,6 +403,7 @@ export type SettlersIncomingMessage =
   | {
       [K in keyof SettlersMatch.IncomingMessages]: SettlersMatch.IncomingMessage<K>;
     }[keyof SettlersMatch.IncomingMessages]
+  | SettlersMatch.IncomingError[keyof SettlersMatch.IncomingError]
   | SettlersMatch.MatchSetupHydrateMessage
   | SettlersMatch.MatchHydrateMessage;
 

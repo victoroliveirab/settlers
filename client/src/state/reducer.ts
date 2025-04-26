@@ -1,3 +1,4 @@
+import { toast } from "@/lib/toast";
 import {
   setActiveTradeOffers,
   setBlockedTiles,
@@ -326,6 +327,35 @@ export function reducer(message: SettlersIncomingMessage) {
       setStartDatetime(message.payload.startDatetime);
       setEndDatetime(message.payload.endDatetime);
       setRoundsPlayed(message.payload.roundsPlayed);
+      break;
+    }
+    case "match.dice-roll.error":
+    case "match.monopoly.error":
+    case "match.pass-click.error":
+    case "match.create-trade-offer.error":
+    case "match.end-round.error":
+    case "match.rob-player.error":
+    case "match.buy-dev-card.error":
+    case "match.discard-cards.error":
+    case "match.dev-card-click.error":
+    case "match.year-of-plenty.error":
+    case "match.make-bank-trade.error":
+    case "match.accept-trade-offer.error":
+    case "match.reject-trade-offer.error":
+    case "match.cancel-trade-offer.error":
+    case "match.finalize-trade-offer.error":
+    case "match.make-general-port-trade.error":
+    case "match.make-resource-port-trade.error":
+    case "match.report.error":
+    case "match.create-counter-trade-offer.error":
+    case "match.edge-click.error":
+    case "match.tile-click.error":
+    case "match.vertex-click.error": {
+      toast({
+        type: "error",
+        title: "Action forbidden",
+        description: message.payload.error,
+      });
       break;
     }
     default: {
