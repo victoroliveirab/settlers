@@ -31,9 +31,10 @@ func New(
 	initialDevCards map[string][]*coreT.DevelopmentCard,
 ) *Instance {
 	return &Instance{
-		id:               player.ID,
-		resources:        maps.Clone(initialResources),
-		developmentCards: maps.Clone(initialDevCards),
+		id:                    player.ID,
+		resources:             maps.Clone(initialResources),
+		developmentCards:      maps.Clone(initialDevCards),
+		usedDevelopmentCards:  make(map[string]int),
 		settlements:           make([]int, 0),
 		cities:                make([]int, 0),
 		roads:                 make([]int, 0),
