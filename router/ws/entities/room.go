@@ -69,6 +69,7 @@ func NewRoom(id, mapName string, capacity, randSeed int, params RoomParams, onDe
 		onDestroy:        onDestroy,
 		Rand:             randGenerator,
 		Game:             nil,
+		MaxIdleTime:      1 * time.Minute,
 		Private:          true,
 	}
 }
@@ -265,7 +266,7 @@ func (room *Room) ProgressStatus() error {
 
 func (room *Room) assignNewOwner() error {
 	for _, participant := range room.Participants {
-		if participant.Player != nil && participant.Player.Connection != nil {
+		if participant.Player != nil && participant.Player.Connection != nil && !participant.Bot {
 			room.Owner = participant.Player.Username
 			return nil
 		}
@@ -391,6 +392,8 @@ func (room *Room) ProcessIncomingMessages() {
 		message := item.Message
 		sender := item.Player
 
+		sender.SetLastActiveTimestamp(time.Now())
+
 		var handled bool
 		var err error
 
@@ -403,7 +406,11 @@ func (room *Room) ProcessIncomingMessages() {
 		if handled && err == nil {
 			continue
 		}
-		// TODO: handle error for appropriate player
+
+		if !handled {
+			err = fmt.Errorf("Unknown message type: %s", message.Type)
+		}
+		logger.LogError(sender.ID, fmt.Sprintf("room-%s.ProcessIncomingMessages", room.ID), -1, err)
 	}
 }
 
@@ -429,13 +436,13 @@ func (room *Room) ProcessOutgoingMessages() {
 
 		for _, participant := range recipients {
 			player := participant.Player
-			if player == nil || player.Connection.Instance == nil {
+			if player == nil || player.Connection == nil {
 				continue
 			}
 			wsErr := wsUtils.WriteJson(player.Connection, player.ID, item.Message)
 			if wsErr != nil {
-				fmt.Println("error for player ", player.ID, wsErr)
-				// TODO: handle error here as well
+				logger.LogError(player.ID, fmt.Sprintf("room-%s.ProcessOutgoingMessages", room.ID), -1, wsErr)
+				go player.OnDisconnect(player)
 				continue
 			}
 		}
@@ -448,6 +455,7 @@ func (room *Room) ProcessOutgoingMessages() {
 
 func (room *Room) Destroy(reason string) {
 	logger.LogSystemMessage("room.Destroy", reason)
+	room.roundManager.cancel()
 	room.onDestroy(room)
 }
 

@@ -1,6 +1,8 @@
 package entities
 
 import (
+	"time"
+
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/router/ws/types"
 	"github.com/victoroliveirab/settlers/router/ws/utils"
@@ -27,4 +29,8 @@ func (player *GamePlayer) ListenIncomingMessages(enqueueMessage func(msg *types.
 		}
 		enqueueMessage(parsedMessage)
 	}
+}
+
+func (player *GamePlayer) SetLastActiveTimestamp(timestamp time.Time) {
+	player.LastTimeActive = timestamp
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"math/rand"
+	"time"
 
 	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/logger"
@@ -52,6 +53,30 @@ func OnRegularRoundTimeoutCurry(room *entities.Room) func() {
 		game := room.Game
 		currentRoundPlayer := game.CurrentRoundPlayer().ID
 		logger.LogSystemMessage(fmt.Sprintf("onRegularRoundTimeout.%s", room.ID), fmt.Sprintf("handling timeout for player %s", currentRoundPlayer))
+
+		var currentPlayerEntry *entities.RoomEntry
+		for i := range room.Participants {
+			if room.Participants[i].Player != nil && room.Participants[i].Player.Username == currentRoundPlayer {
+				currentPlayerEntry = &room.Participants[i]
+				break
+			}
+		}
+
+		if currentPlayerEntry != nil && !currentPlayerEntry.Bot {
+			now := time.Now()
+			idleTime := now.Sub(currentPlayerEntry.Player.LastTimeActive)
+			if idleTime > room.MaxIdleTime {
+				logger.LogSystemMessage(fmt.Sprintf("room.RemovePlayer(%s)", currentRoundPlayer), "remove player due to idle time")
+				err := room.RemovePlayer(currentPlayerEntry.Player.ID)
+				if err != nil {
+					logger.LogSystemError(
+						fmt.Sprintf("onRegularRoundTimeout.%s -> room.RemovePlayer(%s)", room.ID, currentRoundPlayer),
+						1,
+						err,
+					)
+				}
+			}
+		}
 
 		game.EndRound(currentRoundPlayer)
 		handleEndRoundResponse(room, currentRoundPlayer)

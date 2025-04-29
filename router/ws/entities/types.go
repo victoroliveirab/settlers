@@ -72,6 +72,7 @@ type Room struct {
 	roundManager         *roundManager                `json:"-"`
 	onDestroy            func(room *Room)             `json:"-"`
 	destroyTimerCallback *time.Timer                  `json:"-"`
+	MaxIdleTime          time.Duration                `json:"-"`
 	StartDatetime        time.Time                    `json:"startDatetime"`
 	EndDatetime          time.Time                    `json:"endDatetime"`
 	sync.Mutex
@@ -90,10 +91,11 @@ type roundManager struct {
 }
 
 type GamePlayer struct {
-	ID           int64                      `json:"-"`
-	Username     string                     `json:"name"`
-	Connection   *types.WebSocketConnection `json:"-"`
-	Color        *coreT.PlayerColor         `json:"color"`
-	Room         *Room                      `json:"-"`
-	OnDisconnect func(player *GamePlayer)   `json:"-"`
+	ID             int64                      `json:"-"`
+	Username       string                     `json:"name"`
+	Connection     *types.WebSocketConnection `json:"-"`
+	Color          *coreT.PlayerColor         `json:"color"`
+	Room           *Room                      `json:"-"`
+	LastTimeActive time.Time                  `json:"-"`
+	OnDisconnect   func(player *GamePlayer)   `json:"-"`
 }
