@@ -12,6 +12,7 @@ import ChartDataLabels from "chartjs-plugin-datalabels";
 
 import App from "./App";
 import { WebSocketProvider } from "./context";
+import "./lib/audio";
 import "./index.css";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, ChartDataLabels);

@@ -24,9 +24,7 @@ go.work.sum
 # logs
 logs.json
 
-# sessions
-sessions.csv
-
 # client
 client/node_modules
 client/dist
+client/public/styles.css
