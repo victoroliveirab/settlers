@@ -76,6 +76,13 @@ func NewRoom(id, mapName string, capacity, randSeed int, params RoomParams, onDe
 func (room *Room) AddPlayer(player *GamePlayer) error {
 	room.Lock()
 	defer room.Unlock()
+
+	if room.destroyTimerCallback != nil {
+		logger.LogSystemMessage("room.CancelDestroy", fmt.Sprintf("Cancelling scheduled destruction for room %s due to player %s joining", room.ID, player.Username))
+		room.destroyTimerCallback.Stop()
+		room.destroyTimerCallback = nil
+	}
+
 	for _, spot := range room.Participants {
 		if spot.Player != nil {
 			if spot.Player.ID == player.ID {
@@ -106,6 +113,13 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 func (room *Room) ReconnectPlayer(playerID int64, connection *types.WebSocketConnection, onDisconnect func(player *GamePlayer)) (*GamePlayer, error) {
 	room.Lock()
 	defer room.Unlock()
+
+	if room.destroyTimerCallback != nil {
+		logger.LogSystemMessage("room.CancelDestroy", fmt.Sprintf("Cancelling scheduled destruction for room %s due to player %d reconnecting", room.ID, playerID))
+		room.destroyTimerCallback.Stop()
+		room.destroyTimerCallback = nil
+	}
+
 	for index, spot := range room.Participants {
 		if spot.Player != nil && spot.Player.ID == playerID {
 			room.Participants[index].Player.Connection = connection
@@ -162,42 +176,72 @@ func (room *Room) ChangePlayerColor(playerID int64, color string) error {
 func (room *Room) RemovePlayer(playerID int64) error {
 	room.Lock()
 	defer room.Unlock()
-
-	for index, participant := range room.Participants {
-		if participant.Player != nil && participant.Player.ID == playerID {
-			if room.Game == nil {
-				room.Participants[index] = RoomEntry{}
-				if room.Owner == participant.Player.Username {
-					err := room.assignNewOwner()
-					if err != nil {
-						// TODO: instead of destroying right away, schedule the destroy (10 seconds in the future)
-						// So if the leaving of the last player was a refresh in the page, they don't lose the room
-						room.Destroy(err.Error())
-						return nil
-					}
-				}
-				// REFACTOR: not ideal to have this message defined here and at handlers/pre-match/broadcast.go
-				// room.EnqueueBroadcastMessage(&types.WebSocketMessage{
-				// 	Type:    "room.new-update",
-				// 	Payload: room.ToMapInterface(),
-				// }, []int64{}, nil)
-			} else {
-				room.Participants[index].Player.Connection.Instance = nil
-				room.Participants[index].Bot = true
-				// room.EnqueueBroadcastMessage(&types.WebSocketMessage{
-				// 	Type: "game.player-left",
-				// 	Payload: map[string]interface{}{
-				// 		"player": room.Participants[index].Player.Username,
-				// 		"bot":    true,
-				// 	},
-				// }, []int64{}, nil)
-			}
-			return nil
+	var participantIndex int = -1
+	for i := range room.Participants {
+		if room.Participants[i].Player != nil && room.Participants[i].Player.ID == playerID {
+			participantIndex = i
+			break
 		}
 	}
 
-	err := fmt.Errorf("Cannot remove player#%d: not part of room %s", playerID, room.ID)
-	return err
+	if participantIndex == -1 {
+		err := fmt.Errorf("Cannot remove player#%d: not part of room %s", playerID, room.ID)
+		return err
+	}
+
+	participantName := room.Participants[participantIndex].Player.Username
+	isOwner := room.Participants[participantIndex].Player.Username == room.Owner
+	shouldDestroyRoom := false
+	var messageType string
+	var log string
+
+	if room.Status == "prematch" || room.Game == nil {
+		room.Participants[participantIndex] = RoomEntry{}
+		messageType = "room.player-left"
+		log = fmt.Sprintf("%s has left the room", participantName)
+	} else {
+		room.Participants[participantIndex].Player.Connection = nil
+		room.Participants[participantIndex].Bot = true
+		messageType = "match.player-left"
+		log = fmt.Sprintf("%s has left the match. A bot was assigned in their place.", participantName)
+	}
+
+	if isOwner {
+		err := room.assignNewOwner()
+		if err != nil {
+			shouldDestroyRoom = true
+		}
+	}
+
+	if shouldDestroyRoom {
+		room.scheduleRoomDestroy()
+	} else {
+		recipients := []string{}
+		for _, participant := range room.Participants {
+			if participant.Player != nil && !participant.Bot && participant.Player.Connection != nil && participant.Player.Connection.Instance != nil {
+				recipients = append(recipients, participant.Player.Username)
+			}
+		}
+		room.EnqueueOutgoingMessage(&types.WebSocketServerResponse{
+			Type: types.ResponseType(messageType),
+			Payload: map[string]interface{}{
+				"player": participantName,
+				"logs":   []string{log},
+			},
+		}, recipients, nil)
+	}
+	return nil
+}
+
+func (room *Room) scheduleRoomDestroy() {
+	if room.destroyTimerCallback != nil {
+		room.destroyTimerCallback.Stop()
+	}
+	logger.LogSystemMessage("room.scheduleRoomDestroy", fmt.Sprintf("Scheduling destruction for room %s in 15s due to last player leaving", room.ID))
+	cb := time.AfterFunc(15*time.Second, func() {
+		room.Destroy(fmt.Sprintf("Room %s destroyed after 15s of inactivity (owner left)", room.ID))
+	})
+	room.destroyTimerCallback = cb
 }
 
 func (room *Room) ProgressStatus() error {
@@ -221,7 +265,7 @@ func (room *Room) ProgressStatus() error {
 
 func (room *Room) assignNewOwner() error {
 	for _, participant := range room.Participants {
-		if participant.Player != nil {
+		if participant.Player != nil && participant.Player.Connection != nil {
 			room.Owner = participant.Player.Username
 			return nil
 		}
@@ -376,7 +420,7 @@ func (room *Room) ProcessOutgoingMessages() {
 				continue
 			}
 			for _, recipient := range item.Recipients {
-				if participant.Player.Username == recipient {
+				if participant.Player != nil && participant.Player.Username == recipient {
 					recipients = append(recipients, participant)
 				}
 			}

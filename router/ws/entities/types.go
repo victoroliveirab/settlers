@@ -55,24 +55,25 @@ type RoomParams struct {
 }
 
 type Room struct {
-	ID               string                       `json:"id"`
-	Capacity         int                          `json:"capacity"`
-	Game             *core.GameState              `json:"-"`
-	MapName          string                       `json:"map"`
-	params           RoomParams                   `json:"-"`
-	Participants     []RoomEntry                  `json:"participants"`
-	Private          bool                         `json:"private"`
-	Owner            string                       `json:"owner"`
-	Status           string                       `json:"status"`
-	Colors           []coreT.PlayerColor          `json:"colors"`
-	incomingMsgQueue chan IncomingMessage         `json:"-"`
-	outgoingMsgQueue chan OutgoingMessage         `json:"-"`
-	handlers         []RoomIncomingMessageHandler `json:"-"`
-	Rand             *rand.Rand                   `json:"-"`
-	roundManager     *roundManager                `json:"-"`
-	onDestroy        func(room *Room)             `json:"-"`
-	StartDatetime    time.Time                    `json:"startDatetime"`
-	EndDatetime      time.Time                    `json:"endDatetime"`
+	ID                   string                       `json:"id"`
+	Capacity             int                          `json:"capacity"`
+	Game                 *core.GameState              `json:"-"`
+	MapName              string                       `json:"map"`
+	params               RoomParams                   `json:"-"`
+	Participants         []RoomEntry                  `json:"participants"`
+	Private              bool                         `json:"private"`
+	Owner                string                       `json:"owner"`
+	Status               string                       `json:"status"`
+	Colors               []coreT.PlayerColor          `json:"colors"`
+	incomingMsgQueue     chan IncomingMessage         `json:"-"`
+	outgoingMsgQueue     chan OutgoingMessage         `json:"-"`
+	handlers             []RoomIncomingMessageHandler `json:"-"`
+	Rand                 *rand.Rand                   `json:"-"`
+	roundManager         *roundManager                `json:"-"`
+	onDestroy            func(room *Room)             `json:"-"`
+	destroyTimerCallback *time.Timer                  `json:"-"`
+	StartDatetime        time.Time                    `json:"startDatetime"`
+	EndDatetime          time.Time                    `json:"endDatetime"`
 	sync.Mutex
 }
 
