@@ -1,27 +1,13 @@
 package match
 
 import (
-	"fmt"
-
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
-func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketConnection, onDisconnect func(player *entities.GamePlayer)) (*entities.GamePlayer, error) {
-	player, err := room.ReconnectPlayer(playerID, conn, func(player *entities.GamePlayer) {
-		room.RemovePlayer(playerID)
-	})
-	if err != nil {
-		wsErr := utils.WriteJsonError(conn, playerID, "match.ReconnectPlayer", err)
-		return nil, wsErr
-	}
-
+func SendCurrentGameState(player *entities.GamePlayer) error {
+	room := player.Room
 	game := room.Game
-	if game == nil {
-		err := fmt.Errorf("Game not assigned to the room", room.ID)
-		return nil, err
-	}
 
 	if room.Status == "setup" {
 		mapState := UpdateMapState(room, player.Username)
@@ -46,12 +32,8 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 			},
 		}
 
-		wsErr := utils.WriteJson(player.Connection, player.ID, hydrateMsg)
-		if wsErr != nil {
-			return nil, wsErr
-		}
-
-		return player, nil
+		wsErr := player.WriteJSON(hydrateMsg)
+		return wsErr
 	}
 
 	mapState := UpdateMapState(room, player.Username)
@@ -108,10 +90,6 @@ func ReconnectPlayer(room *entities.Room, playerID int64, conn *types.WebSocketC
 		},
 	}
 
-	wsErr := utils.WriteJson(player.Connection, player.ID, hydrateMsg)
-	if wsErr != nil {
-		return nil, wsErr
-	}
-
-	return player, nil
+	wsErr := player.WriteJSON(hydrateMsg)
+	return wsErr
 }

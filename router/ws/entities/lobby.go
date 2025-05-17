@@ -11,7 +11,6 @@ import (
 func NewLobby() *Lobby {
 	return &Lobby{
 		availableRooms: []string{"base4"},
-		roomByPlayer:   make(map[int64]*Room),
 		rooms:          make(map[string]*Room),
 	}
 }
@@ -57,7 +56,7 @@ func (lobby *Lobby) CreateRoom(id, mapName string, capacity, randSeed int) (*Roo
 	}
 
 	newRoom := NewRoom(id, mapName, capacity, randSeed, params, func(room *Room) {
-		lobby.DestroyRoom(room.ID)
+		lobby.RemoveRoom(room.ID)
 	})
 	lobby.rooms[id] = newRoom
 	return newRoom, nil
@@ -71,19 +70,14 @@ func (lobby *Lobby) GetRoom(id string) (*Room, bool) {
 	return room, exists
 }
 
-func (lobby *Lobby) DestroyRoom(roomID string) error {
-	room, exists := lobby.rooms[roomID]
+func (lobby *Lobby) RemoveRoom(roomID string) error {
+	_, exists := lobby.rooms[roomID]
 	if !exists {
-		err := fmt.Errorf("Cannot destroy room %s: no such room", roomID)
-		return err
-	}
-
-	if room.Game != nil {
-		err := fmt.Errorf("Cannot destroy room %s: game ongoing", roomID)
+		err := fmt.Errorf("Cannot remove room %s from lobby: no such room", roomID)
 		return err
 	}
 
 	delete(lobby.rooms, roomID)
-	logger.LogSystemMessage("lobby.DestroyRoom", fmt.Sprintf("Destroyed room %s", roomID))
+	logger.LogSystemMessage("lobby.RemoveRoom", fmt.Sprintf("Removed room %s from lobby", roomID))
 	return nil
 }

@@ -8,7 +8,6 @@ import (
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
 func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
@@ -22,7 +21,7 @@ func handleDiceRoll(player *entities.GamePlayer, message *types.WebSocketClientR
 
 	err := game.RollDice(player.Username)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 	handleDiceRollResponse(room, prevResourceHands)

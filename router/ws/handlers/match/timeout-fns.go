@@ -67,6 +67,7 @@ func OnRegularRoundTimeoutCurry(room *entities.Room) func() {
 			idleTime := now.Sub(currentPlayerEntry.Player.LastTimeActive)
 			if idleTime > room.MaxIdleTime {
 				logger.LogSystemMessage(fmt.Sprintf("room.RemovePlayer(%s)", currentRoundPlayer), "remove player due to idle time")
+				currentPlayerEntry.Player.Disconnect()
 				err := room.RemovePlayer(currentPlayerEntry.Player.ID)
 				if err != nil {
 					logger.LogSystemError(

@@ -54,7 +54,7 @@ type cancelTradeOfferRequestPayload struct {
 func handleMakeBankTrade(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[makeBankTradeRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -65,7 +65,7 @@ func handleMakeBankTrade(player *entities.GamePlayer, message *types.WebSocketCl
 
 	err = game.MakeBankTrade(player.Username, resourceGiven, resourceRequested)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -85,7 +85,7 @@ func handleMakeBankTrade(player *entities.GamePlayer, message *types.WebSocketCl
 func handleMakeGeneralPortTrade(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[makeGeneralPortTradeRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -96,7 +96,7 @@ func handleMakeGeneralPortTrade(player *entities.GamePlayer, message *types.WebS
 
 	err = game.MakeGeneralPortTrade(player.Username, resourceGiven, resourceRequested)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 	formattedResourceGiven := formatResourceCollection(resourceGiven)
@@ -115,7 +115,7 @@ func handleMakeGeneralPortTrade(player *entities.GamePlayer, message *types.WebS
 func handleMakeResourcePortTrade(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[makeResourcePortTradeRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -126,7 +126,7 @@ func handleMakeResourcePortTrade(player *entities.GamePlayer, message *types.Web
 
 	err = game.MakeResourcePortTrade(player.Username, resourceGiven, resourceRequested)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -147,7 +147,7 @@ func handleMakeResourcePortTrade(player *entities.GamePlayer, message *types.Web
 func handleCreateTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[createTradeOfferRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -158,7 +158,7 @@ func handleCreateTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 
 	_, err = game.MakeTradeOffer(player.Username, resourcesGiven, resourcesRequested, []string{})
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -176,7 +176,7 @@ func handleCreateTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 func handleCreateCounterTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[createCounterTradeOfferRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -188,7 +188,7 @@ func handleCreateCounterTradeOffer(player *entities.GamePlayer, message *types.W
 
 	_, err = game.MakeCounterTradeOffer(player.Username, tradeID, resourcesGiven, resourcesRequested)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -202,7 +202,7 @@ func handleCreateCounterTradeOffer(player *entities.GamePlayer, message *types.W
 func handleAcceptTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[acceptTradeOfferRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -211,7 +211,7 @@ func handleAcceptTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 	game := room.Game
 	err = game.AcceptTradeOffer(player.Username, tradeID)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -225,7 +225,7 @@ func handleAcceptTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 func handleRejectTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[rejectTradeOfferRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -234,7 +234,7 @@ func handleRejectTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 	game := room.Game
 	err = game.RejectTradeOffer(player.Username, tradeID)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -248,7 +248,7 @@ func handleRejectTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 func handleFinalizeTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[finalizeTradeOfferRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -258,7 +258,7 @@ func handleFinalizeTradeOffer(player *entities.GamePlayer, message *types.WebSoc
 	game := room.Game
 	err = game.FinalizeTrade(player.Username, accepterID, tradeID)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -282,7 +282,7 @@ func handleFinalizeTradeOffer(player *entities.GamePlayer, message *types.WebSoc
 func handleCancelTradeOffer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[cancelTradeOfferRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -291,7 +291,7 @@ func handleCancelTradeOffer(player *entities.GamePlayer, message *types.WebSocke
 	game := room.Game
 	err = game.CancelTradeOffer(player.Username, tradeID)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 

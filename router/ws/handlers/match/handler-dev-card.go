@@ -29,7 +29,7 @@ func handleBuyDevCard(player *entities.GamePlayer, message *types.WebSocketClien
 
 	err := game.BuyDevelopmentCard(player.Username)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -49,7 +49,7 @@ func handleBuyDevCard(player *entities.GamePlayer, message *types.WebSocketClien
 func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[devCardClickRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -57,7 +57,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 	game := room.Game
 	err = game.UseDevelopmentCard(player.Username, payload.Kind)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -134,7 +134,7 @@ func handleDevCardClick(player *entities.GamePlayer, message *types.WebSocketCli
 func handleMonopolyResource(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[monopolyPickRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -144,7 +144,7 @@ func handleMonopolyResource(player *entities.GamePlayer, message *types.WebSocke
 
 	err = game.PickMonopolyResource(player.Username, payload.Resource)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -178,7 +178,7 @@ func handleMonopolyResourceResponse(room *entities.Room, resourceStolen string, 
 func handlePickYearOfPlentyResources(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[yearOfPlentyPickRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -186,7 +186,7 @@ func handlePickYearOfPlentyResources(player *entities.GamePlayer, message *types
 	game := room.Game
 	err = game.PickYearOfPlentyResources(player.Username, payload.Resource1, payload.Resource2)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 

@@ -15,14 +15,14 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 	case "room.update-capacity":
 		requestPayload, err := utils.ParseJsonPayload[roomUpdateCapacityRequestPayload](message)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
 		room := player.Room
 		err = room.UpdateSize(player, requestPayload.Capacity)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -31,7 +31,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 	case "room.update-param":
 		requestPayload, err := utils.ParseJsonPayload[roomUpdateParamRequestPayload](message)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -40,7 +40,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		value := requestPayload.Value
 		err = room.UpdateParam(player, key, value)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -49,7 +49,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 	case "room.player-change-color":
 		requestPayload, err := utils.ParseJsonPayload[roomPlayerChangeColorRequestPayload](message)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -57,7 +57,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		color := requestPayload.Color
 		err = room.ChangePlayerColor(player.ID, color)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -66,7 +66,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 	case "room.toggle-ready":
 		requestPayload, err := utils.ParseJsonPayload[roomPlayerReadyRequestPayload](message)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -74,7 +74,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		ready := requestPayload.Ready
 		err = room.TogglePlayerReadyState(player.ID, ready)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 
@@ -84,7 +84,7 @@ func TryHandle(player *entities.GamePlayer, message *types.WebSocketClientReques
 		room := player.Room
 		err := StartMatch(player, room)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 

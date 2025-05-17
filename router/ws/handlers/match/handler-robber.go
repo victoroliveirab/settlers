@@ -15,7 +15,7 @@ type pickRobbedPlayerRequestPayload struct {
 func handlePickRobbedPlayer(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[pickRobbedPlayerRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -24,7 +24,7 @@ func handlePickRobbedPlayer(player *entities.GamePlayer, message *types.WebSocke
 	game := room.Game
 	err = game.RobPlayer(player.Username, robbedPlayer)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
