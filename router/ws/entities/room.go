@@ -1,15 +1,17 @@
 package entities
 
 import (
+	"context"
 	"fmt"
+	"runtime/debug"
 	"sort"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	wsUtils "github.com/victoroliveirab/settlers/router/ws/utils"
 	"github.com/victoroliveirab/settlers/utils"
 )
 
@@ -54,6 +56,7 @@ var availableColors []coreT.PlayerColor = []coreT.PlayerColor{
 
 func NewRoom(id, mapName string, capacity, randSeed int, params RoomParams, onDestroy func(room *Room)) *Room {
 	randGenerator := utils.RandNew(int64(randSeed))
+	ctx, cancel := context.WithCancel(context.Background())
 	return &Room{
 		ID:               id,
 		Capacity:         capacity,
@@ -69,9 +72,24 @@ func NewRoom(id, mapName string, capacity, randSeed int, params RoomParams, onDe
 		onDestroy:        onDestroy,
 		Rand:             randGenerator,
 		Game:             nil,
-		MaxIdleTime:      1 * time.Minute,
+		MaxIdleTime:      5 * time.Second,
 		Private:          true,
+		ctx:              ctx,
+		cancel:           cancel,
 	}
+}
+
+func (room *Room) CanAddPlayer() bool {
+	if room.Status != "prematch" {
+		fmt.Println("CANNOT JOIN ROOM BECAUSE ROOM IS", room.Status)
+		return false
+	}
+	for _, participant := range room.Participants {
+		if participant.Player == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func (room *Room) AddPlayer(player *GamePlayer) error {
@@ -111,43 +129,6 @@ func (room *Room) AddPlayer(player *GamePlayer) error {
 	return err
 }
 
-func (room *Room) ReconnectPlayer(playerID int64, connection *types.WebSocketConnection, onDisconnect func(player *GamePlayer)) (*GamePlayer, error) {
-	room.Lock()
-	defer room.Unlock()
-
-	if room.destroyTimerCallback != nil {
-		logger.LogSystemMessage("room.CancelDestroy", fmt.Sprintf("Cancelling scheduled destruction for room %s due to player %d reconnecting", room.ID, playerID))
-		room.destroyTimerCallback.Stop()
-		room.destroyTimerCallback = nil
-	}
-
-	for index, spot := range room.Participants {
-		if spot.Player != nil && spot.Player.ID == playerID {
-			room.Participants[index].Player.Connection = connection
-			room.Participants[index].Bot = false
-			room.Participants[index].Player.OnDisconnect = onDisconnect
-			return room.Participants[index].Player, nil
-		}
-	}
-	err := fmt.Errorf("Cannot reconnect to room #%s: not part of room", room.ID)
-	return nil, err
-}
-
-func (room *Room) TogglePlayerReadyState(playerID int64, newState bool) error {
-	room.Lock()
-	defer room.Unlock()
-
-	for index, participant := range room.Participants {
-		if participant.Player != nil && participant.Player.ID == playerID {
-			room.Participants[index].Ready = newState
-			return nil
-		}
-	}
-
-	err := fmt.Errorf("Cannot toggle player#%d ready state to %v: not part of room %s", playerID, newState, room.ID)
-	return err
-}
-
 func (room *Room) ChangePlayerColor(playerID int64, color string) error {
 	room.Lock()
 	defer room.Unlock()
@@ -174,9 +155,31 @@ func (room *Room) ChangePlayerColor(playerID int64, color string) error {
 	return err
 }
 
-func (room *Room) RemovePlayer(playerID int64) error {
+func (room *Room) ReconnectPlayer(player *GamePlayer) error {
 	room.Lock()
 	defer room.Unlock()
+	for i := range room.Participants {
+		if room.Participants[i].Player != nil && room.Participants[i].Player.ID == player.ID {
+			room.Participants[i].Bot = false
+			break
+		}
+	}
+
+	err := fmt.Errorf("Cannot remove player#%d: not part of room %s", player.ID, room.ID)
+	return err
+
+}
+
+// THIS FUNCTION HAS TOO MANY RESPONSIBILITIES
+// MAKE THIS JUST REMOVE PLAYER FROM ROOM
+// LET ASSIGN NEW OWNER TO SOMEWHERE ELSE
+// AND ALSO THE SCHEDULING OF DESTRUCTION
+func (room *Room) RemovePlayer(playerID int64) error {
+	fmt.Println("REMOVE PLAYER:", playerID)
+	debug.PrintStack()
+	room.Lock()
+	defer room.Unlock()
+
 	var participantIndex int = -1
 	for i := range room.Participants {
 		if room.Participants[i].Player != nil && room.Participants[i].Player.ID == playerID {
@@ -187,11 +190,14 @@ func (room *Room) RemovePlayer(playerID int64) error {
 
 	if participantIndex == -1 {
 		err := fmt.Errorf("Cannot remove player#%d: not part of room %s", playerID, room.ID)
+		fmt.Println(err.Error())
 		return err
 	}
 
-	participantName := room.Participants[participantIndex].Player.Username
-	isOwner := room.Participants[participantIndex].Player.Username == room.Owner
+	participant := room.Participants[participantIndex]
+	//participant.Player.Room = nil
+	participantName := participant.Player.Username
+
 	shouldDestroyRoom := false
 	var messageType string
 	var log string
@@ -201,12 +207,13 @@ func (room *Room) RemovePlayer(playerID int64) error {
 		messageType = "room.player-left"
 		log = fmt.Sprintf("%s has left the room", participantName)
 	} else {
-		room.Participants[participantIndex].Player.Connection = nil
+		room.Participants[participantIndex].Player.Disconnect()
 		room.Participants[participantIndex].Bot = true
 		messageType = "match.player-left"
 		log = fmt.Sprintf("%s has left the match. A bot was assigned in their place.", participantName)
 	}
 
+	isOwner := participantName == room.Owner
 	if isOwner {
 		err := room.assignNewOwner()
 		if err != nil {
@@ -214,12 +221,14 @@ func (room *Room) RemovePlayer(playerID int64) error {
 		}
 	}
 
+	fmt.Println("WILL SCHEDULE DESTROY ROOM", shouldDestroyRoom)
+
 	if shouldDestroyRoom {
 		room.scheduleRoomDestroy()
 	} else {
 		recipients := []string{}
 		for _, participant := range room.Participants {
-			if participant.Player != nil && !participant.Bot && participant.Player.Connection != nil && participant.Player.Connection.Instance != nil {
+			if participant.Player != nil && !participant.Bot && participant.Player.GetConnection() != nil {
 				recipients = append(recipients, participant.Player.Username)
 			}
 		}
@@ -239,8 +248,8 @@ func (room *Room) scheduleRoomDestroy() {
 		room.destroyTimerCallback.Stop()
 	}
 	logger.LogSystemMessage("room.scheduleRoomDestroy", fmt.Sprintf("Scheduling destruction for room %s in 15s due to last player leaving", room.ID))
-	cb := time.AfterFunc(15*time.Second, func() {
-		room.Destroy(fmt.Sprintf("Room %s destroyed after 15s of inactivity (owner left)", room.ID))
+	cb := time.AfterFunc(5*time.Second, func() {
+		room.destroy(fmt.Sprintf("Room %s destroyed after 15s of inactivity (owner left)", room.ID))
 	})
 	room.destroyTimerCallback = cb
 }
@@ -266,8 +275,9 @@ func (room *Room) ProgressStatus() error {
 
 func (room *Room) assignNewOwner() error {
 	for _, participant := range room.Participants {
-		if participant.Player != nil && participant.Player.Connection != nil && !participant.Bot {
+		if participant.Player != nil && participant.Player.GetConnection() != nil && !participant.Bot {
 			room.Owner = participant.Player.Username
+			fmt.Println("NEW OWNER:", room.Owner)
 			return nil
 		}
 	}
@@ -388,74 +398,102 @@ func (room *Room) EnqueueOutgoingMessage(msg *types.WebSocketServerResponse, rec
 
 func (room *Room) ProcessIncomingMessages() {
 	for {
-		item := <-room.incomingMsgQueue
-		message := item.Message
-		sender := item.Player
+		select {
+		case <-room.ctx.Done():
+			fmt.Println("DONE PROCESSING INCOMING MESSAGES")
+			return
+		case item := <-room.incomingMsgQueue:
+			message := item.Message
+			sender := item.Player
 
-		sender.SetLastActiveTimestamp(time.Now())
+			sender.SetLastActiveTimestamp(time.Now())
 
-		var handled bool
-		var err error
+			var handled bool
+			var err error
 
-		for _, handler := range room.handlers {
-			handled, err = handler(sender, message)
-			if handled || err != nil {
-				break
+			for _, handler := range room.handlers {
+				handled, err = handler(sender, message)
+				if handled || err != nil {
+					break
+				}
 			}
-		}
-		if handled && err == nil {
-			continue
-		}
+			if handled && err == nil {
+				continue
+			}
 
-		if !handled {
-			err = fmt.Errorf("Unknown message type: %s", message.Type)
+			if !handled {
+				err = fmt.Errorf("Unknown message type: %s", message.Type)
+			}
+			logger.LogError(sender.ID, fmt.Sprintf("room-%s.ProcessIncomingMessages", room.ID), -1, err)
+
 		}
-		logger.LogError(sender.ID, fmt.Sprintf("room-%s.ProcessIncomingMessages", room.ID), -1, err)
 	}
 }
 
 func (room *Room) ProcessOutgoingMessages() {
 	for {
-		item := <-room.outgoingMsgQueue
-		var recipients []RoomEntry
+		select {
+		case <-room.ctx.Done():
+			return
+		case item := <-room.outgoingMsgQueue:
+			var recipients []RoomEntry
 
-		// Copy so if a participant disconnects mid broadcast and the room.Participants array changes, we don't panic
-		room.Lock()
-		for _, participant := range room.Participants {
-			if len(item.Recipients) == 0 {
-				recipients = append(recipients, participant)
-				continue
-			}
-			for _, recipient := range item.Recipients {
-				if participant.Player != nil && participant.Player.Username == recipient {
+			// Copy so if a participant disconnects mid broadcast and the room.Participants array changes, we don't panic
+			room.Lock()
+			for _, participant := range room.Participants {
+				if len(item.Recipients) == 0 {
 					recipients = append(recipients, participant)
+					continue
+				}
+				for _, recipient := range item.Recipients {
+					if participant.Player != nil && participant.Player.Username == recipient {
+						recipients = append(recipients, participant)
+					}
 				}
 			}
-		}
-		room.Unlock()
+			room.Unlock()
 
-		for _, participant := range recipients {
-			player := participant.Player
-			if player == nil || player.Connection == nil {
-				continue
+			for _, participant := range recipients {
+				player := participant.Player
+				if player == nil || player.GetConnection() == nil {
+					continue
+				}
+				wsErr := player.WriteJSON(item.Message)
+				if wsErr != nil {
+					logger.LogError(player.ID, fmt.Sprintf("room-%s.ProcessOutgoingMessages", room.ID), -1, wsErr)
+					if !websocket.IsCloseError(wsErr) && !websocket.IsUnexpectedCloseError(wsErr) {
+						logger.LogSystemMessage(
+							fmt.Sprintf("room-%s.ProcessOutgoingMessages.%d.OnDisconnect", room.ID, player.ID),
+							fmt.Sprintf("rrror wasn't due to trying to write in closed connection"),
+						)
+						go player.OnDisconnect(player)
+					}
+					continue
+				}
 			}
-			wsErr := wsUtils.WriteJson(player.Connection, player.ID, item.Message)
-			if wsErr != nil {
-				logger.LogError(player.ID, fmt.Sprintf("room-%s.ProcessOutgoingMessages", room.ID), -1, wsErr)
-				go player.OnDisconnect(player)
-				continue
-			}
-		}
 
-		if item.Callback != nil {
-			go item.Callback()
+			if item.Callback != nil {
+				go item.Callback()
+			}
 		}
 	}
 }
 
-func (room *Room) Destroy(reason string) {
+func (room *Room) destroy(reason string) {
 	logger.LogSystemMessage("room.Destroy", reason)
 	room.roundManager.cancel()
+
+	room.roundManager = nil // Mark roundManager as garbage collectable
+	room.Game = nil         // Mark Game as garbage collectable
+	room.cancel()
+
+	for _, participant := range room.Participants {
+		if participant.Player != nil {
+			participant.Player.Destroy()
+			participant.Player = nil
+		}
+	}
+
 	room.onDestroy(room)
 }
 
@@ -538,4 +576,19 @@ func (room *Room) UpdateParam(player *GamePlayer, key string, value int) error {
 	}
 	room.params.Values[key] = value
 	return nil
+}
+
+func (room *Room) TogglePlayerReadyState(playerID int64, newState bool) error {
+	room.Lock()
+	defer room.Unlock()
+
+	for index, participant := range room.Participants {
+		if participant.Player != nil && participant.Player.ID == playerID {
+			room.Participants[index].Ready = newState
+			return nil
+		}
+	}
+
+	err := fmt.Errorf("Cannot toggle player#%d ready state to %v: not part of room %s", playerID, newState, room.ID)
+	return err
 }

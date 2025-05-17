@@ -1,11 +1,10 @@
 package entities
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/victoroliveirab/settlers/core/packages/round"
-	"github.com/victoroliveirab/settlers/logger"
+	//"github.com/victoroliveirab/settlers/logger"
 )
 
 // FIXME: temporary copy
@@ -26,6 +25,24 @@ var roundTypeTranslation = [16]string{
 	"YearOfPlentyPickResources",
 	"DiscardPhase",
 	"GameOver",
+}
+
+var phaseDurationSpeed15 = map[round.Type]time.Duration{
+	round.SetupSettlement1:          5 * time.Second,
+	round.SetupRoad1:                5 * time.Second,
+	round.SetupSettlement2:          5 * time.Second,
+	round.SetupRoad2:                5 * time.Second,
+	round.FirstRound:                10 * time.Second,
+	round.Regular:                   10 * time.Second,
+	round.MoveRobberDue7:            10 * time.Second,
+	round.MoveRobberDueKnight:       10 * time.Second,
+	round.PickRobbed:                10 * time.Second,
+	round.BetweenTurns:              10 * time.Second,
+	round.BuildRoad1Development:     10 * time.Second,
+	round.BuildRoad2Development:     10 * time.Second,
+	round.MonopolyPickResource:      10 * time.Second,
+	round.YearOfPlentyPickResources: 10 * time.Second,
+	round.DiscardPhase:              10 * time.Second,
 }
 
 var phaseDurationSpeed30 = map[round.Type]time.Duration{
@@ -119,6 +136,7 @@ var phaseDurationSpeed90 = map[round.Type]time.Duration{
 }
 
 var phaseDurationsBySpeed = map[int]map[round.Type]time.Duration{
+	15: phaseDurationSpeed15,
 	30: phaseDurationSpeed30,
 	45: phaseDurationSpeed45,
 	60: phaseDurationSpeed60,
@@ -131,17 +149,16 @@ func newRoundManager(speed int, onRegularTimeout func(), onExpireFuncs map[round
 	if !ok {
 		speed = 60
 	}
-	fmt.Println("SPEED", speed)
 
 	return &roundManager{
-		speed:         speed,
+		speed:         15,
 		onTimeout:     onRegularTimeout,
 		onExpireFuncs: onExpireFuncs,
 	}
 }
 
 func (rm *roundManager) start() {
-	logger.LogSystemMessage("room.roundManager.start", "start()")
+	//logger.LogSystemMessage("room.roundManager.start", "start()")
 	rm.Lock()
 	defer rm.Unlock()
 
@@ -151,40 +168,40 @@ func (rm *roundManager) start() {
 	rm.subPhaseDeadline = nil
 
 	rm.timer = time.AfterFunc(rm.remaining, rm.onTimeout)
-	logger.LogSystemMessage("room.roundManager.start", "starting")
+	//logger.LogSystemMessage("room.roundManager.start", "starting")
 }
 
 func (rm *roundManager) pause() {
-	logger.LogSystemMessage("room.roundManager.pause", "pause()")
+	//logger.LogSystemMessage("room.roundManager.pause", "pause()")
 	rm.Lock()
 	defer rm.Unlock()
 
 	if rm.timer != nil {
 		if rm.timer.Stop() {
-			logger.LogSystemMessage("room.roundManager.pause", "pausing")
+			//logger.LogSystemMessage("room.roundManager.pause", "pausing")
 			rm.remaining = time.Until(*rm.deadline)
 		}
 	}
 }
 
 func (rm *roundManager) resume() {
-	logger.LogSystemMessage("room.roundManager.resume", "resume()")
+	//logger.LogSystemMessage("room.roundManager.resume", "resume()")
 	rm.Lock()
 	defer rm.Unlock()
 
 	newDeadline := time.Now().UTC().Add(rm.remaining)
 	rm.deadline = &newDeadline
 	rm.timer = time.AfterFunc(rm.remaining, rm.onTimeout)
-	logger.LogSystemMessage("room.roundManager.resume", "resuming")
+	//logger.LogSystemMessage("room.roundManager.resume", "resuming")
 }
 
 func (rm *roundManager) cancel() {
-	logger.LogSystemMessage("room.roundManager.cancel", "cancel()")
+	//logger.LogSystemMessage("room.roundManager.cancel", "cancel()")
 	rm.Lock()
 	defer rm.Unlock()
 
 	if rm.timer != nil {
-		logger.LogSystemMessage("room.roundManager.cancel", "stopping timer")
+		//logger.LogSystemMessage("room.roundManager.cancel", "stopping timer")
 		rm.timer.Stop()
 	}
 	rm.cancelSubTimer()
@@ -194,7 +211,7 @@ func (rm *roundManager) cancel() {
 }
 
 func (rm *roundManager) startPhaseTimer(phase round.Type) {
-	logger.LogSystemMessage("room.roundManager.startPhaseTimer", fmt.Sprintf("phase = %s", roundTypeTranslation[phase]))
+	//logger.LogSystemMessage("room.roundManager.startPhaseTimer", fmt.Sprintf("phase = %s", roundTypeTranslation[phase]))
 	rm.Lock()
 	defer rm.Unlock()
 
@@ -209,7 +226,7 @@ func (rm *roundManager) startPhaseTimer(phase round.Type) {
 }
 
 func (rm *roundManager) cancelSubTimer() {
-	logger.LogSystemMessage("room.roundManager.cancelSubTimer", "cancelSubTimer()")
+	//logger.LogSystemMessage("room.roundManager.cancelSubTimer", "cancelSubTimer()")
 	if rm.subTimer != nil {
 		rm.subTimer.Stop()
 		rm.subTimer = nil

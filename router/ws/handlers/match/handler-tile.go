@@ -18,7 +18,7 @@ type tileClickRequestPayload struct {
 func handleTileClick(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[tileClickRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -28,7 +28,7 @@ func handleTileClick(player *entities.GamePlayer, message *types.WebSocketClient
 
 	err = game.MoveRobber(player.Username, tileID)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 

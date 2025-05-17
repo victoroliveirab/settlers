@@ -6,7 +6,6 @@ import (
 	"github.com/victoroliveirab/settlers/core/packages/round"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
 	"github.com/victoroliveirab/settlers/router/ws/types"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
 )
 
 func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
@@ -14,7 +13,7 @@ func handleEndRound(player *entities.GamePlayer, message *types.WebSocketClientR
 	game := room.Game
 	err := game.EndRound(player.Username)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 

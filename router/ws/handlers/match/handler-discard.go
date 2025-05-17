@@ -16,7 +16,7 @@ type discardCardsRequestPayload struct {
 func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[discardCardsRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -24,7 +24,7 @@ func handleDiscardCards(player *entities.GamePlayer, message *types.WebSocketCli
 	game := room.Game
 	err = game.DiscardPlayerCards(player.Username, payload.Resources)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 

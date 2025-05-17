@@ -1,10 +1,12 @@
 package entities
 
 import (
+	"context"
 	"math/rand"
 	"sync"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/victoroliveirab/settlers/core"
 	"github.com/victoroliveirab/settlers/core/packages/round"
 	coreT "github.com/victoroliveirab/settlers/core/types"
@@ -14,7 +16,6 @@ import (
 type Lobby struct {
 	availableRooms []string
 	rooms          map[string]*Room
-	roomByPlayer   map[int64]*Room
 	sync.Mutex
 }
 
@@ -75,6 +76,8 @@ type Room struct {
 	MaxIdleTime          time.Duration                `json:"-"`
 	StartDatetime        time.Time                    `json:"startDatetime"`
 	EndDatetime          time.Time                    `json:"endDatetime"`
+	ctx                  context.Context
+	cancel               context.CancelFunc
 	sync.Mutex
 }
 
@@ -91,11 +94,19 @@ type roundManager struct {
 }
 
 type GamePlayer struct {
-	ID             int64                      `json:"-"`
-	Username       string                     `json:"name"`
-	Connection     *types.WebSocketConnection `json:"-"`
-	Color          *coreT.PlayerColor         `json:"color"`
-	Room           *Room                      `json:"-"`
-	LastTimeActive time.Time                  `json:"-"`
-	OnDisconnect   func(player *GamePlayer)   `json:"-"`
+	ID             int64                    `json:"-"`
+	Username       string                   `json:"name"`
+	Color          *coreT.PlayerColor       `json:"color"`
+	Room           *Room                    `json:"-"`
+	LastTimeActive time.Time                `json:"-"`
+	OnDisconnect   func(player *GamePlayer) `json:"-"`
+
+	//Connection management
+	connMu     sync.Mutex
+	activeConn *websocket.Conn
+	connCancel context.CancelFunc
+
+	// Context fo player lifecycle
+	ctx        context.Context
+	cancelFunc context.CancelFunc
 }

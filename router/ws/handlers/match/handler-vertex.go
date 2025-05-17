@@ -16,7 +16,7 @@ type vertexClickRequestPayload struct {
 func handleVertexClick(player *entities.GamePlayer, message *types.WebSocketClientRequest) (bool, error) {
 	payload, err := utils.ParseJsonPayload[vertexClickRequestPayload](message)
 	if err != nil {
-		wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+		wsErr := player.WriteJsonError(message.Type, err)
 		return true, wsErr
 	}
 
@@ -29,14 +29,14 @@ func handleVertexClick(player *entities.GamePlayer, message *types.WebSocketClie
 	if !exists {
 		err := game.BuildSettlement(player.Username, vertexID)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 		logs = append(logs, fmt.Sprintf("%s built a new settlement.", player.Username))
 	} else {
 		err := game.BuildCity(player.Username, vertexID)
 		if err != nil {
-			wsErr := utils.WriteJsonError(player.Connection, player.ID, message.Type, err)
+			wsErr := player.WriteJsonError(message.Type, err)
 			return true, wsErr
 		}
 		logs = append(logs, fmt.Sprintf("%s built a new city.", player.Username))

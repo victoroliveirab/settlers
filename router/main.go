@@ -10,7 +10,6 @@ import (
 	"github.com/victoroliveirab/settlers/db/models"
 	"github.com/victoroliveirab/settlers/logger"
 	"github.com/victoroliveirab/settlers/router/ws/entities"
-	"github.com/victoroliveirab/settlers/router/ws/utils"
 
 	"github.com/victoroliveirab/settlers/router/ws/handlers/connect"
 	"github.com/victoroliveirab/settlers/router/ws/handlers/match"
@@ -66,19 +65,51 @@ func SetupRoutes(db *sql.DB) {
 				return
 			}
 
-			wsConn := types.NewWebSocketConnection(conn)
-
-			player, err := connect.HandleConnection(wsConn, user, room)
-			if err != nil {
-				utils.WriteJsonError(wsConn, userID, types.RequestType(fmt.Sprintf("%s.reconnect.error", room.Status)), err)
-				return
+			room.Lock()
+			var existingPlayer *entities.GamePlayer
+			for _, participant := range room.Participants {
+				if participant.Player != nil && participant.Player.ID == userID {
+					existingPlayer = participant.Player
+					break
+				}
 			}
-			go player.ListenIncomingMessages(func(msg *types.WebSocketClientRequest) {
-				room.EnqueueIncomingMessage(player, msg)
-			})
-			wsConn.StartHeartBeat(func() {
-				wsConn.Close()
-			})
+			room.Unlock()
+
+			if existingPlayer != nil {
+				existingPlayer.Connect(
+					conn,
+					func(msg *types.WebSocketClientRequest) {
+						room.EnqueueIncomingMessage(existingPlayer, msg)
+					},
+				)
+				room.ReconnectPlayer(existingPlayer)
+				connect.SendCurrentGameState(existingPlayer)
+			} else {
+				if !room.CanAddPlayer() {
+					conn.WriteJSON(map[string]string{"error": "Cannot join this room"})
+					conn.Close()
+					return
+				}
+
+				newPlayer := entities.NewPlayer(
+					user,
+					room,
+					func(player *entities.GamePlayer) {
+						fmt.Println(player.Username, "onDisconnect call")
+					},
+				)
+
+				newPlayer.Connect(
+					conn,
+					func(msg *types.WebSocketClientRequest) {
+						room.EnqueueIncomingMessage(newPlayer, msg)
+					},
+				)
+
+				room.AddPlayer(newPlayer)
+
+				connect.SendCurrentGameState(newPlayer)
+			}
 		}),
 		withSessionMiddleware(db),
 	))
@@ -162,7 +193,7 @@ func SetupRoutes(db *sql.DB) {
 			}
 			id := r.FormValue("id")
 
-			room, err := l.CreateRoom(id, "base4", 4, 0)
+			room, err := l.CreateRoom(id, "base4", 4, 16)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 			}
